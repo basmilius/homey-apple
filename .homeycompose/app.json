@@ -8,7 +8,8 @@
         "local"
     ],
     "name": {
-        "en": "Apple"
+        "en": "Apple",
+        "nl": "Apple"
     },
     "description": {
         "en": "Allows Homey to communicate with various Apple devices.",
