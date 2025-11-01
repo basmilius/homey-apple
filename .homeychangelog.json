@@ -13,5 +13,8 @@
   },
   "0.0.4": {
     "en": "Refactored ESM imports to dynamic imports."
+  },
+  "0.0.5": {
+    "en": "Updated svg assets to not have a set size."
   }
 }
