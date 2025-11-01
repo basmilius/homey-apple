@@ -10,5 +10,8 @@
   },
   "0.0.3": {
     "en": "Updated app assets."
+  },
+  "0.0.4": {
+    "en": "Refactored ESM imports to dynamic imports."
   }
 }
