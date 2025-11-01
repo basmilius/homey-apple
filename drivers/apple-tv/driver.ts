@@ -105,7 +105,6 @@ module.exports = class MyDriver extends Homey.Driver {
             };
 
             console.log(pairingDevice);
-            console.log(credentials);
 
             await session.showView('add_device');
 

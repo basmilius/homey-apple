@@ -28,12 +28,6 @@ module.exports = class MyApp extends Homey.App {
 
         launchApp.registerArgumentAutocompleteListener('app', async (query: string, {device}): Promise<FlowCard.ArgumentAutocompleteResults> => {
             const protocol = device.protocol as CompanionLink;
-            const attentionState = await protocol.api.getAttentionState();
-
-            if (attentionState !== 'awake') {
-                throw new Error(this.homey.__('appletv.cannot_fetch_apps_because_turned_off'));
-            }
-
             const launchableApps = await protocol.api.getLaunchableApps();
 
             return launchableApps
@@ -66,12 +60,6 @@ module.exports = class MyApp extends Homey.App {
 
         switchAccount.registerArgumentAutocompleteListener('account', async (query: string, {device}): Promise<FlowCard.ArgumentAutocompleteResults> => {
             const protocol = device.protocol as CompanionLink;
-            const attentionState = await protocol.api.getAttentionState();
-
-            if (attentionState !== 'awake') {
-                throw new Error(this.homey.__('appletv.cannot_fetch_accounts_because_turned_off'));
-            }
-
             const userAccounts = await protocol.api.getUserAccounts();
 
             return userAccounts

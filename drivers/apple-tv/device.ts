@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 // @ts-ignore
-import { CompanionLink, parseBinaryPlist } from '@basmilius/apple-companion-link';
+import type { CompanionLink } from '@basmilius/apple-companion-link';
 import Homey, { DiscoveryResultMDNSSD, Image } from 'homey';
 import { capabilities } from './driver.compose.json';
 
@@ -101,6 +101,9 @@ module.exports = class AppleTVDevice extends Homey.Device {
     }
 
     async setupProtocol(address: string, port: number): Promise<void> {
+        // @ts-ignore
+        const {CompanionLink} = await import('@basmilius/apple-companion-link');
+
         this.protocol = new CompanionLink({
             address,
             service: {port}
@@ -127,6 +130,9 @@ module.exports = class AppleTVDevice extends Homey.Device {
         });
 
         await this.protocol.api._subscribe('NowPlayingInfo', async (evt: CustomEvent) => {
+            // @ts-ignore
+            const {parseBinaryPlist} = await import('@basmilius/apple-companion-link');
+
             try {
                 const {detail: {NowPlayingInfoKey}} = evt;
                 const buffer = NowPlayingInfoKey.buffer.slice(
