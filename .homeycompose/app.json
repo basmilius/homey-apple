@@ -1,52 +1,52 @@
 {
-    "id": "com.basmilius.apple",
-    "version": "0.0.1",
-    "compatibility": ">=12.4.0",
-    "sdk": 3,
-    "brandColor": "#147efb",
-    "platforms": [
-        "local"
+  "id": "com.basmilius.apple",
+  "version": "0.0.2",
+  "compatibility": ">=12.4.0",
+  "sdk": 3,
+  "brandColor": "#147efb",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Apple",
+    "nl": "Apple"
+  },
+  "description": {
+    "en": "Allows Homey to communicate with various Apple devices.",
+    "nl": "Voeg verschillende Apple devices toe aan je Homey."
+  },
+  "category": [
+    "music",
+    "video"
+  ],
+  "tags": {
+    "en": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
     ],
-    "name": {
-        "en": "Apple",
-        "nl": "Apple"
-    },
-    "description": {
-        "en": "Allows Homey to communicate with various Apple devices.",
-        "nl": "Voeg verschillende Apple devices toe aan je Homey."
-    },
-    "category": [
-        "music",
-        "video"
-    ],
-    "tags": {
-        "en": [
-            "apple",
-            "apple tv",
-            "appletv",
-            "tv",
-            "homepod",
-            "homepod mini",
-            "companion link"
-        ],
-        "nl": [
-            "apple",
-            "apple tv",
-            "appletv",
-            "tv",
-            "homepod",
-            "homepod mini",
-            "companion link"
-        ]
-    },
-    "permissions": [],
-    "images": {
-        "small": "/assets/images/small.png",
-        "large": "/assets/images/large.png",
-        "xlarge": "/assets/images/xlarge.png"
-    },
-    "author": {
-        "name": "Bas Milius",
-        "email": "basmilius@hotmail.com"
-    }
+    "nl": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ]
+  },
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Bas Milius",
+    "email": "basmilius@hotmail.com"
+  }
 }
