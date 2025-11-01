@@ -1,0 +1,12 @@
+{
+    "type": "boolean",
+    "title": {
+        "en": "Back",
+        "nl": "Terug"
+    },
+    "getable": false,
+    "setable": true,
+    "uiComponent": "button",
+    "uiQuickAction": true,
+    "icon": "assets/capabilities/back.svg"
+}

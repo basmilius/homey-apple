@@ -1,0 +1,27 @@
+{
+    "highlight": true,
+    "id": "appletv_launch_app",
+    "title": {
+        "en": "Launch an app",
+        "nl": "Open een app"
+    },
+    "titleFormatted": {
+        "en": "Launch app [[app]]",
+        "nl": "Open app [[app]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+                "en": "App",
+                "nl": "App"
+            }
+        }
+    ]
+}

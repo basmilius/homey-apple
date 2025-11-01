@@ -1,0 +1,6 @@
+{
+  "appletv": {
+    "cannot_fetch_apps_because_turned_off": "The Apple TV must be turned on for the application list to load.",
+    "cannot_fetch_accounts_because_turned_off": "The Apple TV must be turned on for the accounts list to load."
+  }
+}

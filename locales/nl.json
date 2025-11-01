@@ -1,0 +1,6 @@
+{
+  "appletv": {
+    "cannot_fetch_apps_because_turned_off": "De Apple TV moet aan staan om de lijst met beschikbare apps te laden.",
+    "cannot_fetch_accounts_because_turned_off": "De Apple TV moet aan staan om de lijst met gebruikers apps te laden."
+  }
+}

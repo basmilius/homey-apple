@@ -1,0 +1,12 @@
+{
+    "type": "boolean",
+    "title": {
+        "en": "Siri",
+        "nl": "Siri"
+    },
+    "getable": false,
+    "setable": true,
+    "uiComponent": "button",
+    "uiQuickAction": true,
+    "icon": "assets/capabilities/siri.svg"
+}

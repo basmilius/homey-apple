@@ -1,0 +1,374 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.basmilius.apple",
+  "version": "0.0.1",
+  "compatibility": ">=12.4.0",
+  "sdk": 3,
+  "brandColor": "#147efb",
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Apple"
+  },
+  "description": {
+    "en": "Allows Homey to communicate with various Apple devices.",
+    "nl": "Voeg verschillende Apple devices toe aan je Homey."
+  },
+  "category": [
+    "music",
+    "video"
+  ],
+  "tags": {
+    "en": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "nl": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ]
+  },
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Bas Milius",
+    "email": "basmilius@hotmail.com"
+  },
+  "flow": {
+    "actions": [
+      {
+        "highlight": true,
+        "id": "appletv_launch_app",
+        "title": {
+          "en": "Launch an app",
+          "nl": "Open een app"
+        },
+        "titleFormatted": {
+          "en": "Launch app [[app]]",
+          "nl": "Open app [[app]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+              "en": "App",
+              "nl": "App"
+            }
+          }
+        ]
+      },
+      {
+        "id": "appletv_launch_url",
+        "title": {
+          "en": "Launch a URL",
+          "nl": "Open een URL"
+        },
+        "titleFormatted": {
+          "en": "Launch URL [[url]]",
+          "nl": "Open URL [[url]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "name": "url",
+            "type": "text",
+            "required": true,
+            "title": {
+              "en": "URL",
+              "nl": "URL"
+            }
+          }
+        ]
+      },
+      {
+        "id": "appletv_switch_account",
+        "title": {
+          "en": "Switch account",
+          "nl": "Wissel van gebruiker"
+        },
+        "titleFormatted": {
+          "en": "Switch to account [[account]]",
+          "nl": "Wissel naar gebruiker [[account]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "type": "autocomplete",
+            "name": "account",
+            "title": {
+              "en": "Account",
+              "nl": "Gebruiker"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Apple TV"
+      },
+      "class": "settopbox",
+      "discovery": "companion-link",
+      "capabilities": [
+        "speaker_duration",
+        "speaker_next",
+        "speaker_playing",
+        "speaker_prev",
+        "speaker_track",
+        "onoff",
+        "volume_down",
+        "volume_mute",
+        "volume_up",
+        "remote_up",
+        "remote_down",
+        "remote_left",
+        "remote_right",
+        "remote_select",
+        "remote_home",
+        "remote_back",
+        "remote_playpause",
+        "remote_siri"
+      ],
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan"
+      ],
+      "pair": [
+        {
+          "id": "discover",
+          "template": "loading"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "authenticate",
+            "prev": "discover"
+          },
+          "options": {
+            "singular": true,
+            "title": {
+              "en": "Select the device you want to add",
+              "nl": "Selecteer het apparaat die je wil toevoegen",
+              "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
+              "fr": "Sélectionnez l'appareil que vous voulez ajouter",
+              "it": "Seleziona il dispositivo che si desidera aggiungere",
+              "sv": "Välj enheten du vill lägga till",
+              "no": "Velg enheten du vil legge til",
+              "es": "Seleccione el dispositivo que desea agregar",
+              "da": "Vælg enheden, du vil tilføje",
+              "pl": "Wybierz urządzenie, które chcesz dodać"
+            }
+          }
+        },
+        {
+          "id": "authenticate",
+          "template": "pincode",
+          "options": {
+            "title": {
+              "en": "Pincode",
+              "nl": "Pincode",
+              "de": "Pin-Code",
+              "fr": "Code Pin",
+              "it": "Codice Pin",
+              "sv": "Pin-kod",
+              "no": "Pinkode",
+              "es": "Código PIN",
+              "da": "Pin-kode",
+              "pl": "Kod PIN"
+            },
+            "hint": {
+              "en": "Enter the code displayed on the TV",
+              "nl": "Vul de code in die op de TV wordt weergegeven",
+              "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
+              "fr": "Entrez le code affiché sur la télévision",
+              "it": "Inserisci il codice visualizzato sul televisore",
+              "sv": "Ange koden som visas på TV:n",
+              "no": "Skriv inn koden som vises på TV-en",
+              "es": "Ingrese el código que se muestra en la televisión",
+              "da": "Indtast koden, der vises på tv'et",
+              "pl": "Wprowadź kod wyświetlany na telewizorze"
+            },
+            "type": "text",
+            "length": 4
+          },
+          "navigation": {
+            "prev": "discover"
+          }
+        },
+        {
+          "id": "add_my_device"
+        }
+      ],
+      "images": {
+        "small": "/drivers/apple-tv/assets/images/small.png",
+        "large": "/drivers/apple-tv/assets/images/large.png"
+      },
+      "id": "apple-tv"
+    }
+  ],
+  "capabilities": {
+    "remote_back": {
+      "type": "boolean",
+      "title": {
+        "en": "Back",
+        "nl": "Terug"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/back.svg"
+    },
+    "remote_down": {
+      "type": "boolean",
+      "title": {
+        "en": "Down",
+        "nl": "Omlaag"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/down.svg"
+    },
+    "remote_home": {
+      "type": "boolean",
+      "title": {
+        "en": "Home",
+        "nl": "Home"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/home.svg"
+    },
+    "remote_left": {
+      "type": "boolean",
+      "title": {
+        "en": "Left",
+        "nl": "Links"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/left.svg"
+    },
+    "remote_playpause": {
+      "type": "boolean",
+      "title": {
+        "en": "Play/Pause",
+        "nl": "Play/Pauze"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/playpause.svg"
+    },
+    "remote_right": {
+      "type": "boolean",
+      "title": {
+        "en": "Right",
+        "nl": "Rechts"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/right.svg"
+    },
+    "remote_select": {
+      "type": "boolean",
+      "title": {
+        "en": "Select",
+        "nl": "Selecteer"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/select.svg"
+    },
+    "remote_siri": {
+      "type": "boolean",
+      "title": {
+        "en": "Siri",
+        "nl": "Siri"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/siri.svg"
+    },
+    "remote_up": {
+      "type": "boolean",
+      "title": {
+        "en": "Up",
+        "nl": "Omhoog"
+      },
+      "getable": false,
+      "setable": true,
+      "uiComponent": "button",
+      "uiQuickAction": true,
+      "icon": "assets/capabilities/up.svg"
+    }
+  },
+  "discovery": {
+    "companion-link": {
+      "type": "mdns-sd",
+      "mdns-sd": {
+        "name": "_companion-link",
+        "protocol": "tcp"
+      },
+      "id": "{{host}}",
+      "conditions": [
+        [
+          {
+            "field": "txt.rpmd",
+            "match": {
+              "type": "regex",
+              "value": "AppleTV\\d+,\\d+"
+            }
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+    "id": "appletv_launch_url",
+    "title": {
+        "en": "Launch a URL",
+        "nl": "Open een URL"
+    },
+    "titleFormatted": {
+        "en": "Launch URL [[url]]",
+        "nl": "Open URL [[url]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "name": "url",
+            "type": "text",
+            "required": true,
+            "title": {
+                "en": "URL",
+                "nl": "URL"
+            }
+        }
+    ]
+}

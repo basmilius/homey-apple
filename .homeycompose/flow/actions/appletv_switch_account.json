@@ -1,0 +1,26 @@
+{
+    "id": "appletv_switch_account",
+    "title": {
+        "en": "Switch account",
+        "nl": "Wissel van gebruiker"
+    },
+    "titleFormatted": {
+        "en": "Switch to account [[account]]",
+        "nl": "Wissel naar gebruiker [[account]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "autocomplete",
+            "name": "account",
+            "title": {
+                "en": "Account",
+                "nl": "Gebruiker"
+            }
+        }
+    ]
+}
