@@ -1,5 +1,8 @@
 {
   "1.0.0": {
     "en": "First version!"
+  },
+  "0.0.1": {
+    "en": "Initial test version."
   }
 }
