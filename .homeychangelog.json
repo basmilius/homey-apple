@@ -16,5 +16,8 @@
   },
   "0.0.5": {
     "en": "Updated svg assets to not have a set size."
+  },
+  "0.0.6": {
+    "en": "Updated app icon."
   }
 }
