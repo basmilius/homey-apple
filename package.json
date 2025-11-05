@@ -5,7 +5,9 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@basmilius/apple-companion-link": "^0.0.7",
+        "@basmilius/apple-airplay": "^0.0.17",
+        "@basmilius/apple-common": "^0.0.17",
+        "@basmilius/apple-companion-link": "^0.0.17",
         "@basmilius/utils": "^2.13.0"
     },
     "devDependencies": {

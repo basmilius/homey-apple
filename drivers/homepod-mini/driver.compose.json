@@ -1,0 +1,68 @@
+{
+    "name": {
+        "en": "HomePod Mini"
+    },
+    "class": "speaker",
+    "discovery": "homepod-mini",
+    "capabilities": [
+        "speaker_album",
+        "speaker_artist",
+        "speaker_duration",
+        "speaker_next",
+        "speaker_playing",
+        "speaker_position",
+        "speaker_prev",
+        "speaker_stop",
+        "speaker_track",
+        "volume_down",
+        "volume_mute",
+        "volume_set",
+        "volume_up"
+    ],
+    "platforms": [
+        "local"
+    ],
+    "connectivity": [
+        "lan"
+    ],
+    "pair": [
+        {
+            "id": "discover",
+            "template": "loading"
+        },
+        {
+            "id": "list_devices",
+            "template": "list_devices",
+            "navigation": {
+                "next": "authenticate",
+                "prev": "discover"
+            },
+            "options": {
+                "singular": true,
+                "title": {
+                    "en": "Select the device you want to add",
+                    "nl": "Selecteer het apparaat die je wil toevoegen",
+                    "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
+                    "fr": "Sélectionnez l'appareil que vous voulez ajouter",
+                    "it": "Seleziona il dispositivo che si desidera aggiungere",
+                    "sv": "Välj enheten du vill lägga till",
+                    "no": "Velg enheten du vil legge til",
+                    "es": "Seleccione el dispositivo que desea agregar",
+                    "da": "Vælg enheden, du vil tilføje",
+                    "pl": "Wybierz urządzenie, które chcesz dodać"
+                }
+            }
+        },
+        {
+            "id": "authenticate",
+            "template": "loading"
+        },
+        {
+            "id": "add_my_device"
+        }
+    ],
+    "images": {
+        "small": "{{driverAssetsPath}}/images/small.png",
+        "large": "{{driverAssetsPath}}/images/large.png"
+    }
+}

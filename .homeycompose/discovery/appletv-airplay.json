@@ -1,0 +1,19 @@
+{
+    "type": "mdns-sd",
+    "mdns-sd": {
+        "name": "_airplay",
+        "protocol": "tcp"
+    },
+    "id": "{{host}}",
+    "conditions": [
+        [
+            {
+                "field": "txt.model",
+                "match": {
+                    "type": "regex",
+                    "value": "AppleTV\\d+,\\d+"
+                }
+            }
+        ]
+    ]
+}

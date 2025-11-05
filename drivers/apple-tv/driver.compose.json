@@ -3,11 +3,14 @@
         "en": "Apple TV"
     },
     "class": "settopbox",
-    "discovery": "companion-link",
+    "discovery": "appletv-airplay",
     "capabilities": [
+        "speaker_album",
+        "speaker_artist",
         "speaker_duration",
         "speaker_next",
         "speaker_playing",
+        "speaker_position",
         "speaker_prev",
         "speaker_track",
         "onoff",
@@ -39,8 +42,7 @@
             "id": "list_devices",
             "template": "list_devices",
             "navigation": {
-                "next": "authenticate",
-                "prev": "discover"
+                "next": "authenticate"
             },
             "options": {
                 "singular": true,
@@ -86,7 +88,7 @@
                     "da": "Indtast koden, der vises på tv'et",
                     "pl": "Wprowadź kod wyświetlany na telewizorze"
                 },
-                "type": "text",
+                "type": "number",
                 "length": 4
             },
             "navigation": {
