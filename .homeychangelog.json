@@ -28,5 +28,8 @@
   },
   "0.0.9": {
     "en": "Reconnect logic."
+  },
+  "0.0.10": {
+    "en": "Improved airplay feedback logic."
   }
 }
