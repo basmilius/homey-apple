@@ -75,8 +75,6 @@ export default class HomePodMiniDevice extends Homey.Device {
         });
 
         this.#airplay.dataStream!.on('setState', this.#onSetState.bind(this));
-        this.#airplay.dataStream!.on('updateContentItem', this.#onUpdateContentItem.bind(this));
-        this.#airplay.dataStream!.on('updateContentItemArtwork', this.#onUpdateContentItemArtwork.bind(this));
         this.#airplay.dataStream!.on('volumeDidChange', this.#onVolumeDidChange.bind(this));
     }
 
@@ -159,14 +157,6 @@ export default class HomePodMiniDevice extends Homey.Device {
             await this.#artwork?.update();
             this.homey.setTimeout(() => this.#artwork?.update(), 1000);
         }
-    }
-
-    async #onUpdateContentItem(message: Proto.UpdateContentItemMessage): Promise<void> {
-        this.log('update content item', message.contentItems[0]);
-    }
-
-    async #onUpdateContentItemArtwork(message: Proto.UpdateContentItemArtworkMessage): Promise<void> {
-        this.log('update content item artwork', message);
     }
 
     async #onVolumeDidChange(message: Proto.VolumeDidChangeMessage): Promise<void> {
