@@ -25,5 +25,8 @@
   },
   "0.0.8": {
     "en": "Adds HomePod Mini and reworks the protocols."
+  },
+  "0.0.9": {
+    "en": "Reconnect logic."
   }
 }
