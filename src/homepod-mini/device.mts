@@ -21,7 +21,6 @@ export default class HomePodMiniDevice extends Homey.Device {
     #artwork?: Homey.Image;
     #airplay!: AirPlay;
     #feedbackInterval!: NodeJS.Timeout;
-    #lastPlaybackStateTimestamp: number = 0;
 
     async onInit(): Promise<void> {
         try {
@@ -65,7 +64,8 @@ export default class HomePodMiniDevice extends Homey.Device {
         await this.#airplay.setupEventStream(keys.pairingId, keys.sharedSecret);
         await this.#airplay.setupDataStream(keys.sharedSecret);
 
-        // this.#feedbackInterval = this.homey.setInterval(() => this.#airplay.feedback(), 2000);
+        this.homey.clearInterval(this.#feedbackInterval);
+        this.#feedbackInterval = this.homey.setInterval(() => this.#feedback(), 2000);
 
         await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.deviceInfo(keys.pairingId));
 
@@ -83,6 +83,16 @@ export default class HomePodMiniDevice extends Homey.Device {
         const result = strategy.getDiscoveryResult(this.getStore().id);
 
         return result as DiscoveryResultMDNSSD;
+    }
+
+    async #feedback(): Promise<void> {
+        try {
+            await this.#airplay.feedback();
+        } catch (err) {
+            this.error(err);
+
+            await this.#connect();
+        }
     }
 
     async #registerCapabilities(): Promise<void> {

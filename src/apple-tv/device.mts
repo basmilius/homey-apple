@@ -81,7 +81,8 @@ export default class AppleTVDevice extends Homey.Device {
         await this.#airplay.setupEventStream(keys.pairingId, keys.sharedSecret);
         await this.#airplay.setupDataStream(keys.sharedSecret);
 
-        // this.#feedbackInterval = this.homey.setInterval(() => this.#airplay.feedback(), 2000);
+        this.homey.clearInterval(this.#feedbackInterval);
+        this.#feedbackInterval = this.homey.setInterval(() => this.#feedback(), 2000);
 
         await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.deviceInfo(keys.pairingId));
 
@@ -141,6 +142,17 @@ export default class AppleTVDevice extends Homey.Device {
             airplayResult as DiscoveryResultMDNSSD,
             companionLinkResult as DiscoveryResultMDNSSD
         ];
+    }
+
+    async #feedback(): Promise<void> {
+        try {
+            await this.#airplay.feedback();
+        } catch (err) {
+            this.error(err);
+
+            const [airplay] = await this.#discover();
+            await this.#connectAirPlay(airplay);
+        }
     }
 
     async #registerCapabilities(): Promise<void> {
