@@ -1,6 +1,6 @@
 {
   "id": "com.basmilius.apple",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "compatibility": ">=12.4.0",
   "sdk": 3,
   "brandColor": "#147efb",

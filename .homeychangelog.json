@@ -22,5 +22,8 @@
   },
   "0.0.7": {
     "en": "App icon."
+  },
+  "0.0.8": {
+    "en": "Adds HomePod Mini and reworks the protocols."
   }
 }
