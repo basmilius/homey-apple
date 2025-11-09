@@ -61,14 +61,22 @@ export default class HomePodMiniDevice extends Homey.Device {
 
         try {
             await this.#homepod.connect();
+
+            this.#homepod.on('disconnected', (unexpected: boolean) => {
+                if (!unexpected) {
+                    return;
+                }
+
+                this.#connect();
+            });
+
+            this.#homepod.airplay.state.on('setState', async () => await this.#onSetState());
+            this.#homepod.airplay.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
         } catch (err) {
             this.error(err);
             await this.setUnavailable((err as Error).message);
             return;
         }
-
-        this.#homepod.airplay.state.on('setState', async () => await this.#onSetState());
-        this.#homepod.airplay.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
 
     async #discover(): Promise<DiscoveryResultMDNSSD> {

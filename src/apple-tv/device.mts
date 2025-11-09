@@ -1,6 +1,7 @@
 import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
-import type { AccessoryCredentials } from '@basmilius/apple-common';
+// @ts-ignore
+import { type AccessoryCredentials, waitFor } from '@basmilius/apple-common';
 // @ts-ignore
 import { AppleTV } from '@basmilius/apple-devices';
 import Homey, { type DiscoveryResultMDNSSD } from 'homey';
@@ -89,6 +90,19 @@ export default class AppleTVDevice extends Homey.Device {
             this.#appletv.airplay.state.on('setState', async () => await this.#onSetState());
             this.#appletv.airplay.state.on('setArtwork', async (message: any) => console.log(message));
             this.#appletv.airplay.state.on('updateContentItemArtwork', async (message: any) => console.log(message));
+
+            this.#appletv.on('disconnected', async (unexpected: boolean) => {
+                if (!unexpected) {
+                    return;
+                }
+
+                this.log('Disconnected from Apple TV, reconnecting...');
+
+                this.#appletv = undefined;
+                await waitFor(1000);
+                await this.#connect();
+            });
+
             await this.#appletv.connect(await this.#credentials());
         } catch (err) {
             this.error(err);
@@ -194,9 +208,11 @@ export default class AppleTVDevice extends Homey.Device {
     }
 
     async #onSetState(): Promise<void> {
-        await this.setCapabilityValue('speaker_playing', this.#appletv.playbackState === Proto.PlaybackState_Enum.Playing);
+        if (!this.#appletv) {
+            return;
+        }
 
-        this.log('onSetState');
+        await this.setCapabilityValue('speaker_playing', this.#appletv.playbackState === Proto.PlaybackState_Enum.Playing);
 
         const item = this.#appletv.playbackQueue?.contentItems?.[0] ?? null;
 
@@ -217,8 +233,11 @@ export default class AppleTVDevice extends Homey.Device {
             if (item.metadata.artworkURL) {
                 await this.#updateArtwork(item.metadata.artworkURL);
             } else if (item.artworkData?.byteLength > 0) {
-                await this.#updateArtworkBuffer(item.identifier, item.artworkData);
-            } else {
+                this.log('Artwork is available in playback queue, but not yet loaded. Updating it from the playback queue.');
+                await this.#updateArtworkBuffer(item.artworkData);
+            } else if (this.#artworkURL !== this.#contentIdentifier) {
+                this.log('Artwork is not yet available, requesting it through playback queue.');
+                this.#artworkURL = this.#contentIdentifier;
                 await this.#appletv.airplay.requestPlaybackQueue(1);
             }
         } else {
@@ -238,16 +257,13 @@ export default class AppleTVDevice extends Homey.Device {
         }
     }
 
-    async #updateArtworkBuffer(identifier: string, buffer: Buffer): Promise<void> {
-        if (this.#artworkURL !== identifier) {
-            this.#artworkURL = identifier;
-            this.#artwork.setStream((stream: any) => {
-                const pt = new PassThrough();
-                pt.end(buffer);
-                pt.pipe(stream);
-            });
-            await this.#artwork.update();
-        }
+    async #updateArtworkBuffer(buffer: Buffer): Promise<void> {
+        this.#artwork.setStream((stream: any) => {
+            const pt = new PassThrough();
+            pt.end(buffer);
+            pt.pipe(stream);
+        });
+        await this.#artwork.update();
     }
 
     async #updateCapabilities(): Promise<void> {
