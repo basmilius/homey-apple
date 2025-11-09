@@ -37,5 +37,8 @@
   },
   "0.0.12": {
     "en": "Show artworks from video streaming services as well."
+  },
+  "0.0.13": {
+    "en": "Updated underlying apple protocols library."
   }
 }
