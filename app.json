@@ -258,10 +258,7 @@
         "speaker_prev",
         "speaker_stop",
         "speaker_track",
-        "volume_down",
-        "volume_mute",
-        "volume_set",
-        "volume_up"
+        "volume_set"
       ],
       "platforms": [
         "local"

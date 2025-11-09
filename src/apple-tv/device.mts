@@ -1,6 +1,7 @@
-import { AirPlay, Proto } from '@basmilius/apple-airplay';
+import { Proto } from '@basmilius/apple-airplay';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
-import { CompanionLink } from '@basmilius/apple-companion-link';
+// @ts-ignore
+import { AppleTV } from '@basmilius/apple-devices';
 import Homey, { type DiscoveryResultMDNSSD } from 'homey';
 
 const CAPABILITIES = [
@@ -28,16 +29,23 @@ const CAPABILITIES = [
 ];
 
 export default class AppleTVDevice extends Homey.Device {
-    #artwork?: Homey.Image;
-    #airplay!: AirPlay;
-    #companionLink!: CompanionLink;
-    #feedbackInterval!: NodeJS.Timeout;
+    get appletv(): AppleTV {
+        return this.#appletv;
+    }
+
+    #appletv!: AppleTV;
+    #artwork!: Homey.Image;
+    #artworkURL?: string;
 
     async onInit(): Promise<void> {
+        this.#artwork = await this.homey.images.createImage();
+
         try {
             await this.#updateCapabilities();
             await this.#connect();
             await this.#registerCapabilities();
+
+            await this.setAlbumArtImage(this.#artwork);
 
             this.log(`AppleTVDevice ${this.getName()} has been initialized.`);
         } catch (err) {
@@ -47,8 +55,7 @@ export default class AppleTVDevice extends Homey.Device {
     }
 
     async onUninit(): Promise<void> {
-        await this.#airplay?.disconnect();
-        this.homey.clearInterval(this.#feedbackInterval);
+        await this.#appletv?.disconnect();
 
         this.log('AppleTVDevice has been uninitialized.');
     }
@@ -56,67 +63,35 @@ export default class AppleTVDevice extends Homey.Device {
     async #connect(): Promise<void> {
         const [airplay, companionLink] = await this.#discover();
 
-        await this.#connectAirPlay(airplay);
-        await this.#connectCompanionLink(companionLink);
-    }
-
-    async #connectAirPlay(device: DiscoveryResultMDNSSD): Promise<void> {
-        this.#airplay = new AirPlay({
-            address: device.address,
-            service: {
-                port: device.port
+        this.#appletv = new AppleTV(
+            {
+                address: airplay.address,
+                service: {
+                    port: airplay.port
+                },
+                packet: {
+                    additionals: [{
+                        rdata: airplay.txt
+                    }]
+                }
+            },
+            {
+                address: companionLink.address,
+                service: {
+                    port: companionLink.port
+                }
             }
-        });
-
-        await this.#airplay.connect();
-
-        const credentials = await this.#credentials();
-        const keys = await this.#airplay.verify.start(credentials);
-
-        await this.#airplay.rtsp.enableEncryption(
-            keys.accessoryToControllerKey,
-            keys.controllerToAccessoryKey
         );
 
-        await this.#airplay.setupEventStream(keys.pairingId, keys.sharedSecret);
-        await this.#airplay.setupDataStream(keys.sharedSecret);
+        try {
+            await this.#appletv.connect(await this.#credentials());
+        } catch (err) {
+            this.error(err);
+            await this.setUnavailable((err as Error).message);
+            return;
+        }
 
-        await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.deviceInfo(keys.pairingId));
-
-        this.#airplay.dataStream!.on('deviceInfo', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.setConnectionState());
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.clientUpdatesConfig());
-
-            this.homey.clearInterval(this.#feedbackInterval);
-            this.#feedbackInterval = this.homey.setInterval(() => this.#feedback(), 2000);
-        });
-
-        this.#airplay.dataStream!.on('setState', this.#onSetState.bind(this));
-        this.#airplay.dataStream!.on('volumeDidChange', this.#onVolumeDidChange.bind(this));
-    }
-
-    async #connectCompanionLink(device: DiscoveryResultMDNSSD): Promise<void> {
-        this.#companionLink = new CompanionLink({
-            address: device.address,
-            service: {
-                port: device.port
-            }
-        });
-
-        await this.#companionLink.connect();
-
-        const credentials = await this.#credentials();
-        const keys = await this.#companionLink.verify.start(credentials);
-
-        await this.#companionLink.socket.enableEncryption(
-            keys.accessoryToControllerKey,
-            keys.controllerToAccessoryKey
-        );
-
-        await this.#companionLink.api._systemInfo(credentials.pairingId);
-        await this.#companionLink.api._touchStart();
-        await this.#companionLink.api._sessionStart();
-        await this.#companionLink.api._tvrcSessionStart();
+        this.#appletv.airplay.state.on('setState', async () => await this.#onSetState());
     }
 
     async #credentials(): Promise<AccessoryCredentials> {
@@ -144,70 +119,58 @@ export default class AppleTVDevice extends Homey.Device {
         ];
     }
 
-    async #feedback(): Promise<void> {
-        try {
-            await this.#airplay.feedback();
-        } catch (err) {
-            this.error(err);
-
-            const [airplay] = await this.#discover();
-            await this.#airplay.disconnect();
-            await this.#connectAirPlay(airplay);
-        }
-    }
-
     async #registerCapabilities(): Promise<void> {
         await this.#registerOnOff();
         await this.#registerRemote();
 
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#companionLink.api.mediaControlCommand('NextTrack');
+            await this.#appletv.next();
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#companionLink.api.mediaControlCommand('PreviousTrack');
+            await this.#appletv.previous();
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.Stop));
+            await this.#appletv.stop();
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.Play));
+                await this.#appletv.play();
             } else {
-                await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.Pause));
+                await this.#appletv.pause();
             }
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#companionLink.api.pressButton('VolumeUp');
+            await this.#appletv.volumeUp();
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#companionLink.api.pressButton('VolumeDown');
+            await this.#appletv.volumeDown();
         });
 
         this.registerCapabilityListener('volume_mute', async () => {
-            await this.#companionLink.api.pressButton('PageUp');
+            await this.#appletv.volumeMute();
         });
     }
 
     async #registerOnOff(): Promise<void> {
-        const state = await this.#companionLink.api.getAttentionState();
+        const state = await this.#appletv.companionLink.getAttentionState();
 
         this.registerCapabilityListener('onoff', async (value: boolean) => {
             if (value) {
-                await this.#companionLink.api.pressButton('Wake');
+                await this.#appletv.turnOn();
             } else {
-                await this.#companionLink.api.pressButton('Sleep');
+                await this.#appletv.turnOff();
             }
         });
 
         await this.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
 
-        await this.#companionLink.api._subscribe('TVSystemStatus', (state: number) => {
-            this.setCapabilityValue('onoff', state === 0x02 || state === 0x03);
+        this.#appletv.companionLink.on('power', (on: boolean) => {
+            this.setCapabilityValue('onoff', on);
         });
     }
 
@@ -215,54 +178,51 @@ export default class AppleTVDevice extends Homey.Device {
         const keys = CAPABILITIES.filter(k => k.startsWith('remote_'));
 
         this.registerMultipleCapabilityListener(keys, async values => {
-            values.remote_up === true && await this.#companionLink.api.pressButton('Up');
-            values.remote_down === true && await this.#companionLink.api.pressButton('Down');
-            values.remote_left === true && await this.#companionLink.api.pressButton('Left');
-            values.remote_right === true && await this.#companionLink.api.pressButton('Right');
-            values.remote_select === true && await this.#companionLink.api.pressButton('Select');
-            values.remote_home === true && await this.#companionLink.api.pressButton('Home');
-            values.remote_back === true && await this.#companionLink.api.pressButton('Menu');
-            values.remote_playpause === true && await this.#companionLink.api.pressButton('PlayPause');
-            values.remote_siri === true && await this.#companionLink.api.pressButton('Siri', 'Hold', 1000);
+            values.remote_up === true && await this.#appletv.companionLink.pressButton('Up');
+            values.remote_down === true && await this.#appletv.companionLink.pressButton('Down');
+            values.remote_left === true && await this.#appletv.companionLink.pressButton('Left');
+            values.remote_right === true && await this.#appletv.companionLink.pressButton('Right');
+            values.remote_select === true && await this.#appletv.companionLink.pressButton('Select');
+            values.remote_home === true && await this.#appletv.companionLink.pressButton('Home');
+            values.remote_back === true && await this.#appletv.companionLink.pressButton('Menu');
+            values.remote_playpause === true && await this.#appletv.companionLink.pressButton('PlayPause');
+            values.remote_siri === true && await this.#appletv.companionLink.pressButton('Siri', 'Hold', 1000);
         }, 0);
     }
 
-    async #onSetState(message: Proto.SetStateMessage): Promise<void> {
-        const contentItem = message.playbackQueue?.contentItems?.[0];
-        const metadata = contentItem?.metadata;
+    async #onSetState(): Promise<void> {
+        await this.setCapabilityValue('speaker_playing', this.#appletv.playbackState === Proto.PlaybackState_Enum.Playing);
 
-        if (message.playbackState !== Proto.PlaybackState_Enum.Unknown) {
-            await this.setCapabilityValue('speaker_playing', message.playbackState === Proto.PlaybackState_Enum.Playing);
-        }
+        const item = this.#appletv.playbackQueue?.contentItems?.[0] ?? null;
 
-        this.log(metadata);
-        this.log(`playbackState = ${message.playbackState}; playbackStateTimestamp = ${message.playbackStateTimestamp}`);
-
-        if (!metadata) {
+        if (!item) {
+            // todo(Bas): Figure out if we want to clear capabilities here.
             return;
         }
 
-        this.#artwork?.unregister();
-        this.#artwork = undefined;
+        await this.setCapabilityValue('speaker_album', item.metadata.albumName);
+        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName);
+        await this.setCapabilityValue('speaker_track', item.metadata.title);
+        await this.setCapabilityValue('speaker_duration', item.metadata.duration);
+        await this.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-        await this.setCapabilityValue('speaker_album', metadata.albumName);
-        await this.setCapabilityValue('speaker_artist', metadata.trackArtistName);
-        await this.setCapabilityValue('speaker_track', metadata.title);
-        await this.setCapabilityValue('speaker_duration', metadata.duration);
-        await this.setCapabilityValue('speaker_position', metadata.elapsedTime);
-
-        if (metadata.artworkAvailable && metadata.artworkURL) {
-            this.#artwork = await this.homey.images.createImage();
-            this.#artwork!.setUrl(metadata.artworkURL);
-            await this.setAlbumArtImage(this.#artwork);
-            await this.#artwork?.update();
-            this.homey.setTimeout(() => this.#artwork?.update(), 1000);
+        if (item.metadata.artworkAvailable && item.metadata.artworkURL) {
+            await this.#updateArtwork(item.metadata.artworkURL);
+        } else {
+            await this.#updateArtwork(null);
         }
     }
 
-    async #onVolumeDidChange(message: Proto.VolumeDidChangeMessage): Promise<void> {
-        this.log(`Volume changed to ${message.volume}`);
-        await this.setCapabilityValue('volume_set', message.volume);
+    async #updateArtwork(url: string | null): Promise<void> {
+        if (url) {
+            if (this.#artworkURL !== url) {
+                this.#artwork.setUrl(url);
+                this.#artworkURL = url;
+                await this.#artwork.update();
+            }
+        } else {
+            // todo(Bas): clear artwork.
+        }
     }
 
     async #updateCapabilities(): Promise<void> {

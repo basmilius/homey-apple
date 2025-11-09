@@ -1,4 +1,6 @@
-import { AirPlay, Proto } from '@basmilius/apple-airplay';
+import { Proto } from '@basmilius/apple-airplay';
+// @ts-ignore
+import { HomePodMini } from '@basmilius/apple-devices';
 import Homey, { type DiscoveryResultMDNSSD } from 'homey';
 
 const CAPABILITIES = [
@@ -11,22 +13,23 @@ const CAPABILITIES = [
     'speaker_prev',
     'speaker_stop',
     'speaker_track',
-    'volume_down',
-    'volume_mute',
-    'volume_set',
-    'volume_up'
+    'volume_set'
 ];
 
 export default class HomePodMiniDevice extends Homey.Device {
-    #artwork?: Homey.Image;
-    #airplay!: AirPlay;
-    #feedbackInterval!: NodeJS.Timeout;
+    #artwork!: Homey.Image;
+    #artworkURL?: string;
+    #homepod!: HomePodMini;
 
     async onInit(): Promise<void> {
+        this.#artwork = await this.homey.images.createImage();
+
         try {
             await this.#updateCapabilities();
             await this.#connect();
             await this.#registerCapabilities();
+
+            await this.setAlbumArtImage(this.#artwork);
 
             this.log(`HomePodMiniDevice ${this.getName()} has been initialized.`);
         } catch (err) {
@@ -36,8 +39,7 @@ export default class HomePodMiniDevice extends Homey.Device {
     }
 
     async onUninit(): Promise<void> {
-        await this.#airplay?.disconnect();
-        this.homey.clearInterval(this.#feedbackInterval);
+        await this.#homepod?.disconnect();
 
         this.log('HomePodMiniDevice has been uninitialized.');
     }
@@ -45,37 +47,28 @@ export default class HomePodMiniDevice extends Homey.Device {
     async #connect(): Promise<void> {
         const device = await this.#discover();
 
-        this.#airplay = new AirPlay({
+        this.#homepod = new HomePodMini({
             address: device.address,
             service: {
                 port: device.port
+            },
+            packet: {
+                additionals: [{
+                    rdata: device.txt
+                }]
             }
         });
 
-        await this.#airplay.connect();
-        await this.#airplay.pairing.start();
-        const keys = await this.#airplay.pairing.transient();
+        try {
+            await this.#homepod.connect();
+        } catch (err) {
+            this.error(err);
+            await this.setUnavailable((err as Error).message);
+            return;
+        }
 
-        await this.#airplay.rtsp.enableEncryption(
-            keys.accessoryToControllerKey,
-            keys.controllerToAccessoryKey
-        );
-
-        await this.#airplay.setupEventStream(keys.pairingId, keys.sharedSecret);
-        await this.#airplay.setupDataStream(keys.sharedSecret);
-
-        await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.deviceInfo(keys.pairingId));
-
-        this.#airplay.dataStream!.on('deviceInfo', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.setConnectionState());
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.clientUpdatesConfig());
-
-            this.homey.clearInterval(this.#feedbackInterval);
-            this.#feedbackInterval = this.homey.setInterval(() => this.#feedback(), 2000);
-        });
-
-        this.#airplay.dataStream!.on('setState', this.#onSetState.bind(this));
-        this.#airplay.dataStream!.on('volumeDidChange', this.#onVolumeDidChange.bind(this));
+        this.#homepod.airplay.state.on('setState', async () => await this.#onSetState());
+        this.#homepod.airplay.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
 
     async #discover(): Promise<DiscoveryResultMDNSSD> {
@@ -85,94 +78,85 @@ export default class HomePodMiniDevice extends Homey.Device {
         return result as DiscoveryResultMDNSSD;
     }
 
-    async #feedback(): Promise<void> {
-        try {
-            await this.#airplay.feedback();
-        } catch (err) {
-            this.error(err);
-
-            await this.#airplay.disconnect();
-            await this.#connect();
-        }
-    }
-
     async #registerCapabilities(): Promise<void> {
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.NextInContext));
+            await this.#homepod.next();
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.PreviousInContext));
+            await this.#homepod.previous();
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.Stop));
+            await this.#homepod.stop()
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.Play));
+                await this.#homepod.play();
             } else {
-                await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendCommand(Proto.Command.Pause));
+                await this.#homepod.pause();
             }
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendButtonEvent(12, 0xE9, true));
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendButtonEvent(12, 0xE9, false));
+            await this.#homepod.airplay.sendButtonEvent(12, 0xE9, true);
+            await this.#homepod.airplay.sendButtonEvent(12, 0xE9, false);
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendButtonEvent(12, 0xEA, true));
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendButtonEvent(12, 0xEA, false));
+            await this.#homepod.airplay.sendButtonEvent(12, 0xEA, true);
+            await this.#homepod.airplay.sendButtonEvent(12, 0xEA, false);
         });
 
         this.registerCapabilityListener('volume_mute', async () => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendButtonEvent(12, 0xE2, true));
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.sendButtonEvent(12, 0xE2, false));
+            await this.#homepod.airplay.sendButtonEvent(12, 0xE2, true);
+            await this.#homepod.airplay.sendButtonEvent(12, 0xE2, false);
         });
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
-            await this.#airplay.dataStream!.exchange(this.#airplay.dataStream!.messages.setVolume(volume));
+            await this.#homepod.setVolume(volume);
         });
     }
 
-    async #onSetState(message: Proto.SetStateMessage): Promise<void> {
-        const contentItem = message.playbackQueue?.contentItems?.[0];
-        const metadata = contentItem?.metadata;
+    async #onSetState(): Promise<void> {
+        await this.setCapabilityValue('speaker_playing', this.#homepod.playbackState === Proto.PlaybackState_Enum.Playing);
 
-        if (message.playbackState !== Proto.PlaybackState_Enum.Unknown) {
-            await this.setCapabilityValue('speaker_playing', message.playbackState === Proto.PlaybackState_Enum.Playing);
-        }
+        const item = this.#homepod.playbackQueue?.contentItems?.[0] ?? null;
 
-        this.log(metadata);
-        this.log(`playbackState = ${message.playbackState}; playbackStateTimestamp = ${message.playbackStateTimestamp}`);
-
-        if (!metadata) {
+        if (!item) {
+            // todo(Bas): Figure out if we want to clear capabilities here.
             return;
         }
 
-        this.#artwork?.unregister();
-        this.#artwork = undefined;
+        await this.setCapabilityValue('speaker_album', item.metadata.albumName);
+        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName);
+        await this.setCapabilityValue('speaker_track', item.metadata.title);
+        await this.setCapabilityValue('speaker_duration', item.metadata.duration);
+        await this.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-        await this.setCapabilityValue('speaker_album', metadata.albumName);
-        await this.setCapabilityValue('speaker_artist', metadata.trackArtistName);
-        await this.setCapabilityValue('speaker_track', metadata.title);
-        await this.setCapabilityValue('speaker_duration', metadata.duration);
-        await this.setCapabilityValue('speaker_position', metadata.elapsedTime);
-
-        if (metadata.artworkAvailable && metadata.artworkURL) {
-            this.#artwork = await this.homey.images.createImage();
-            this.#artwork!.setUrl(metadata.artworkURL);
-            await this.setAlbumArtImage(this.#artwork);
-            await this.#artwork?.update();
-            this.homey.setTimeout(() => this.#artwork?.update(), 1000);
+        if (item.metadata.artworkAvailable && item.metadata.artworkURL) {
+            await this.#updateArtwork(item.metadata.artworkURL);
+        } else {
+            await this.#updateArtwork(null);
         }
     }
 
-    async #onVolumeDidChange(message: Proto.VolumeDidChangeMessage): Promise<void> {
-        this.log(`Volume changed to ${message.volume}`);
-        await this.setCapabilityValue('volume_set', message.volume);
+    async #onVolumeDidChange(): Promise<void> {
+        this.log(`Volume changed to ${this.#homepod.airplay.state.volume}`);
+        await this.setCapabilityValue('volume_set', this.#homepod.airplay.state.volume);
+    }
+
+    async #updateArtwork(url: string | null): Promise<void> {
+        if (url) {
+            if (this.#artworkURL !== url) {
+                this.#artwork.setUrl(url);
+                this.#artworkURL = url;
+                await this.#artwork.update();
+            }
+        } else {
+            // todo(Bas): clear artwork.
+        }
     }
 
     async #updateCapabilities(): Promise<void> {
