@@ -2,7 +2,7 @@
 import { enableDebug } from '@basmilius/apple-common';
 import Homey from 'homey';
 
-enableDebug();
+// enableDebug();
 
 export default class AppleApp extends Homey.App {
     async onInit(): Promise<void> {

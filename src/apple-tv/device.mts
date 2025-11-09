@@ -1,3 +1,4 @@
+import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 // @ts-ignore
@@ -36,6 +37,7 @@ export default class AppleTVDevice extends Homey.Device {
     #appletv!: AppleTV;
     #artwork!: Homey.Image;
     #artworkURL?: string;
+    #contentIdentifier?: string;
 
     async onInit(): Promise<void> {
         this.#artwork = await this.homey.images.createImage();
@@ -84,14 +86,15 @@ export default class AppleTVDevice extends Homey.Device {
         );
 
         try {
+            this.#appletv.airplay.state.on('setState', async () => await this.#onSetState());
+            this.#appletv.airplay.state.on('setArtwork', async (message: any) => console.log(message));
+            this.#appletv.airplay.state.on('updateContentItemArtwork', async (message: any) => console.log(message));
             await this.#appletv.connect(await this.#credentials());
         } catch (err) {
             this.error(err);
             await this.setUnavailable((err as Error).message);
             return;
         }
-
-        this.#appletv.airplay.state.on('setState', async () => await this.#onSetState());
     }
 
     async #credentials(): Promise<AccessoryCredentials> {
@@ -193,6 +196,8 @@ export default class AppleTVDevice extends Homey.Device {
     async #onSetState(): Promise<void> {
         await this.setCapabilityValue('speaker_playing', this.#appletv.playbackState === Proto.PlaybackState_Enum.Playing);
 
+        this.log('onSetState');
+
         const item = this.#appletv.playbackQueue?.contentItems?.[0] ?? null;
 
         if (!item) {
@@ -200,14 +205,22 @@ export default class AppleTVDevice extends Homey.Device {
             return;
         }
 
+        this.#contentIdentifier = item.identifier;
+
         await this.setCapabilityValue('speaker_album', item.metadata.albumName);
-        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName);
+        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || this.#appletv.airplay.state.nowPlayingClient?.displayName || '-');
         await this.setCapabilityValue('speaker_track', item.metadata.title);
         await this.setCapabilityValue('speaker_duration', item.metadata.duration);
         await this.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-        if (item.metadata.artworkAvailable && item.metadata.artworkURL) {
-            await this.#updateArtwork(item.metadata.artworkURL);
+        if (item.metadata.artworkAvailable) {
+            if (item.metadata.artworkURL) {
+                await this.#updateArtwork(item.metadata.artworkURL);
+            } else if (item.artworkData?.byteLength > 0) {
+                await this.#updateArtworkBuffer(item.identifier, item.artworkData);
+            } else {
+                await this.#appletv.airplay.requestPlaybackQueue(1);
+            }
         } else {
             await this.#updateArtwork(null);
         }
@@ -216,12 +229,24 @@ export default class AppleTVDevice extends Homey.Device {
     async #updateArtwork(url: string | null): Promise<void> {
         if (url) {
             if (this.#artworkURL !== url) {
-                this.#artwork.setUrl(url);
                 this.#artworkURL = url;
+                this.#artwork.setUrl(url);
                 await this.#artwork.update();
             }
         } else {
             // todo(Bas): clear artwork.
+        }
+    }
+
+    async #updateArtworkBuffer(identifier: string, buffer: Buffer): Promise<void> {
+        if (this.#artworkURL !== identifier) {
+            this.#artworkURL = identifier;
+            this.#artwork.setStream((stream: any) => {
+                const pt = new PassThrough();
+                pt.end(buffer);
+                pt.pipe(stream);
+            });
+            await this.#artwork.update();
         }
     }
 
