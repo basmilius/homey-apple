@@ -18,6 +18,7 @@ const CAPABILITIES = [
 
 export default abstract class HomePodBaseDevice extends Homey.Device {
     #artwork!: Homey.Image;
+    #artworkEmpty!: Homey.Image;
     #artworkURL?: string;
     #homepod!: HomePod | HomePodMini;
 
@@ -25,6 +26,7 @@ export default abstract class HomePodBaseDevice extends Homey.Device {
 
     async onInit(): Promise<void> {
         this.#artwork = await this.homey.images.createImage();
+        this.#artworkEmpty = await this.homey.images.createImage();
 
         this.#homepod = await this.createHomePodInstance();
         this.#homepod.on('connected', () => this.#onConnected());
@@ -45,6 +47,7 @@ export default abstract class HomePodBaseDevice extends Homey.Device {
 
     async onUninit(): Promise<void> {
         await this.#artwork.unregister();
+        await this.#artworkEmpty.unregister();
         await this.#homepod?.disconnect();
 
         this.log(`HomePod "${this.getName()}" has been uninitialized.`);
@@ -167,13 +170,15 @@ export default abstract class HomePodBaseDevice extends Homey.Device {
 
     async #updateArtwork(url: string | null): Promise<void> {
         if (url) {
+            await this.setAlbumArtImage(this.#artwork);
+
             if (this.#artworkURL !== url) {
                 this.#artwork.setUrl(url);
                 this.#artworkURL = url;
                 await this.#artwork.update();
             }
         } else {
-            // todo(Bas): clear artwork.
+            await this.setAlbumArtImage(this.#artworkEmpty);
         }
     }
 

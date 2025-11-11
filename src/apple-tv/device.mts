@@ -36,11 +36,13 @@ export default class AppleTVDevice extends Homey.Device {
 
     #appletv!: AppleTV;
     #artwork!: Homey.Image;
+    #artworkEmpty!: Homey.Image;
     #artworkURL?: string;
     #contentIdentifier?: string;
 
     async onInit(): Promise<void> {
         this.#artwork = await this.homey.images.createImage();
+        this.#artworkEmpty = await this.homey.images.createImage();
 
         this.#appletv = await this.#createAppleTVInstance();
         this.#appletv.on('connected', () => this.#onConnected());
@@ -62,6 +64,7 @@ export default class AppleTVDevice extends Homey.Device {
 
     async onUninit(): Promise<void> {
         await this.#artwork.unregister();
+        await this.#artworkEmpty.unregister();
         await this.#appletv?.disconnect();
 
         this.log(`Apple TV "${this.getName()}" has been uninitialized.`);
@@ -203,12 +206,21 @@ export default class AppleTVDevice extends Homey.Device {
         await waitFor(1000);
 
         const [, companionLink] = await this.#discover();
-        await this.#appletv.companionLink.setDiscoveryResult(companionLink);
+        await this.#appletv.companionLink.setDiscoveryResult({
+            address: companionLink.address,
+            service: {
+                port: companionLink.port
+            }
+        });
         await this.#connect();
     }
 
     async #onSetState(message: Proto.SetStateMessage): Promise<void> {
         const client = this.#appletv.airplay.state.nowPlayingClient;
+
+        this.log(`Received state update from HomePod "${this.getName()}"`);
+        this.log(message.playerPath?.client?.bundleIdentifier, client?.bundleIdentifier);
+        this.log('PlaybackState', client?.playbackState);
 
         if (message.playerPath?.client?.bundleIdentifier !== client?.bundleIdentifier) {
             return;
@@ -260,13 +272,15 @@ export default class AppleTVDevice extends Homey.Device {
 
     async #updateArtwork(url: string | null): Promise<void> {
         if (url) {
+            await this.setAlbumArtImage(this.#artwork);
+
             if (this.#artworkURL !== url) {
                 this.#artworkURL = url;
                 this.#artwork.setUrl(url);
                 await this.#artwork.update();
             }
         } else {
-            // todo(Bas): clear artwork.
+            await this.setAlbumArtImage(this.#artworkEmpty);
         }
     }
 
