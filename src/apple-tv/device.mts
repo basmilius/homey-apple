@@ -1,9 +1,8 @@
 import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
-// @ts-ignore
-import { type AccessoryCredentials, waitFor } from '@basmilius/apple-common';
-// @ts-ignore
+import type { AccessoryCredentials } from '@basmilius/apple-common';
 import { AppleTV } from '@basmilius/apple-devices';
+import { waitFor } from '@basmilius/utils';
 import Homey, { type DiscoveryResultMDNSSD } from 'homey';
 
 const CAPABILITIES = [
@@ -43,30 +42,43 @@ export default class AppleTVDevice extends Homey.Device {
     async onInit(): Promise<void> {
         this.#artwork = await this.homey.images.createImage();
 
-        try {
-            await this.#updateCapabilities();
-            await this.#connect();
-            await this.#registerCapabilities();
+        this.#appletv = await this.#createAppleTVInstance();
+        this.#appletv.on('connected', () => this.#onConnected());
+        this.#appletv.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
 
-            await this.setAlbumArtImage(this.#artwork);
+        this.#appletv.airplay.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
+        this.#appletv.airplay.state.on('setArtwork', async (message: any) => console.log(message));
+        this.#appletv.airplay.state.on('updateContentItemArtwork', async (message: any) => console.log(message));
 
-            this.log(`AppleTVDevice ${this.getName()} has been initialized.`);
-        } catch (err) {
-            this.error(err);
-            await this.setUnavailable((err as Error).message);
-        }
+        this.#appletv.companionLink.on('power', (on: boolean) => this.setCapabilityValue('onoff', on));
+
+        await this.#updateCapabilities();
+        await this.#registerCapabilities();
+        await this.#connect();
+        await this.setAlbumArtImage(this.#artwork);
+
+        this.log(`Apple TV "${this.getName()}" has been initialized.`);
     }
 
     async onUninit(): Promise<void> {
         await this.#appletv?.disconnect();
 
-        this.log('AppleTVDevice has been uninitialized.');
+        this.log(`Apple TV "${this.getName()}" has been uninitialized.`);
     }
 
     async #connect(): Promise<void> {
+        try {
+            await this.#appletv.connect(await this.#credentials());
+        } catch (err) {
+            this.error(`Apple TV "${this.getName()}" received an error.`, err);
+            await this.setUnavailable((err as Error).message);
+        }
+    }
+
+    async #createAppleTVInstance(): Promise<AppleTV> {
         const [airplay, companionLink] = await this.#discover();
 
-        this.#appletv = new AppleTV(
+        return new AppleTV(
             {
                 address: airplay.address,
                 service: {
@@ -85,30 +97,6 @@ export default class AppleTVDevice extends Homey.Device {
                 }
             }
         );
-
-        try {
-            this.#appletv.airplay.state.on('setState', async () => await this.#onSetState());
-            this.#appletv.airplay.state.on('setArtwork', async (message: any) => console.log(message));
-            this.#appletv.airplay.state.on('updateContentItemArtwork', async (message: any) => console.log(message));
-
-            this.#appletv.on('disconnected', async (unexpected: boolean) => {
-                if (!unexpected) {
-                    return;
-                }
-
-                this.log('Disconnected from Apple TV, reconnecting...');
-
-                this.#appletv = undefined;
-                await waitFor(1000);
-                await this.#connect();
-            });
-
-            await this.#appletv.connect(await this.#credentials());
-        } catch (err) {
-            this.error(err);
-            await this.setUnavailable((err as Error).message);
-            return;
-        }
     }
 
     async #credentials(): Promise<AccessoryCredentials> {
@@ -174,20 +162,12 @@ export default class AppleTVDevice extends Homey.Device {
     }
 
     async #registerOnOff(): Promise<void> {
-        const state = await this.#appletv.companionLink.getAttentionState();
-
         this.registerCapabilityListener('onoff', async (value: boolean) => {
             if (value) {
                 await this.#appletv.turnOn();
             } else {
                 await this.#appletv.turnOff();
             }
-        });
-
-        await this.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
-
-        this.#appletv.companionLink.on('power', (on: boolean) => {
-            this.setCapabilityValue('onoff', on);
         });
     }
 
@@ -207,24 +187,53 @@ export default class AppleTVDevice extends Homey.Device {
         }, 0);
     }
 
-    async #onSetState(): Promise<void> {
-        if (!this.#appletv) {
+    async #onConnected(): Promise<void> {
+        const state = await this.#appletv.companionLink.getAttentionState();
+        await this.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
+    }
+
+    async #onDisconnected(unexpected: boolean): Promise<void> {
+        if (!unexpected) {
             return;
         }
 
-        await this.setCapabilityValue('speaker_playing', this.#appletv.playbackState === Proto.PlaybackState_Enum.Playing);
+        this.log(`Disconnected from Apple TV "${this.getName()}", reconnecting in a moment...`);
 
-        const item = this.#appletv.playbackQueue?.contentItems?.[0] ?? null;
+        await waitFor(1000);
+        await this.#connect();
+    }
+
+    async #onSetState(message: Proto.SetStateMessage): Promise<void> {
+        const client = this.#appletv.airplay.state.nowPlayingClient;
+
+        if (message.playerPath?.client?.bundleIdentifier !== client?.bundleIdentifier) {
+            return;
+        }
+
+        if (!client) {
+            await this.setCapabilityValue('speaker_album', '');
+            await this.setCapabilityValue('speaker_artist', '');
+            await this.setCapabilityValue('speaker_track', '');
+            await this.setCapabilityValue('speaker_duration', -1);
+            await this.setCapabilityValue('speaker_position', -1);
+            await this.setCapabilityValue('speaker_playing', false);
+
+            return;
+        }
+
+        await this.setCapabilityValue('speaker_playing', client.playbackState === Proto.PlaybackState_Enum.Playing);
+
+        const item = client.playbackQueue?.contentItems?.[0] ?? null;
 
         if (!item) {
-            // todo(Bas): Figure out if we want to clear capabilities here.
+            // todo(Bas): Should we clear capability values here?
             return;
         }
 
         this.#contentIdentifier = item.identifier;
 
         await this.setCapabilityValue('speaker_album', item.metadata.albumName);
-        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || this.#appletv.airplay.state.nowPlayingClient?.displayName || '-');
+        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client.displayName || '-');
         await this.setCapabilityValue('speaker_track', item.metadata.title);
         await this.setCapabilityValue('speaker_duration', item.metadata.duration);
         await this.setCapabilityValue('speaker_position', item.metadata.elapsedTime);

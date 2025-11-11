@@ -1,17 +1,18 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "com.basmilius.apple",
       "dependencies": {
-        "@basmilius/apple-airplay": "^0.0.35",
-        "@basmilius/apple-common": "^0.0.35",
-        "@basmilius/apple-companion-link": "^0.0.35",
-        "@basmilius/apple-devices": "^0.0.35",
+        "@basmilius/apple-airplay": "^0.0.38",
+        "@basmilius/apple-common": "^0.0.38",
+        "@basmilius/apple-companion-link": "^0.0.38",
+        "@basmilius/apple-devices": "^0.0.38",
         "@basmilius/utils": "^2.13.0",
       },
       "devDependencies": {
-        "@tsconfig/node18": "^18.2.4",
+        "@tsconfig/node20": "^20.1.6",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
         "@types/node": "^24.9.2",
         "typescript": "^5.9.3",
@@ -27,13 +28,13 @@
 
     "@babel/types": ["@babel/types@7.28.5", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.28.5" } }, "sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA=="],
 
-    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.35", "", { "dependencies": { "@basmilius/apple-common": "0.0.35", "@bufbuild/protobuf": "^2.10.0" } }, "sha512-Xfu5YUj1WUZHOEokiP4XO5nKzX+qzClQCT7xs22tnC/d+93DR39FOZ0B3XAtYQ7WtxxylTGgIUH1lbOh3NxShg=="],
+    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.38", "", { "dependencies": { "@basmilius/apple-common": "0.0.38", "@bufbuild/protobuf": "^2.10.0" } }, "sha512-HZFt5iDKilseAF4U1wo9PoRcUz9q64kWQwLSTGg93ZtO6levrQImtnowDzU5SIgEuYUhtP42i4zWqbrpKgR8Kg=="],
 
-    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.35", "", { "dependencies": { "@noble/curves": "^2.0.1", "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0", "chacha": "^2.1.0", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-XU4FlYNp13UcopbBFBmfN2th7jodO9bvvagVi8AJi5bArHpl8Y2NZg+MXw7j4SWq3YYP47I53dHQB9ADgcDQnw=="],
+    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.38", "", { "dependencies": { "@noble/curves": "^2.0.1", "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0", "chacha": "^2.1.0", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-EcrDJ+qIBFrG0JdbVUWnXWVtqPbf8eBDZj72t29kjHywGGhovGUoncZCBKGWbzeniLe6kY3O7OYbqBiup4eiig=="],
 
-    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.35", "", { "dependencies": { "@basmilius/apple-common": "0.0.35" } }, "sha512-fQJLQlI374DzbJi36Q3hku8Hd5vJe/yClBc+RXspw6TCwCRMiNgCEq09C/iH9fPCkMs10uzMKPJUXnCjS785Sg=="],
+    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.38", "", { "dependencies": { "@basmilius/apple-common": "0.0.38" } }, "sha512-7Oe7rzOA/WK6UxYVZWN/lgjr6fhj5dGH/TjzQaCuXg0iNBwiSHYUyoxlgcUbzkBEEl4Pw39n7smdxsnyQDsHdg=="],
 
-    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.35", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.35", "@basmilius/apple-common": "0.0.35", "@basmilius/apple-companion-link": "0.0.35" } }, "sha512-uyP2Kk9Orzcu2BDXk0dAmrdbocakVlXzrcnFHGZDYa7i2URj7nnJOxp/bkAKvxtcdi9OLaYfyW+54hbT+zfQMw=="],
+    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.38", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.38", "@basmilius/apple-common": "0.0.38", "@basmilius/apple-companion-link": "0.0.38" } }, "sha512-bBmBBdIjVwtaMPIG+PZgTCMDtHuqxj1brJIylEEVVUrXxzTrlKJRpEMqcbmVEhzz0KyXaTVY+cgId4AX7T+2og=="],
 
     "@basmilius/utils": ["@basmilius/utils@2.13.0", "", { "dependencies": { "@types/luxon": "^3.7.1", "luxon": "^3.7.2", "pinia": "^3.0.3", "vue": "^3.5.22" } }, "sha512-QStZU43eE42kOwEG4P9cnvRdvfw604KiWV/Y5AINGPdiniwpfD8Ddxjr3jQ0P7onPiVxLZLq2hj+bp5REtQlRg=="],
 
@@ -51,7 +52,7 @@
 
     "@plist/common": ["@plist/common@1.1.0", "", {}, "sha512-zZAx3dLVsDaW/ulxCbHS3ptVUnO5XEPQ75UPyNJpwPdv9ViWLYXQmbYNmFR8thKpw067RAORuQpBWHvKPffvIg=="],
 
-    "@tsconfig/node18": ["@tsconfig/node18@18.2.4", "", {}, "sha512-5xxU8vVs9/FNcvm3gE07fPbn9tl6tqGGWA9tSlwsUEkBxtRnTsNmwrV8gasZ9F/EobaSv9+nu8AxUKccw77JpQ=="],
+    "@tsconfig/node20": ["@tsconfig/node20@20.1.6", "", {}, "sha512-sz+Hqx9zwZDpZIV871WSbUzSqNIsXzghZydypnfgzPKLltVJfkINfUeTct31n/tTSa9ZE1ZOfKdRre1uHHquYQ=="],
 
     "@types/homey": ["homey-apps-sdk-v3-types@0.3.12", "", { "dependencies": { "@types/node": "^14.14.20" } }, "sha512-xr275VoF7FAiTi6PzElqHWpuGgSBY9hZFZsKeCTA4rluopf8sVk6zUPa+giSRSTiTrN3N3QjmHD5lUoNVwYd4g=="],
 

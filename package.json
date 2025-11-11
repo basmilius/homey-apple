@@ -5,14 +5,14 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.0.35",
-        "@basmilius/apple-common": "^0.0.35",
-        "@basmilius/apple-companion-link": "^0.0.35",
-        "@basmilius/apple-devices": "^0.0.35",
+        "@basmilius/apple-airplay": "^0.0.38",
+        "@basmilius/apple-common": "^0.0.38",
+        "@basmilius/apple-companion-link": "^0.0.38",
+        "@basmilius/apple-devices": "^0.0.38",
         "@basmilius/utils": "^2.13.0"
     },
     "devDependencies": {
-        "@tsconfig/node18": "^18.2.4",
+        "@tsconfig/node20": "^20.1.6",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
         "@types/node": "^24.9.2",
         "typescript": "^5.9.3"
