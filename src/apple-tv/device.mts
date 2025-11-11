@@ -61,6 +61,7 @@ export default class AppleTVDevice extends Homey.Device {
     }
 
     async onUninit(): Promise<void> {
+        await this.#artwork.unregister();
         await this.#appletv?.disconnect();
 
         this.log(`Apple TV "${this.getName()}" has been uninitialized.`);

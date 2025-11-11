@@ -44,6 +44,7 @@ export default abstract class HomePodBaseDevice extends Homey.Device {
     }
 
     async onUninit(): Promise<void> {
+        await this.#artwork.unregister();
         await this.#homepod?.disconnect();
 
         this.log(`HomePod "${this.getName()}" has been uninitialized.`);
@@ -117,6 +118,10 @@ export default abstract class HomePodBaseDevice extends Homey.Device {
 
     async #onSetState(message: Proto.SetStateMessage): Promise<void> {
         const client = this.#homepod.airplay.state.nowPlayingClient;
+
+        this.log(`Received state update from HomePod "${this.getName()}"`);
+        this.log(message.playerPath?.client?.bundleIdentifier, client?.bundleIdentifier);
+        this.log('PlaybackState', client?.playbackState);
 
         if (message.playerPath?.client?.bundleIdentifier !== client?.bundleIdentifier) {
             return;

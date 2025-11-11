@@ -5,10 +5,10 @@
     "": {
       "name": "com.basmilius.apple",
       "dependencies": {
-        "@basmilius/apple-airplay": "^0.0.40",
-        "@basmilius/apple-common": "^0.0.40",
-        "@basmilius/apple-companion-link": "^0.0.40",
-        "@basmilius/apple-devices": "^0.0.40",
+        "@basmilius/apple-airplay": "^0.0.43",
+        "@basmilius/apple-common": "^0.0.43",
+        "@basmilius/apple-companion-link": "^0.0.43",
+        "@basmilius/apple-devices": "^0.0.43",
         "@basmilius/utils": "^2.13.0",
       },
       "devDependencies": {
@@ -28,13 +28,13 @@
 
     "@babel/types": ["@babel/types@7.28.5", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.28.5" } }, "sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA=="],
 
-    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.40", "", { "dependencies": { "@basmilius/apple-common": "0.0.40", "@bufbuild/protobuf": "^2.10.0" } }, "sha512-ZoaTKXmI5pCPKljqfDSWZU0tCGEef6kVbTJHG0eNbbjQWwkgyUfM9Xu9vAUn6c+z53Vrk3GrSird2gkpijoH3A=="],
+    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.43", "", { "dependencies": { "@basmilius/apple-common": "0.0.43", "@bufbuild/protobuf": "^2.10.0" } }, "sha512-2jCDOFLvl9LlyqwSwGegp2g+U/vtBkXFiO5l1TWnfDKdh4PSvqI/gwUsuWJKcwfSLgoZ5xj6sx+Otjx0VOpfTg=="],
 
-    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.40", "", { "dependencies": { "@noble/curves": "^2.0.1", "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0", "chacha": "^2.1.0", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-7JjDSssLadjMEim6AVsz7poF8ozivTZTzeoCRD0EUxMr1Kj+ITx9a1u2Bb6uoYCO17kXs5t1PGfObeUSNCqbAQ=="],
+    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.43", "", { "dependencies": { "@noble/curves": "^2.0.1", "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0", "chacha": "^2.1.0", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-rmrJGe6Yjr0Cl+pFKZoQsMAUW7XYRPGdpZKxlKdfgqOBab8e1THHekHeHjIQyALEW1M0Nt+K2k9wnfrYnURL7w=="],
 
-    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.40", "", { "dependencies": { "@basmilius/apple-common": "0.0.40" } }, "sha512-qjCQyNGW7gRPPIEbUUOFsDUR4kEzRKIAO0ufu51IIjH4Pj17Fm3BLAk43wYOaf8RiDaAYXsGelnZVNr4/cxNPw=="],
+    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.43", "", { "dependencies": { "@basmilius/apple-common": "0.0.43" } }, "sha512-mKcN2vzbfl4OzXH8IvVL9RWFO3/Ve0YEwQnBWVz4i+iaNSgizJu7QCDEq7zosjsfykjn4k6qLIODM3gL16xziA=="],
 
-    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.40", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.40", "@basmilius/apple-common": "0.0.40", "@basmilius/apple-companion-link": "0.0.40" } }, "sha512-TfEan3tIjkNqPMvntziTavfoCrDaeSKZspBZpc4MPsRzTNMyWd5dpF0QUK+BxL/jHKOLqd9nInKpUaOIuh2OLw=="],
+    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.43", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.43", "@basmilius/apple-common": "0.0.43", "@basmilius/apple-companion-link": "0.0.43" } }, "sha512-8jnYXJJzv7P71Vi3SaNY/V1wQRAjzYiTeVifd7pow1LapVE8vsYE+zTz/b+6E5bIU8kukeWHs7G5L+PKTQsF6Q=="],
 
     "@basmilius/utils": ["@basmilius/utils@2.13.0", "", { "dependencies": { "@types/luxon": "^3.7.1", "luxon": "^3.7.2", "pinia": "^3.0.3", "vue": "^3.5.22" } }, "sha512-QStZU43eE42kOwEG4P9cnvRdvfw604KiWV/Y5AINGPdiniwpfD8Ddxjr3jQ0P7onPiVxLZLq2hj+bp5REtQlRg=="],
 
