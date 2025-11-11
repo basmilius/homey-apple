@@ -40,5 +40,8 @@
   },
   "0.0.13": {
     "en": "Updated underlying apple protocols library."
+  },
+  "0.0.14": {
+    "en": "Improved resiliency."
   }
 }
