@@ -200,6 +200,9 @@ export default class AppleTVDevice extends Homey.Device {
         this.log(`Disconnected from Apple TV "${this.getName()}", reconnecting in a moment...`);
 
         await waitFor(1000);
+
+        const [, companionLink] = await this.#discover();
+        await this.#appletv.companionLink.setDiscoveryResult(companionLink);
         await this.#connect();
     }
 
