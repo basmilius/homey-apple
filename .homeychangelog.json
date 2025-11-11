@@ -43,5 +43,8 @@
   },
   "0.0.14": {
     "en": "Improved resiliency."
+  },
+  "0.0.15": {
+    "en": "Updated apple-protocols library."
   }
 }
