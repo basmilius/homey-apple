@@ -9,7 +9,7 @@
         "@basmilius/apple-common": "^0.0.44",
         "@basmilius/apple-companion-link": "^0.0.44",
         "@basmilius/apple-devices": "^0.0.44",
-        "@basmilius/homey-common": "^1.0.2",
+        "@basmilius/homey-common": "^1.0.4",
       },
       "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
@@ -28,7 +28,7 @@
 
     "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.44", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.44", "@basmilius/apple-common": "0.0.44", "@basmilius/apple-companion-link": "0.0.44" } }, "sha512-+q704W2uoMSpSINAiXFNxoIfi6R0MIwDYmMPzW/fdRgBCdws+Tgf357FzjZ07l71KSSDIgJhWG0daBhJ/KFtfQ=="],
 
-    "@basmilius/homey-common": ["@basmilius/homey-common@1.0.2", "", {}, "sha512-QnT2eiTNhqsfEyBzk6jmWIIBhI13tfwynCNPGWfhEfdWdSQksGCAMX9S/+r/jRqycE9ysOt/uemlFfaMR1coog=="],
+    "@basmilius/homey-common": ["@basmilius/homey-common@1.0.4", "", {}, "sha512-FldQDxM7DN0M9m1lv2ejt7H+5Q4XDZa1zqKMieDq0g39P3WqpwpCZWa2b9fXdOpG0mG6v0axE2FqHoLPG03OLA=="],
 
     "@bufbuild/protobuf": ["@bufbuild/protobuf@2.10.0", "", {}, "sha512-fdRs9PSrBF7QUntpZpq6BTw58fhgGJojgg39m9oFOJGZT+nip9b0so5cYY1oWl5pvemDLr0cPPsH46vwThEbpQ=="],
 

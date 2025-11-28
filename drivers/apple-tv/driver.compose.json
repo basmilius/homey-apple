@@ -1,6 +1,7 @@
 {
     "name": {
-        "en": "Apple TV"
+        "en": "Apple TV",
+        "nl": "Apple TV"
     },
     "class": "settopbox",
     "discovery": "appletv-airplay",

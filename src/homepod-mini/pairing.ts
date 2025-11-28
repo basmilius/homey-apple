@@ -1,30 +1,29 @@
 import { EventEmitter } from 'node:events';
 import { AirPlay } from '@basmilius/apple-airplay';
-import type { DiscoveryResultMDNSSD, DiscoveryStrategy } from 'homey';
 import Homey from 'homey';
-import { waitFor } from '../utils/index.mjs';
+import { waitFor } from '../utils';
 
 export default class HomePodMiniPairing extends EventEmitter {
     readonly #session: Homey.Driver.PairSession;
-    readonly #strategy: DiscoveryStrategy;
-    readonly #devices: DiscoveryResultMDNSSD[];
-    #device: DiscoveryResultMDNSSD | undefined;
+    readonly #strategy: Homey.DiscoveryStrategy;
+    readonly #devices: Homey.DiscoveryResultMDNSSD[];
+    #device: Homey.DiscoveryResultMDNSSD | undefined;
     #protocol: AirPlay;
 
-    constructor(session: Homey.Driver.PairSession, strategy: DiscoveryStrategy) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy) {
         super();
 
         this.#session = session;
         this.#strategy = strategy;
 
-        this.#devices = Object.values(this.#strategy.getDiscoveryResults()) as DiscoveryResultMDNSSD[];
+        this.#devices = Object.values(this.#strategy.getDiscoveryResults()) as Homey.DiscoveryResultMDNSSD[];
         this.#strategy.on('result', result => this.#devices.push(result));
     }
 
     async start(): Promise<void> {
         this.#session.setHandler('showView', async view => await this.onShowView(view));
         this.#session.setHandler('list_devices', async () => this.#devices);
-        this.#session.setHandler('list_devices_selection', async (devices: DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
+        this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
         this.#session.setHandler('get_device', async () => ({
             name: this.#device?.name,
             data: {

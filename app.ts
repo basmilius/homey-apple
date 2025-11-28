@@ -1,1 +1,3 @@
-module.exports = require('./src/index.mjs').default;
+import App from './src';
+
+module.exports = App;

@@ -1,9 +1,10 @@
-import { PassThrough } from 'node:stream';
-import { Proto } from '@basmilius/apple-airplay';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 import { AppleTV } from '@basmilius/apple-devices';
-import Homey, { type DiscoveryResultMDNSSD } from 'homey';
-import { waitFor } from '../utils/index.mjs';
+import { Device } from '@basmilius/homey-common';
+import Homey from 'homey';
+import { AirPlayLogic } from '../logic';
+import type { AppleApp } from '../types';
+import { waitFor } from '../utils';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -29,53 +30,45 @@ const CAPABILITIES = [
     'remote_siri'
 ];
 
-export default class AppleTVDevice extends Homey.Device {
+export default class AppleTVDevice extends Device<AppleApp> {
     get appletv(): AppleTV {
         return this.#appletv;
     }
 
+    #airplay!: AirPlayLogic;
     #appletv!: AppleTV;
-    #artwork!: Homey.Image;
-    #artworkEmpty!: Homey.Image;
-    #artworkURL?: string;
-    #contentIdentifier?: string;
 
     async onInit(): Promise<void> {
-        this.#artwork = await this.homey.images.createImage();
-        this.#artworkEmpty = await this.homey.images.createImage();
-
         this.#appletv = await this.#createAppleTVInstance();
         this.#appletv.on('connected', () => this.#onConnected());
         this.#appletv.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
 
-        this.#appletv.airplay.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
-        this.#appletv.airplay.state.on('setArtwork', async (message: any) => console.log(message));
-        this.#appletv.airplay.state.on('updateContentItemArtwork', async (message: any) => console.log(message));
+        this.#airplay = new AirPlayLogic(this, this.#appletv.airplay);
+        await this.#airplay.initialize();
 
         this.#appletv.companionLink.on('power', (on: boolean) => this.setCapabilityValue('onoff', on));
 
-        await this.#updateCapabilities();
+        await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
         await this.#connect();
-        await this.setAlbumArtImage(this.#artwork);
+        await this.#airplay.finalize();
 
-        this.log(`Apple TV "${this.getName()}" has been initialized.`);
+        this.log('Initialized.');
     }
 
     async onUninit(): Promise<void> {
-        await this.#artwork.unregister();
-        await this.#artworkEmpty.unregister();
+        await this.#airplay.uninitialize();
         await this.#appletv?.disconnect();
 
-        this.log(`Apple TV "${this.getName()}" has been uninitialized.`);
+        this.log('Uninitialized.');
     }
 
     async #connect(): Promise<void> {
         try {
             await this.#appletv.connect(await this.#credentials());
         } catch (err) {
-            this.error(`Apple TV "${this.getName()}" received an error.`, err);
-            await this.setUnavailable((err as Error).message);
+            this.error('Error received', err);
+            await this.setUnavailable('Cannot connect to Apple TV.');
         }
     }
 
@@ -115,7 +108,7 @@ export default class AppleTVDevice extends Homey.Device {
         };
     }
 
-    async #discover(): Promise<[DiscoveryResultMDNSSD, DiscoveryResultMDNSSD]> {
+    async #discover(): Promise<[Homey.DiscoveryResultMDNSSD, Homey.DiscoveryResultMDNSSD]> {
         const airplayStrategy = this.homey.discovery.getStrategy('appletv-airplay');
         const companionLinkStrategy = this.homey.discovery.getStrategy('appletv-companion-link');
 
@@ -123,8 +116,8 @@ export default class AppleTVDevice extends Homey.Device {
         const companionLinkResult = companionLinkStrategy.getDiscoveryResult(this.getStore().id);
 
         return [
-            airplayResult as DiscoveryResultMDNSSD,
-            companionLinkResult as DiscoveryResultMDNSSD
+            airplayResult as Homey.DiscoveryResultMDNSSD,
+            companionLinkResult as Homey.DiscoveryResultMDNSSD
         ];
     }
 
@@ -193,6 +186,7 @@ export default class AppleTVDevice extends Homey.Device {
 
     async #onConnected(): Promise<void> {
         const state = await this.#appletv.companionLink.getAttentionState();
+        await this.setAvailable();
         await this.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
     }
 
@@ -201,8 +195,9 @@ export default class AppleTVDevice extends Homey.Device {
             return;
         }
 
-        this.log(`Disconnected from Apple TV "${this.getName()}", reconnecting in a moment...`);
+        this.log(`Disconnected, reconnecting in a moment...`);
 
+        await this.setUnavailable('Disconnected from Apple TV.');
         await waitFor(1000);
 
         const [, companionLink] = await this.#discover();
@@ -212,104 +207,7 @@ export default class AppleTVDevice extends Homey.Device {
                 port: companionLink.port
             }
         });
+
         await this.#connect();
-    }
-
-    async #onSetState(message: Proto.SetStateMessage): Promise<void> {
-        const client = this.#appletv.airplay.state.nowPlayingClient;
-
-        this.log(`Received state update from HomePod "${this.getName()}"`);
-        this.log(message.playerPath?.client?.bundleIdentifier, client?.bundleIdentifier);
-        this.log('PlaybackState', client?.playbackState);
-
-        if (message.playerPath?.client?.bundleIdentifier !== client?.bundleIdentifier) {
-            return;
-        }
-
-        if (!client) {
-            await this.setCapabilityValue('speaker_album', '');
-            await this.setCapabilityValue('speaker_artist', '');
-            await this.setCapabilityValue('speaker_track', '');
-            await this.setCapabilityValue('speaker_duration', -1);
-            await this.setCapabilityValue('speaker_position', -1);
-            await this.setCapabilityValue('speaker_playing', false);
-
-            return;
-        }
-
-        await this.setCapabilityValue('speaker_playing', client.playbackState === Proto.PlaybackState_Enum.Playing);
-
-        const item = client.playbackQueue?.contentItems?.[0] ?? null;
-
-        if (!item) {
-            // todo(Bas): Should we clear capability values here?
-            return;
-        }
-
-        this.#contentIdentifier = item.identifier;
-
-        await this.setCapabilityValue('speaker_album', item.metadata.albumName);
-        await this.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client.displayName || '-');
-        await this.setCapabilityValue('speaker_track', item.metadata.title);
-        await this.setCapabilityValue('speaker_duration', item.metadata.duration);
-        await this.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
-
-        if (item.metadata.artworkAvailable) {
-            if (item.metadata.artworkURL) {
-                await this.#updateArtwork(item.metadata.artworkURL);
-            } else if (item.artworkData?.byteLength > 0) {
-                this.log('Artwork is available in playback queue, but not yet loaded. Updating it from the playback queue.');
-                await this.#updateArtworkBuffer(item.artworkData);
-            } else if (this.#artworkURL !== this.#contentIdentifier) {
-                this.log('Artwork is not yet available, requesting it through playback queue.');
-                this.#artworkURL = this.#contentIdentifier;
-                await this.#appletv.airplay.requestPlaybackQueue(1);
-            }
-        } else {
-            await this.#updateArtwork(null);
-        }
-    }
-
-    async #updateArtwork(url: string | null): Promise<void> {
-        if (url) {
-            await this.setAlbumArtImage(this.#artwork);
-
-            if (this.#artworkURL !== url) {
-                this.#artworkURL = url;
-                this.#artwork.setUrl(url);
-                await this.#artwork.update();
-            }
-        } else {
-            await this.setAlbumArtImage(this.#artworkEmpty);
-        }
-    }
-
-    async #updateArtworkBuffer(buffer: Buffer): Promise<void> {
-        this.#artwork.setStream((stream: any) => {
-            const pt = new PassThrough();
-            pt.end(buffer);
-            pt.pipe(stream);
-        });
-        await this.#artwork.update();
-    }
-
-    async #updateCapabilities(): Promise<void> {
-        const currentCapabilities = this.getCapabilities();
-
-        for (const capability of CAPABILITIES) {
-            if (currentCapabilities.includes(capability)) {
-                continue;
-            }
-
-            await this.addCapability(capability);
-        }
-
-        for (const capability of currentCapabilities) {
-            if (CAPABILITIES.includes(capability)) {
-                continue;
-            }
-
-            await this.removeCapability(capability);
-        }
     }
 }

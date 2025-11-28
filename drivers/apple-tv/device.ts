@@ -1,1 +1,3 @@
-module.exports = require('../../src/apple-tv/device.mjs').default;
+import AppleTVDevice from '../../src/apple-tv/device';
+
+module.exports = AppleTVDevice;

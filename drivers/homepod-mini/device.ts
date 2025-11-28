@@ -1,1 +1,3 @@
-module.exports = require('../../src/homepod-mini/device.mjs').default;
+import HomePodMiniDevice from '../../src/homepod-mini/device';
+
+module.exports = HomePodMiniDevice;

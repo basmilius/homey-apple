@@ -1,6 +1,6 @@
 import { HomePodMini } from '@basmilius/apple-devices';
-import type { DiscoveryResultMDNSSD } from 'homey';
-import HomePodBaseDevice from '../homepod-base/device.mjs';
+import Homey from 'homey';
+import HomePodBaseDevice from '../homepod-base/device';
 
 export default class HomePodMiniDevice extends HomePodBaseDevice {
     async createHomePodInstance(): Promise<HomePodMini> {
@@ -19,10 +19,10 @@ export default class HomePodMiniDevice extends HomePodBaseDevice {
         });
     }
 
-    async #discover(): Promise<DiscoveryResultMDNSSD> {
+    async #discover(): Promise<Homey.DiscoveryResultMDNSSD> {
         const strategy = this.homey.discovery.getStrategy('homepod-mini');
         const result = strategy.getDiscoveryResult(this.getStore().id);
 
-        return result as DiscoveryResultMDNSSD;
+        return result as Homey.DiscoveryResultMDNSSD;
     }
 }

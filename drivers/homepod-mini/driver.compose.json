@@ -1,6 +1,7 @@
 {
     "name": {
-        "en": "HomePod Mini"
+        "en": "HomePod Mini",
+        "nl": "HomePod Mini"
     },
     "class": "speaker",
     "discovery": "homepod-mini",

@@ -1,7 +1,9 @@
-import Homey, { FlowCard } from 'homey';
-import AppleTVPairing from './pairing.mjs';
+import { Driver } from '@basmilius/homey-common';
+import Homey from 'homey';
+import type { AppleApp } from '../types';
+import AppleTVPairing from './pairing';
 
-export default class AppleTVDevice extends Homey.Driver {
+export default class AppleTVDevice extends Driver<AppleApp> {
     async onInit(): Promise<void> {
         await this.#registerActions();
         this.log('AppleTVDriver has been initialized.');
@@ -35,7 +37,7 @@ export default class AppleTVDevice extends Homey.Driver {
             await device.appletv.companionLink.launchApp(app.id);
         });
 
-        launchApp.registerArgumentAutocompleteListener('app', async (query: string, {device}): Promise<FlowCard.ArgumentAutocompleteResults> => {
+        launchApp.registerArgumentAutocompleteListener('app', async (query: string, {device}): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
             const launchableApps = await device.appletv.companionLink.getLaunchableApps();
 
             return launchableApps
@@ -64,7 +66,7 @@ export default class AppleTVDevice extends Homey.Driver {
             await device.appletv.companionLink.switchUserAccount(account.id);
         });
 
-        switchAccount.registerArgumentAutocompleteListener('account', async (query: string, {device}): Promise<FlowCard.ArgumentAutocompleteResults> => {
+        switchAccount.registerArgumentAutocompleteListener('account', async (query: string, {device}): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
             const userAccounts = await device.appletv.companionLink.getUserAccounts();
 
             return userAccounts
