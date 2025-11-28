@@ -1,7 +1,7 @@
 import { Proto } from '@basmilius/apple-airplay';
 import { HomePod, HomePodMini } from '@basmilius/apple-devices';
-import { waitFor } from '@basmilius/utils';
 import Homey from 'homey';
+import { waitFor } from '../utils/index.mjs';
 
 const CAPABILITIES = [
     'speaker_album',

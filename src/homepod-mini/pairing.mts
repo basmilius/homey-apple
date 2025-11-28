@@ -1,8 +1,8 @@
 import { EventEmitter } from 'node:events';
 import { AirPlay } from '@basmilius/apple-airplay';
-import { waitFor } from '@basmilius/utils';
 import type { DiscoveryResultMDNSSD, DiscoveryStrategy } from 'homey';
 import Homey from 'homey';
+import { waitFor } from '../utils/index.mjs';
 
 export default class HomePodMiniPairing extends EventEmitter {
     readonly #session: Homey.Driver.PairSession;

@@ -2,8 +2,8 @@ import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 import { AppleTV } from '@basmilius/apple-devices';
-import { waitFor } from '@basmilius/utils';
 import Homey, { type DiscoveryResultMDNSSD } from 'homey';
+import { waitFor } from '../utils/index.mjs';
 
 const CAPABILITIES = [
     'speaker_album',
