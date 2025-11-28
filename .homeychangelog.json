@@ -49,5 +49,8 @@
   },
   "0.0.16": {
     "en": "Artwork is now cleared when there is no artwork available. Update underlying apple-protocols library."
+  },
+  "0.0.17": {
+    "en": "Update apple-protocols sdk."
   }
 }
