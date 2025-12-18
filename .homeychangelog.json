@@ -55,5 +55,8 @@
   },
   "0.0.18": {
     "en": "Reworked internal logic and moved away from PoC state."
+  },
+  "0.0.19": {
+    "en": "Update apple-protocols SDK."
   }
 }
