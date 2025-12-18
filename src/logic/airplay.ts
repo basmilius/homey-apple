@@ -7,14 +7,14 @@ import type { AppleApp } from '../types';
 
 export default class AirPlayLogic {
     readonly #airplay: AirPlayDevice;
-    readonly #device: Device<AppleApp>;
+    readonly #device: Device<AppleApp, any>;
 
     #artwork!: Homey.Image;
     #artworkEmpty!: Homey.Image;
     #artworkURL?: string;
     #contentIdentifier?: string;
 
-    constructor(device: Device<AppleApp>, airplay: AirPlayDevice) {
+    constructor(device: Device<AppleApp, any>, airplay: AirPlayDevice) {
         this.#airplay = airplay;
         this.#device = device;
 

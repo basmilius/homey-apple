@@ -1,9 +1,8 @@
-import { Driver } from '@basmilius/homey-common';
 import Homey from 'homey';
-import type { AppleApp } from '../types';
+import HomePodBaseDriver from '../homepod-base/driver';
 import HomePodMiniPairing from './pairing';
 
-export default class HomePodMiniDriver extends Driver<AppleApp> {
+export default class HomePodMiniDriver extends HomePodBaseDriver {
     async onInit(): Promise<void> {
         this.log('HomePodMiniDriver has been initialized.');
     }

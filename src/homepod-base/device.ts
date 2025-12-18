@@ -3,6 +3,7 @@ import { Device } from '@basmilius/homey-common';
 import { AirPlayLogic } from '../logic';
 import type { AppleApp } from '../types';
 import { waitFor } from '../utils';
+import type HomePodBaseDriver from './driver';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -17,7 +18,7 @@ const CAPABILITIES = [
     'volume_set'
 ];
 
-export default abstract class HomePodBaseDevice extends Device<AppleApp> {
+export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends Device<AppleApp, TDriver> {
     #airplay!: AirPlayLogic;
     #homepod!: HomePod | HomePodMini;
 

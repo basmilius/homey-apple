@@ -5,6 +5,7 @@ import Homey from 'homey';
 import { AirPlayLogic } from '../logic';
 import type { AppleApp } from '../types';
 import { waitFor } from '../utils';
+import type AppleTVDriver from './driver';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -30,7 +31,7 @@ const CAPABILITIES = [
     'remote_siri'
 ];
 
-export default class AppleTVDevice extends Device<AppleApp> {
+export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
     get appletv(): AppleTV {
         return this.#appletv;
     }
