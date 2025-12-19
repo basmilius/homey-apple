@@ -1,11 +1,11 @@
 import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
 import type { AirPlayDevice } from '@basmilius/apple-devices';
-import type { Device } from '@basmilius/homey-common';
-import Homey from 'homey';
+import { type Device, Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
+import Homey from 'homey';
 
-export default class AirPlayLogic {
+export default class AirPlayLogic extends Shortcuts<AppleApp> {
     readonly #airplay: AirPlayDevice;
     readonly #device: Device<AppleApp, any>;
 
@@ -15,6 +15,8 @@ export default class AirPlayLogic {
     #contentIdentifier?: string;
 
     constructor(device: Device<AppleApp, any>, airplay: AirPlayDevice) {
+        super(device.app);
+
         this.#airplay = airplay;
         this.#device = device;
 
@@ -45,7 +47,7 @@ export default class AirPlayLogic {
         await this.#device.setCapabilityValue('speaker_position', -1);
         await this.#device.setCapabilityValue('speaker_playing', false);
 
-        this.log('Now playing info cleared.');
+        this.log(this.#device.name, 'Now playing info cleared.');
     }
 
     async #onSetNowPlayingClient(): Promise<void> {
@@ -60,8 +62,8 @@ export default class AirPlayLogic {
             return;
         }
 
-        this.log('State update', message.playerPath?.client?.bundleIdentifier, client?.bundleIdentifier);
-        this.log('Playback state update', client?.playbackState, client?.playbackStateTimestamp);
+        this.log(this.#device.name, 'State update', message.playerPath?.client?.bundleIdentifier, client?.bundleIdentifier);
+        this.log(this.#device.name, 'Playback state update', client?.playbackState, client?.playbackStateTimestamp);
 
         if (!client) {
             await this.#clearNowPlaying();
@@ -93,10 +95,10 @@ export default class AirPlayLogic {
             if (item.metadata.artworkURL) {
                 await this.#updateArtwork(item.metadata.artworkURL);
             } else if (item.artworkData?.byteLength > 0) {
-                this.log('Artwork available in playback queue, updating...');
+                this.log(this.#device.name, 'Artwork available in playback queue, updating...');
                 await this.#updateArtworkBuffer(item.artworkData);
             } else if (this.#artworkURL !== this.#contentIdentifier) {
-                this.log('Artwork not available, requesting...');
+                this.log(this.#device.name, 'Artwork not available, requesting...');
                 this.#artworkURL = this.#contentIdentifier;
                 await this.#airplay.requestPlaybackQueue(1);
             }
@@ -110,7 +112,7 @@ export default class AirPlayLogic {
             return;
         }
 
-        this.log(`Volume changed to ${this.#airplay.state.volume}.`);
+        this.log(this.#device.name, `Volume changed to ${this.#airplay.state.volume}.`);
         await this.#device.setCapabilityValue('volume_set', this.#airplay.state.volume);
     }
 
@@ -135,9 +137,5 @@ export default class AirPlayLogic {
             pt.pipe(stream);
         });
         await this.#artwork.update();
-    }
-
-    public log(...args: any[]): void {
-        this.#device.log(...args);
     }
 }
