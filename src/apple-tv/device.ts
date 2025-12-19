@@ -27,8 +27,7 @@ const CAPABILITIES = [
     'remote_select',
     'remote_home',
     'remote_back',
-    'remote_playpause',
-    'remote_siri'
+    'remote_playpause'
 ];
 
 export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
@@ -173,21 +172,20 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         const keys = CAPABILITIES.filter(k => k.startsWith('remote_'));
 
         this.registerMultipleCapabilityListener(keys, async values => {
-            values.remote_up === true && await this.#appletv.companionLink.pressButton('Up');
-            values.remote_down === true && await this.#appletv.companionLink.pressButton('Down');
-            values.remote_left === true && await this.#appletv.companionLink.pressButton('Left');
-            values.remote_right === true && await this.#appletv.companionLink.pressButton('Right');
-            values.remote_select === true && await this.#appletv.companionLink.pressButton('Select');
-            values.remote_home === true && await this.#appletv.companionLink.pressButton('Home');
-            values.remote_back === true && await this.#appletv.companionLink.pressButton('Menu');
-            values.remote_playpause === true && await this.#appletv.companionLink.pressButton('PlayPause');
-            values.remote_siri === true && await this.#appletv.companionLink.pressButton('Siri', 'Hold', 1000);
+            values.remote_up === true && await this.#appletv.airplay.remote.up();
+            values.remote_down === true && await this.#appletv.airplay.remote.down();
+            values.remote_left === true && await this.#appletv.airplay.remote.left();
+            values.remote_right === true && await this.#appletv.airplay.remote.right();
+            values.remote_select === true && await this.#appletv.airplay.remote.select();
+            values.remote_home === true && await this.#appletv.airplay.remote.home();
+            values.remote_back === true && await this.#appletv.airplay.remote.menu();
+            values.remote_playpause === true && await this.#appletv.airplay.remote.playPause();
         }, 0);
     }
 
     async #onConnected(): Promise<void> {
-        const state = await this.#appletv.companionLink.getAttentionState();
         await this.setAvailable();
+        const state = await this.#appletv.companionLink.getAttentionState();
         await this.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
     }
 

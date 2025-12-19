@@ -162,8 +162,7 @@
         "remote_select",
         "remote_home",
         "remote_back",
-        "remote_playpause",
-        "remote_siri"
+        "remote_playpause"
       ],
       "platforms": [
         "local"
@@ -395,18 +394,6 @@
       "uiComponent": "button",
       "uiQuickAction": true,
       "icon": "assets/capabilities/select.svg"
-    },
-    "remote_siri": {
-      "type": "boolean",
-      "title": {
-        "en": "Siri",
-        "nl": "Siri"
-      },
-      "getable": false,
-      "setable": true,
-      "uiComponent": "button",
-      "uiQuickAction": true,
-      "icon": "assets/capabilities/siri.svg"
     },
     "remote_up": {
       "type": "boolean",

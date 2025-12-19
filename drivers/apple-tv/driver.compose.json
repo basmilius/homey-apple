@@ -25,8 +25,7 @@
         "remote_select",
         "remote_home",
         "remote_back",
-        "remote_playpause",
-        "remote_siri"
+        "remote_playpause"
     ],
     "platforms": [
         "local"
