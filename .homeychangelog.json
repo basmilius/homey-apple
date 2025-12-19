@@ -64,5 +64,8 @@
   },
   "0.0.21": {
     "en": "Artwork and now playing client updates are more stable."
+  },
+  "0.0.22": {
+    "en": "Update apple-protocols SDK."
   }
 }
