@@ -162,7 +162,8 @@
         "remote_select",
         "remote_home",
         "remote_back",
-        "remote_playpause"
+        "remote_playpause",
+        "now_playing_app"
       ],
       "platforms": [
         "local"
@@ -311,6 +312,17 @@
     }
   ],
   "capabilities": {
+    "now_playing_app": {
+      "type": "string",
+      "title": {
+        "en": "Now Playing App",
+        "nl": "Nu spelende App"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "assets/capabilities/app.svg"
+    },
     "remote_back": {
       "type": "boolean",
       "title": {

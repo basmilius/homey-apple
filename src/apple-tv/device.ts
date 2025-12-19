@@ -27,7 +27,8 @@ const CAPABILITIES = [
     'remote_select',
     'remote_home',
     'remote_back',
-    'remote_playpause'
+    'remote_playpause',
+    'now_playing_app'
 ];
 
 export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {

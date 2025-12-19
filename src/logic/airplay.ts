@@ -18,6 +18,7 @@ export default class AirPlayLogic {
         this.#airplay = airplay;
         this.#device = device;
 
+        this.#airplay.state.on('setNowPlayingClient', async () => await this.#onSetNowPlayingClient());
         this.#airplay.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
         this.#airplay.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
@@ -45,6 +46,11 @@ export default class AirPlayLogic {
         await this.#device.setCapabilityValue('speaker_playing', false);
 
         this.log('Now playing info cleared.');
+    }
+
+    async #onSetNowPlayingClient(): Promise<void> {
+        await this.#clearNowPlaying();
+        await this.#airplay.requestPlaybackQueue(1);
     }
 
     async #onSetState(message: Proto.SetStateMessage): Promise<void> {
@@ -78,6 +84,10 @@ export default class AirPlayLogic {
         await this.#device.setCapabilityValue('speaker_track', item.metadata.title);
         await this.#device.setCapabilityValue('speaker_duration', item.metadata.duration);
         await this.#device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
+
+        if (this.#device.hasCapability('now_playing_app')) {
+            await this.#device.setCapabilityValue('now_playing_app', client.displayName);
+        }
 
         if (item.metadata.artworkAvailable) {
             if (item.metadata.artworkURL) {
