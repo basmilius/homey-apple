@@ -70,5 +70,8 @@
   },
   "0.0.23": {
     "en": "Update apple-protocols SDK."
+  },
+  "0.0.24": {
+    "en": "Update app name and description and update apple-protocols SDK."
   }
 }
