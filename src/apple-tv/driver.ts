@@ -6,7 +6,7 @@ import AppleTVPairing from './pairing';
 export default class AppleTVDevice extends Driver<AppleApp> {
     async onInit(): Promise<void> {
         await this.#registerActions();
-        this.log('AppleTVDriver has been initialized.');
+        this.log('Apple TV Driver has been initialized.');
     }
 
     async onPair(session: Homey.Driver.PairSession): Promise<void> {

@@ -1,0 +1,17 @@
+<script type="application/javascript">
+    Homey.setTitle('...');
+
+    Homey.emit('get_device', null).then(function (device) {
+        Homey.showLoadingOverlay();
+
+        Homey.createDevice(device)
+            .then(() => {
+                Homey.done();
+            })
+            .catch((error) => {
+                Homey.emit('error', error);
+            });
+    }).catch((error) => {
+        Homey.emit('error', error);
+    });
+</script>

@@ -2,9 +2,9 @@ import Homey from 'homey';
 import HomePodBaseDriver from '../homepod-base/driver';
 import HomePodMiniPairing from './pairing';
 
-export default class HomePodMiniDriver extends HomePodBaseDriver {
+export default class HomePodDriver extends HomePodBaseDriver {
     async onInit(): Promise<void> {
-        this.log('HomePod Mini Driver has been initialized.');
+        this.log('HomePod Driver has been initialized.');
     }
 
     async onPair(session: Homey.Driver.PairSession): Promise<void> {

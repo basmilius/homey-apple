@@ -3,7 +3,7 @@ import { AirPlay } from '@basmilius/apple-airplay';
 import { waitFor } from '../utils';
 import Homey from 'homey';
 
-export default class HomePodMiniPairing extends EventEmitter {
+export default class HomePodPairing extends EventEmitter {
     readonly #session: Homey.Driver.PairSession;
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
@@ -82,10 +82,10 @@ export default class HomePodMiniPairing extends EventEmitter {
 
         if (info.status !== 200) {
             // todo: Translate
-            throw new Error('Kan geen verbinding maken met de HomePod Mini vanwege een fout in de verificatie. Probeer het opnieuw.');
+            throw new Error('Kan geen verbinding maken met de HomePod vanwege een fout in de verificatie. Probeer het opnieuw.');
         }
 
-        this.emit('log', 'Linked to HomePod Mini.');
+        this.emit('log', 'Linked to HomePod.');
 
         await this.#session.showView('add_my_device');
         await this.#protocol.disconnect();

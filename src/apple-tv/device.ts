@@ -1,10 +1,7 @@
-import type { AccessoryCredentials } from '@basmilius/apple-common';
-import { AppleTV } from '@basmilius/apple-devices';
+import { Proto } from '@basmilius/apple-airplay';
 import { Device } from '@basmilius/homey-common';
-import Homey from 'homey';
-import { AirPlayLogic } from '../logic';
+import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import type { AppleApp } from '../types';
-import { waitFor } from '../utils';
 import type AppleTVDriver from './driver';
 
 const CAPABILITIES = [
@@ -32,94 +29,43 @@ const CAPABILITIES = [
 ];
 
 export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
-    get appletv(): AppleTV {
-        return this.#appletv;
-    }
-
-    #airplay!: AirPlayLogic;
-    #appletv!: AppleTV;
+    #airplay!: AirPlayConnection;
+    #companionLink!: CompanionLinkConnection;
 
     async onInit(): Promise<void> {
-        this.#appletv = await this.#createAppleTVInstance();
-        this.#appletv.on('connected', () => this.#onConnected());
-        this.#appletv.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
+        await this.setUnavailable('Connecting...');
 
-        this.#airplay = new AirPlayLogic(this, this.#appletv.airplay);
-        await this.#airplay.initialize();
+        this.#airplay = new AirPlayConnection(this, this.homey.discovery.getStrategy('appletv-airplay'));
+        this.#companionLink = new CompanionLinkConnection(this, this.homey.discovery.getStrategy('appletv-companion-link'));
 
-        this.#appletv.companionLink.on('power', (on: boolean) => this.setCapabilityValue('onoff', on));
+        this.#airplay.on('connected', () => this.#onConnected());
+        this.#companionLink.on('connected', () => this.#onConnected());
 
         await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
         await this.#connect();
-        await this.#airplay.finalize();
 
         this.log('Initialized.');
     }
 
     async onUninit(): Promise<void> {
-        await this.#airplay.uninitialize();
-        await this.#appletv?.disconnect();
+        await this.#airplay?.disconnect();
+        await this.#companionLink?.disconnect();
 
         this.log('Uninitialized.');
     }
 
     async #connect(): Promise<void> {
         try {
-            await this.#appletv.connect(await this.#credentials());
+            await this.#airplay.createInstance();
+            await this.#airplay.connect();
+
+            await this.#companionLink.createInstance();
+            await this.#companionLink.connect();
         } catch (err) {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to Apple TV.');
         }
-    }
-
-    async #createAppleTVInstance(): Promise<AppleTV> {
-        const [airplay, companionLink] = await this.#discover();
-
-        return new AppleTV(
-            {
-                address: airplay.address,
-                service: {
-                    port: airplay.port
-                },
-                packet: {
-                    additionals: [{
-                        rdata: airplay.txt
-                    }]
-                }
-            },
-            {
-                address: companionLink.address,
-                service: {
-                    port: companionLink.port
-                }
-            }
-        );
-    }
-
-    async #credentials(): Promise<AccessoryCredentials> {
-        const credentials = this.getStore().credentials;
-
-        return {
-            accessoryIdentifier: credentials.accessoryIdentifier,
-            accessoryLongTermPublicKey: Buffer.from(credentials.accessoryLongTermPublicKey, 'hex'),
-            pairingId: Buffer.from(credentials.pairingId, 'hex'),
-            publicKey: Buffer.from(credentials.publicKey, 'hex'),
-            secretKey: Buffer.from(credentials.secretKey, 'hex')
-        };
-    }
-
-    async #discover(): Promise<[Homey.DiscoveryResultMDNSSD, Homey.DiscoveryResultMDNSSD]> {
-        const airplayStrategy = this.homey.discovery.getStrategy('appletv-airplay');
-        const companionLinkStrategy = this.homey.discovery.getStrategy('appletv-companion-link');
-
-        const airplayResult = airplayStrategy.getDiscoveryResult(this.getStore().id);
-        const companionLinkResult = companionLinkStrategy.getDiscoveryResult(this.getStore().id);
-
-        return [
-            airplayResult as Homey.DiscoveryResultMDNSSD,
-            companionLinkResult as Homey.DiscoveryResultMDNSSD
-        ];
     }
 
     async #registerCapabilities(): Promise<void> {
@@ -127,44 +73,44 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         await this.#registerRemote();
 
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#appletv.next();
+            await this.#airplay.sendCommand(Proto.Command.NextInContext);
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#appletv.previous();
+            await this.#airplay.sendCommand(Proto.Command.PreviousInContext);
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#appletv.stop();
+            await this.#airplay.sendCommand(Proto.Command.Stop);
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#appletv.play();
+                await this.#airplay.sendCommand(Proto.Command.Play);
             } else {
-                await this.#appletv.pause();
+                await this.#airplay.sendCommand(Proto.Command.Pause);
             }
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#appletv.volumeUp();
+            await this.#airplay.remote.volumeUp();
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#appletv.volumeDown();
+            await this.#airplay.remote.volumeDown();
         });
 
         this.registerCapabilityListener('volume_mute', async () => {
-            await this.#appletv.volumeMute();
+            await this.#airplay.remote.mute();
         });
     }
 
     async #registerOnOff(): Promise<void> {
         this.registerCapabilityListener('onoff', async (value: boolean) => {
             if (value) {
-                await this.#appletv.turnOn();
+                await this.#airplay.remote.wake();
             } else {
-                await this.#appletv.turnOff();
+                await this.#airplay.remote.suspend();
             }
         });
     }
@@ -173,41 +119,22 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         const keys = CAPABILITIES.filter(k => k.startsWith('remote_'));
 
         this.registerMultipleCapabilityListener(keys, async values => {
-            values.remote_up === true && await this.#appletv.airplay.remote.up();
-            values.remote_down === true && await this.#appletv.airplay.remote.down();
-            values.remote_left === true && await this.#appletv.airplay.remote.left();
-            values.remote_right === true && await this.#appletv.airplay.remote.right();
-            values.remote_select === true && await this.#appletv.airplay.remote.select();
-            values.remote_home === true && await this.#appletv.airplay.remote.home();
-            values.remote_back === true && await this.#appletv.airplay.remote.menu();
-            values.remote_playpause === true && await this.#appletv.airplay.remote.playPause();
+            values.remote_up === true && await this.#airplay.remote.up();
+            values.remote_down === true && await this.#airplay.remote.down();
+            values.remote_left === true && await this.#airplay.remote.left();
+            values.remote_right === true && await this.#airplay.remote.right();
+            values.remote_select === true && await this.#airplay.remote.select();
+            values.remote_home === true && await this.#airplay.remote.home();
+            values.remote_back === true && await this.#airplay.remote.menu();
+            values.remote_playpause === true && await this.#airplay.remote.playPause();
         }, 0);
     }
 
     async #onConnected(): Promise<void> {
-        await this.setAvailable();
-        const state = await this.#appletv.companionLink.getAttentionState();
-        await this.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
-    }
-
-    async #onDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
+        if (!this.#airplay.isConnected || !this.#companionLink.isConnected) {
             return;
         }
 
-        this.log(`Disconnected, reconnecting in a moment...`);
-
-        await this.setUnavailable('Disconnected from Apple TV.');
-        await waitFor(1000);
-
-        const [, companionLink] = await this.#discover();
-        await this.#appletv.companionLink.setDiscoveryResult({
-            address: companionLink.address,
-            service: {
-                port: companionLink.port
-            }
-        });
-
-        await this.#connect();
+        await this.setAvailable();
     }
 }

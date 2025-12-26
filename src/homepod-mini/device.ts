@@ -1,29 +1,9 @@
-import { HomePodMini } from '@basmilius/apple-devices';
-import Homey from 'homey';
+import { AirPlayConnection } from '../connection';
 import HomePodBaseDevice from '../homepod-base/device';
 import type HomePodMiniDriver from './driver';
 
 export default class HomePodMiniDevice extends HomePodBaseDevice<HomePodMiniDriver> {
-    async createHomePodInstance(): Promise<HomePodMini> {
-        const device = await this.#discover();
-
-        return new HomePodMini({
-            address: device.address,
-            service: {
-                port: device.port
-            },
-            packet: {
-                additionals: [{
-                    rdata: device.txt
-                }]
-            }
-        });
-    }
-
-    async #discover(): Promise<Homey.DiscoveryResultMDNSSD> {
-        const strategy = this.homey.discovery.getStrategy('homepod-mini');
-        const result = strategy.getDiscoveryResult(this.getStore().id);
-
-        return result as Homey.DiscoveryResultMDNSSD;
+    async createAirPlayConnection(): Promise<AirPlayConnection> {
+        return new AirPlayConnection(this, this.homey.discovery.getStrategy('homepod-mini'));
     }
 }

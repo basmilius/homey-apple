@@ -1,8 +1,7 @@
-import { HomePod, HomePodMini } from '@basmilius/apple-devices';
+import { Proto } from '@basmilius/apple-airplay';
 import { Device } from '@basmilius/homey-common';
-import { AirPlayLogic } from '../logic';
+import { AirPlayConnection } from '../connection';
 import type { AppleApp } from '../types';
-import { waitFor } from '../utils';
 import type HomePodBaseDriver from './driver';
 
 const CAPABILITIES = [
@@ -19,37 +18,33 @@ const CAPABILITIES = [
 ];
 
 export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends Device<AppleApp, TDriver> {
-    #airplay!: AirPlayLogic;
-    #homepod!: HomePod | HomePodMini;
+    #airplay!: AirPlayConnection;
 
-    abstract createHomePodInstance(): Promise<HomePod | HomePodMini>;
+    abstract createAirPlayConnection(): Promise<AirPlayConnection>;
 
     async onInit(): Promise<void> {
-        this.#homepod = await this.createHomePodInstance();
-        this.#homepod.on('connected', () => this.#onConnected());
-        this.#homepod.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
+        await this.setUnavailable('Connecting...');
 
-        this.#airplay = new AirPlayLogic(this, this.#homepod.airplay);
-        await this.#airplay.initialize();
+        this.#airplay = await this.createAirPlayConnection();
+        this.#airplay.on('connected', () => this.#onConnected());
 
         await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
         await this.#connect();
-        await this.#airplay.finalize();
 
         this.log('Initialized.');
     }
 
     async onUninit(): Promise<void> {
-        await this.#airplay.uninitialize();
-        await this.#homepod?.disconnect();
+        await this.#airplay?.disconnect();
 
         this.log('Uninitialized.');
     }
 
     async #connect(): Promise<void> {
         try {
-            await this.#homepod.connect();
+            await this.#airplay.createInstance();
+            await this.#airplay.connect();
         } catch (err) {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to HomePod.');
@@ -58,59 +53,43 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async #registerCapabilities(): Promise<void> {
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#homepod.next();
+            await this.#airplay.sendCommand(Proto.Command.NextInContext);
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#homepod.previous();
+            await this.#airplay.sendCommand(Proto.Command.PreviousInContext);
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#homepod.stop();
+            await this.#airplay.sendCommand(Proto.Command.Stop);
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#homepod.play();
+                await this.#airplay.sendCommand(Proto.Command.Play);
             } else {
-                await this.#homepod.pause();
+                await this.#airplay.sendCommand(Proto.Command.Pause);
             }
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#homepod.airplay.sendButtonEvent(12, 0xE9, true);
-            await this.#homepod.airplay.sendButtonEvent(12, 0xE9, false);
+            await this.#airplay.remote.volumeUp();
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#homepod.airplay.sendButtonEvent(12, 0xEA, true);
-            await this.#homepod.airplay.sendButtonEvent(12, 0xEA, false);
+            await this.#airplay.remote.volumeDown();
         });
 
         this.registerCapabilityListener('volume_mute', async () => {
-            await this.#homepod.airplay.sendButtonEvent(12, 0xE2, true);
-            await this.#homepod.airplay.sendButtonEvent(12, 0xE2, false);
+            await this.#airplay.remote.mute();
         });
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
-            await this.#homepod.setVolume(volume);
+            await this.#airplay.setVolume(volume);
         });
     }
 
     async #onConnected(): Promise<void> {
         await this.setAvailable();
-    }
-
-    async #onDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
-            return;
-        }
-
-        this.log(`Disconnected from HomePod "${this.getName()}", reconnecting in a moment...`);
-
-        await this.setUnavailable('Disconnected from HomePod.');
-        await waitFor(1000);
-
-        await this.#connect();
     }
 }
