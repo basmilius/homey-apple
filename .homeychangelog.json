@@ -76,5 +76,8 @@
   },
   "0.0.25": {
     "en": "Update apple-protocols SDK."
+  },
+  "0.0.26": {
+    "en": "This update adds support for the base HomePod and reworks internal logic."
   }
 }
