@@ -85,5 +85,8 @@
   },
   "0.0.28": {
     "en": "Update apple-protocols sdk."
+  },
+  "0.0.29": {
+    "en": "Timing server"
   }
 }
