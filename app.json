@@ -126,8 +126,8 @@
           "nl": "Voer afstandsbediening commando uit"
         },
         "titleFormatted": {
-          "en": "Execute [[command]] on Apple TV",
-          "nl": "Voer [[command]] uit op Apple TV"
+          "en": "Execute [[command]]",
+          "nl": "Voer [[command]] uit"
         },
         "args": [
           {

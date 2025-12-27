@@ -37,8 +37,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#protocol.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
         this.#protocol.state.on('updateContentItem', async (message: Proto.UpdateContentItemMessage) => await this.#onUpdateContentItem(message));
         this.#protocol.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
-
-        await this.#protocol.requestPlaybackQueue(1);
     }
 
     async uninitialize(): Promise<void> {
@@ -61,8 +59,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): Promise<void> {
         this.log(this.deviceName, `Now playing client updated to ${message.client?.bundleIdentifier}.`);
-
-        await this.#protocol.requestPlaybackQueue(1);
     }
 
     async #onSetState(message: Proto.SetStateMessage): Promise<void> {
@@ -97,6 +93,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
+        this.log(this.deviceName, 'Artwork identifier changed.', identifier, this.#artworkIdentifier);
+
         if (!item.metadata.artworkAvailable) {
             this.log(this.deviceName, 'Artwork not available.');
             await this.#updateArtwork(null);
@@ -127,7 +125,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#device.setAlbumArtImage(this.#artwork);
 
             if (this.#artworkIdentifier !== url) {
-                this.#artworkIdentifier = url;
                 this.#artwork.setUrl(url);
                 await this.#artwork.update();
             }
