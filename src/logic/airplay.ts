@@ -72,7 +72,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.log(this.deviceName, 'State update', message.playerPath?.client?.bundleIdentifier, client.bundleIdentifier);
+        this.log(this.deviceName, 'State update', message.playerPath?.client?.bundleIdentifier, message.playbackState, message.playbackStateTimestamp);
 
         await this.#updateNowPlaying();
     }
@@ -147,10 +147,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #updateNowPlaying(): Promise<void> {
         const client = this.#protocol.state.nowPlayingClient;
-        const item = client.playbackQueue?.contentItems?.[0] ?? null;
+        const item = client?.playbackQueue?.contentItems?.[0] ?? null;
+
+        this.log(this.deviceName, 'Now playing info updated.', client?.bundleIdentifier, item?.metadata?.title);
 
         if (!item) {
-            await this.#clearNowPlaying();
             return;
         }
 

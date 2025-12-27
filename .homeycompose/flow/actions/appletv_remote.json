@@ -1,0 +1,147 @@
+{
+    "id": "appletv_remote",
+    "title": {
+        "en": "Execute remote command",
+        "nl": "Voer afstandsbediening commando uit"
+    },
+    "titleFormatted": {
+        "en": "Execute [[command]] on Apple TV",
+        "nl": "Voer [[command]] uit op Apple TV"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "dropdown",
+            "name": "command",
+            "title": {
+                "en": "Command",
+                "nl": "Commando"
+            },
+            "values": [
+                {
+                    "id": "up",
+                    "label": {
+                        "en": "Up",
+                        "nl": "Omhoog"
+                    }
+                },
+                {
+                    "id": "down",
+                    "label": {
+                        "en": "Down",
+                        "nl": "Omlaag"
+                    }
+                },
+                {
+                    "id": "left",
+                    "label": {
+                        "en": "Left",
+                        "nl": "Links"
+                    }
+                },
+                {
+                    "id": "right",
+                    "label": {
+                        "en": "Right",
+                        "nl": "Rechts"
+                    }
+                },
+                {
+                    "id": "select",
+                    "label": {
+                        "en": "Select",
+                        "nl": "Selecteer"
+                    }
+                },
+                {
+                    "id": "menu",
+                    "label": {
+                        "en": "Menu/Back",
+                        "nl": "Menu/Terug"
+                    }
+                },
+                {
+                    "id": "home",
+                    "label": {
+                        "en": "Home",
+                        "nl": "Home"
+                    }
+                },
+                {
+                    "id": "play",
+                    "label": {
+                        "en": "Play",
+                        "nl": "Afspelen"
+                    }
+                },
+                {
+                    "id": "pause",
+                    "label": {
+                        "en": "Pause",
+                        "nl": "Pauzeren"
+                    }
+                },
+                {
+                    "id": "playPause",
+                    "label": {
+                        "en": "Play/Pause",
+                        "nl": "Afspelen/Pauzeren"
+                    }
+                },
+                {
+                    "id": "next",
+                    "label": {
+                        "en": "Next",
+                        "nl": "Volgende"
+                    }
+                },
+                {
+                    "id": "previous",
+                    "label": {
+                        "en": "Previous",
+                        "nl": "Vorige"
+                    }
+                },
+                {
+                    "id": "volumeUp",
+                    "label": {
+                        "en": "Volume Up",
+                        "nl": "Volume omhoog"
+                    }
+                },
+                {
+                    "id": "volumeDown",
+                    "label": {
+                        "en": "Volume Down",
+                        "nl": "Volume omlaag"
+                    }
+                },
+                {
+                    "id": "mute",
+                    "label": {
+                        "en": "Mute",
+                        "nl": "Dempen"
+                    }
+                },
+                {
+                    "id": "wake",
+                    "label": {
+                        "en": "Wake",
+                        "nl": "Activeren"
+                    }
+                },
+                {
+                    "id": "suspend",
+                    "label": {
+                        "en": "Sleep",
+                        "nl": "Slaapstand"
+                    }
+                }
+            ]
+        }
+    ]
+}
