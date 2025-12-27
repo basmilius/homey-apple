@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
+import type { AttentionState } from '@basmilius/apple-companion-link';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
 import type { Device } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
@@ -49,7 +50,7 @@ export default class extends EventEmitter<EventMap> {
 
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
-        this.#protocol.on('power', (on: boolean) => this.#device.setCapabilityValue('onoff', on));
+        this.#protocol.on('power', (state: AttentionState) => this.#device.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver'));
     }
 
     async disconnect(): Promise<void> {
