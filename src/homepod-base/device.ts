@@ -1,6 +1,7 @@
 import { Proto } from '@basmilius/apple-airplay';
 import { Device } from '@basmilius/homey-common';
 import { AirPlayConnection } from '../connection';
+import { AirPlayLogic } from '../logic';
 import type { AppleApp } from '../types';
 import type HomePodBaseDriver from './driver';
 
@@ -18,12 +19,24 @@ const CAPABILITIES = [
 ];
 
 export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends Device<AppleApp, TDriver> {
+    get airplay(): AirPlayConnection {
+        return this.#airplay;
+    }
+
+    get airplayLogic(): AirPlayLogic {
+        return this.#airplayLogic;
+    }
+
     #airplay!: AirPlayConnection;
+    #airplayLogic!: AirPlayLogic;
 
     abstract createAirPlayConnection(): Promise<AirPlayConnection>;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
+
+        this.#airplayLogic = new AirPlayLogic(this);
+        await this.#airplayLogic.initialize();
 
         this.#airplay = await this.createAirPlayConnection();
         this.#airplay.on('connected', () => this.#onConnected());
@@ -36,6 +49,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     }
 
     async onUninit(): Promise<void> {
+        await this.#airplayLogic.uninitialize();
         await this.#airplay?.disconnect();
 
         this.log('Uninitialized.');
@@ -53,22 +67,22 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async #registerCapabilities(): Promise<void> {
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#airplay.sendCommand(Proto.Command.NextInContext);
+            await this.#airplay.protocol.sendCommand(Proto.Command.NextInContext);
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#airplay.sendCommand(Proto.Command.PreviousInContext);
+            await this.#airplay.protocol.sendCommand(Proto.Command.PreviousInContext);
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.sendCommand(Proto.Command.Stop);
+            await this.#airplay.protocol.sendCommand(Proto.Command.Stop);
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.sendCommand(Proto.Command.Play);
+                await this.#airplay.protocol.sendCommand(Proto.Command.Play);
             } else {
-                await this.#airplay.sendCommand(Proto.Command.Pause);
+                await this.#airplay.protocol.sendCommand(Proto.Command.Pause);
             }
         });
 
@@ -85,7 +99,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         });
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
-            await this.#airplay.setVolume(volume);
+            await this.#airplay.protocol.setVolume(volume);
         });
     }
 

@@ -16,6 +16,10 @@ export default class extends EventEmitter<EventMap> {
         return this.#protocol?.isConnected ?? false;
     }
 
+    get protocol(): CompanionLinkDevice {
+        return this.#protocol;
+    }
+
     readonly #discoveryStrategy: Homey.DiscoveryStrategy;
     readonly #device!: Device<AppleApp, any>;
     #protocol!: CompanionLinkDevice;
@@ -80,7 +84,7 @@ export default class extends EventEmitter<EventMap> {
 
         this.#device.log('Disconnected (Companion Link), reconnecting...');
         await this.#device.setUnavailable('Disconnected (Companion Link), reconnecting...');
-        await waitFor(1000);
+        await waitFor(3000);
 
         await this.createInstance();
         await this.connect();

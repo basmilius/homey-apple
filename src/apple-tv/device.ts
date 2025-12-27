@@ -1,6 +1,7 @@
 import { Proto } from '@basmilius/apple-airplay';
 import { Device } from '@basmilius/homey-common';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
+import { AirPlayLogic } from '../logic';
 import type { AppleApp } from '../types';
 import type AppleTVDriver from './driver';
 
@@ -29,11 +30,27 @@ const CAPABILITIES = [
 ];
 
 export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
+    get airplay(): AirPlayConnection {
+        return this.#airplay;
+    }
+
+    get airplayLogic(): AirPlayLogic {
+        return this.#airplayLogic;
+    }
+
+    get companionLink(): CompanionLinkConnection {
+        return this.#companionLink;
+    }
+
     #airplay!: AirPlayConnection;
+    #airplayLogic!: AirPlayLogic;
     #companionLink!: CompanionLinkConnection;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
+
+        this.#airplayLogic = new AirPlayLogic(this);
+        await this.#airplayLogic.initialize();
 
         this.#airplay = new AirPlayConnection(this, this.homey.discovery.getStrategy('appletv-airplay'));
         this.#companionLink = new CompanionLinkConnection(this, this.homey.discovery.getStrategy('appletv-companion-link'));
@@ -49,6 +66,7 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
     }
 
     async onUninit(): Promise<void> {
+        await this.#airplayLogic.uninitialize();
         await this.#airplay?.disconnect();
         await this.#companionLink?.disconnect();
 
@@ -73,22 +91,22 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         await this.#registerRemote();
 
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#airplay.sendCommand(Proto.Command.NextInContext);
+            await this.#airplay.protocol.sendCommand(Proto.Command.NextInContext);
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#airplay.sendCommand(Proto.Command.PreviousInContext);
+            await this.#airplay.protocol.sendCommand(Proto.Command.PreviousInContext);
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.sendCommand(Proto.Command.Stop);
+            await this.#airplay.protocol.sendCommand(Proto.Command.Stop);
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.sendCommand(Proto.Command.Play);
+                await this.#airplay.protocol.sendCommand(Proto.Command.Play);
             } else {
-                await this.#airplay.sendCommand(Proto.Command.Pause);
+                await this.#airplay.protocol.sendCommand(Proto.Command.Pause);
             }
         });
 

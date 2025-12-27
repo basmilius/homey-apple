@@ -1,10 +1,7 @@
 import { EventEmitter } from 'node:events';
-import { Proto } from '@basmilius/apple-airplay';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 import { AirPlayDevice } from '@basmilius/apple-devices';
-import type { Device } from '@basmilius/homey-common';
-import { AirPlayLogic } from '../logic';
-import type { AppleApp } from '../types';
+import type { AppleTVDevice, HomePodBaseDevice } from '../types';
 import { waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -18,16 +15,23 @@ export default class extends EventEmitter<EventMap> {
         return this.#protocol?.isConnected ?? false;
     }
 
+    get protocol(): AirPlayDevice {
+        return this.#protocol;
+    }
+
     get remote(): AirPlayDevice['remote'] {
         return this.#protocol.remote;
     }
 
+    get state(): AirPlayDevice['state'] {
+        return this.#protocol.state;
+    }
+
     readonly #discoveryStrategy: Homey.DiscoveryStrategy;
-    readonly #device!: Device<AppleApp, any>;
-    #logic!: AirPlayLogic;
+    readonly #device!: AppleTVDevice | HomePodBaseDevice<any>;
     #protocol!: AirPlayDevice;
 
-    constructor(device: Device<AppleApp, any>, discoveryStrategy: Homey.DiscoveryStrategy) {
+    constructor(device: AppleTVDevice | HomePodBaseDevice<any>, discoveryStrategy: Homey.DiscoveryStrategy) {
         super();
         this.#device = device;
         this.#discoveryStrategy = discoveryStrategy;
@@ -41,7 +45,6 @@ export default class extends EventEmitter<EventMap> {
         }
 
         await this.#protocol.connect();
-        await this.#logic.finalize();
     }
 
     async createInstance(): Promise<void> {
@@ -61,13 +64,9 @@ export default class extends EventEmitter<EventMap> {
 
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
-
-        this.#logic = new AirPlayLogic(this.#device, this.#protocol);
-        await this.#logic.initialize();
     }
 
     async disconnect(): Promise<void> {
-        await this.#logic.uninitialize();
         await this.#protocol.disconnect();
     }
 
@@ -88,6 +87,8 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async #onConnected(): Promise<void> {
+        await this.#device.airplayLogic.setProtocol(this.#protocol);
+
         this.emit('connected');
     }
 
@@ -98,21 +99,10 @@ export default class extends EventEmitter<EventMap> {
             return;
         }
 
-        await this.#logic.uninitialize();
-
         this.#device.log('Disconnected (AirPlay), reconnecting...');
         await this.#device.setUnavailable('Disconnected (AirPlay), reconnecting...');
-        await waitFor(1000);
+        await waitFor(3000);
 
-        await this.createInstance();
         await this.connect();
-    }
-
-    async sendCommand(command: Proto.Command, options?: Proto.CommandOptions): Promise<void> {
-        await this.#protocol.sendCommand(command, options);
-    }
-
-    async setVolume(volume: number): Promise<void> {
-        await this.#protocol.setVolume(volume);
     }
 }
