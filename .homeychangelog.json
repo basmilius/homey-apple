@@ -88,5 +88,8 @@
   },
   "0.0.29": {
     "en": "Timing server"
+  },
+  "0.0.30": {
+    "en": "Fix for companion link reconnect logic."
   }
 }
