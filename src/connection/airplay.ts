@@ -44,6 +44,11 @@ export default class extends EventEmitter<EventMap> {
             await this.#protocol.setCredentials(credentials);
         }
 
+        if (this.#device.app.useTimingServer) {
+            this.#device.log('Using timing server');
+            this.#protocol.timingServer = this.#device.app.timingServer;
+        }
+
         await this.#protocol.connect();
     }
 
