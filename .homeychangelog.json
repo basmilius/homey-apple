@@ -79,5 +79,8 @@
   },
   "0.0.26": {
     "en": "This update adds support for the base HomePod and reworks internal logic."
+  },
+  "0.0.27": {
+    "en": "Remote control flow card and internal refactorings."
   }
 }
