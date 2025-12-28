@@ -1,3 +1,3 @@
-import HomePodMiniDriver from '../../src/homepod-mini/driver';
+import HomePodDriver from '../../src/homepod/driver';
 
-module.exports = HomePodMiniDriver;
+module.exports = HomePodDriver;

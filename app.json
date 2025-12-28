@@ -57,6 +57,7 @@
   "homepage": "https://bas.dev",
   "source": "https://github.com/basmilius/homey-apple",
   "support": "https://github.com/basmilius/homey-apple/issues",
+  "homeyCommunityTopicId": 147663,
   "contributing": {
     "donate": {
       "githubSponsors": {
@@ -324,8 +325,23 @@
         "remote_home",
         "remote_back",
         "remote_playpause",
-        "now_playing_app"
+        "now_playing_app",
+        "button.restart",
+        "button.repair"
       ],
+      "capabilitiesOptions": {
+        "button.restart": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Restart connection",
+            "nl": "Herstart verbinding"
+          },
+          "desc": {
+            "en": "Restart the connection to the Apple TV.",
+            "nl": "Herstart de verbinding met de Apple TV."
+          }
+        }
+      },
       "platforms": [
         "local"
       ],
@@ -421,8 +437,22 @@
         "speaker_prev",
         "speaker_stop",
         "speaker_track",
-        "volume_set"
+        "volume_set",
+        "button.restart"
       ],
+      "capabilitiesOptions": {
+        "button.restart": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Restart connection",
+            "nl": "Herstart verbinding"
+          },
+          "desc": {
+            "en": "Restart the connection to the HomePod.",
+            "nl": "Herstart de verbinding met de HomePod."
+          }
+        }
+      },
       "platforms": [
         "local"
       ],
@@ -488,8 +518,22 @@
         "speaker_prev",
         "speaker_stop",
         "speaker_track",
-        "volume_set"
+        "volume_set",
+        "button.restart"
       ],
+      "capabilitiesOptions": {
+        "button.restart": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Restart connection",
+            "nl": "Herstart verbinding"
+          },
+          "desc": {
+            "en": "Restart the connection to the HomePod Mini.",
+            "nl": "Herstart de verbinding met de HomePod Mini."
+          }
+        }
+      },
       "platforms": [
         "local"
       ],

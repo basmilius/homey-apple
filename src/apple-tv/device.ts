@@ -26,7 +26,8 @@ const CAPABILITIES = [
     'remote_home',
     'remote_back',
     'remote_playpause',
-    'now_playing_app'
+    'now_playing_app',
+    'button.restart'
 ];
 
 export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
@@ -60,6 +61,7 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
 
         await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
+        await this.#registerMaintenance();
         await this.#connect();
 
         this.log('Initialized.');
@@ -67,8 +69,7 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
 
     async onUninit(): Promise<void> {
         await this.#airplayLogic.uninitialize();
-        await this.#airplay?.disconnect();
-        await this.#companionLink?.disconnect();
+        await this.#disconnect();
 
         this.log('Uninitialized.');
     }
@@ -84,6 +85,11 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to Apple TV.');
         }
+    }
+
+    async #disconnect(): Promise<void> {
+        await this.#airplay.disconnect();
+        await this.#companionLink.disconnect();
     }
 
     async #registerCapabilities(): Promise<void> {
@@ -120,6 +126,13 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
 
         this.registerCapabilityListener('volume_mute', async () => {
             await this.#airplay.remote.mute();
+        });
+    }
+
+    async #registerMaintenance(): Promise<void> {
+        this.registerCapabilityListener('button.restart', async () => {
+            await this.#disconnect();
+            await this.#connect();
         });
     }
 

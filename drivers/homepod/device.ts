@@ -1,3 +1,3 @@
-import HomePodMiniDevice from '../../src/homepod-mini/device';
+import HomePodDevice from '../../src/homepod/device';
 
-module.exports = HomePodMiniDevice;
+module.exports = HomePodDevice;

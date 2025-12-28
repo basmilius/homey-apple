@@ -15,7 +15,8 @@ const CAPABILITIES = [
     'speaker_prev',
     'speaker_stop',
     'speaker_track',
-    'volume_set'
+    'volume_set',
+    'button.restart'
 ];
 
 export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends Device<AppleApp, TDriver> {
@@ -43,6 +44,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
+        await this.#registerMaintenance();
         await this.#connect();
 
         this.log('Initialized.');
@@ -50,7 +52,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async onUninit(): Promise<void> {
         await this.#airplayLogic.uninitialize();
-        await this.#airplay?.disconnect();
+        await this.#disconnect();
 
         this.log('Uninitialized.');
     }
@@ -63,6 +65,10 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to HomePod.');
         }
+    }
+
+    async #disconnect(): Promise<void> {
+        await this.#airplay.disconnect();
     }
 
     async #registerCapabilities(): Promise<void> {
@@ -100,6 +106,13 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
             await this.#airplay.protocol.setVolume(volume);
+        });
+    }
+
+    async #registerMaintenance(): Promise<void> {
+        this.registerCapabilityListener('button.restart', async () => {
+            await this.#disconnect();
+            await this.#connect();
         });
     }
 
