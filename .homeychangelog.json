@@ -97,5 +97,8 @@
   },
   "1.0.1": {
     "en": "Update category."
+  },
+  "1.0.2": {
+    "en": "Adds a maintenance action to restart the connections to the devices."
   }
 }
