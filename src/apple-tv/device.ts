@@ -132,6 +132,7 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
     async #registerMaintenance(): Promise<void> {
         this.registerCapabilityListener('button.restart', async () => {
             await this.#disconnect();
+            await this.#airplayLogic.clearNowPlaying();
             await this.#connect();
         });
     }

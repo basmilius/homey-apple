@@ -5,10 +5,10 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.0.70",
-        "@basmilius/apple-common": "^0.0.70",
-        "@basmilius/apple-companion-link": "^0.0.70",
-        "@basmilius/apple-devices": "^0.0.70",
+        "@basmilius/apple-airplay": "^0.0.72",
+        "@basmilius/apple-common": "^0.0.72",
+        "@basmilius/apple-companion-link": "^0.0.72",
+        "@basmilius/apple-devices": "^0.0.72",
         "@basmilius/homey-common": "^1.10.0"
     },
     "devDependencies": {

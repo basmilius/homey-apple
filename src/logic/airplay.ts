@@ -27,7 +27,21 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#artwork = await this.#device.homey.images.createImage();
         this.#artworkEmpty = await this.#device.homey.images.createImage();
         await this.#device.setAlbumArtImage(this.#artworkEmpty);
-        await this.#clearNowPlaying();
+        await this.clearNowPlaying();
+    }
+
+    async clearNowPlaying(): Promise<void> {
+        this.#artworkIdentifier = undefined;
+        await this.#updateArtwork(null);
+
+        await this.#device.setCapabilityValue('speaker_album', '');
+        await this.#device.setCapabilityValue('speaker_artist', '');
+        await this.#device.setCapabilityValue('speaker_track', '');
+        await this.#device.setCapabilityValue('speaker_duration', -1);
+        await this.#device.setCapabilityValue('speaker_position', -1);
+        await this.#device.setCapabilityValue('speaker_playing', false);
+
+        this.log(this.deviceName, 'Now playing info cleared.');
     }
 
     async setProtocol(protocol: AirPlayDevice): Promise<void> {
@@ -44,25 +58,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         await this.#artworkEmpty.unregister();
     }
 
-    async #clearNowPlaying(): Promise<void> {
-        await this.#updateArtwork(null);
-
-        await this.#device.setCapabilityValue('speaker_album', '');
-        await this.#device.setCapabilityValue('speaker_artist', '');
-        await this.#device.setCapabilityValue('speaker_track', '');
-        await this.#device.setCapabilityValue('speaker_duration', -1);
-        await this.#device.setCapabilityValue('speaker_position', -1);
-        await this.#device.setCapabilityValue('speaker_playing', false);
-
-        this.log(this.deviceName, 'Now playing info cleared.');
-    }
-
     async #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): Promise<void> {
         this.log(this.deviceName, `Now playing client updated to ${message.client?.bundleIdentifier}.`);
     }
 
     async #onSetState(message: Proto.SetStateMessage): Promise<void> {
         const client = this.#protocol.state.nowPlayingClient;
+
+        this.log(this.deviceName, 'State received', message.playbackState, message.playbackStateTimestamp, message.playerPath?.client?.bundleIdentifier);
 
         if (message.playerPath?.client?.bundleIdentifier !== client?.bundleIdentifier) {
             return;
@@ -90,10 +93,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #setArtwork(identifier: string, item: Proto.ContentItem): Promise<void> {
         if (identifier === this.#artworkIdentifier) {
+            this.log(this.deviceName, 'Artwork identifier unchanged.');
             return;
         }
 
-        this.log(this.deviceName, 'Artwork identifier changed.', identifier, this.#artworkIdentifier);
+        this.log(this.deviceName, 'Artwork identifier changed.', identifier, item);
 
         if (!item.metadata.artworkAvailable) {
             this.log(this.deviceName, 'Artwork not available.');
@@ -101,23 +105,23 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.#artworkIdentifier = identifier;
-
         if (item.metadata.artworkURL) {
             this.log(this.deviceName, 'Artwork available as URL.');
+            this.#artworkIdentifier = identifier;
             await this.#updateArtwork(item.metadata.artworkURL);
             return;
         }
 
         if (item.artworkData?.byteLength > 0) {
             this.log(this.deviceName, 'Artwork data available in playback queue.');
+            this.#artworkIdentifier = identifier;
             await this.#updateArtworkBuffer(item.artworkData);
             return;
         }
 
         this.log(this.deviceName, 'Artwork available, but not yet, requesting...');
         await this.#updateArtwork(null);
-        await this.#protocol?.requestPlaybackQueue(1);
+        await this.#protocol.requestPlaybackQueue(1);
     }
 
     async #updateArtwork(url: string | null): Promise<void> {
