@@ -91,5 +91,8 @@
   },
   "0.0.30": {
     "en": "Fix for companion link reconnect logic."
+  },
+  "0.0.31": {
+    "en": "Reset now playing app and update apple-protocols sdk."
   }
 }
