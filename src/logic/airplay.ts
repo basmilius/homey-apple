@@ -160,7 +160,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         await this.#device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
         if (this.#device.hasCapability('now_playing_app')) {
-            await this.#device.setCapabilityValue('now_playing_app', client.displayName);
+            await this.#device.setCapabilityValue('now_playing_app', client.playbackState === Proto.PlaybackState_Enum.Playing ? client.displayName : null);
         }
 
         await this.#setArtwork(item.metadata.artworkIdentifier, item);
