@@ -94,5 +94,8 @@
   },
   "0.0.31": {
     "en": "Reset now playing app and update apple-protocols sdk."
+  },
+  "1.0.1": {
+    "en": "Update category."
   }
 }
