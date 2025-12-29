@@ -109,5 +109,8 @@
   },
   "1.0.5": {
     "en": "Updated apple-protocols sdk. Enabled verbose logging."
+  },
+  "1.0.6": {
+    "en": "Fixes a bug where unsupported artworks were loaded. Updated apple-protocols sdk."
   }
 }
