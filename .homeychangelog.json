@@ -100,5 +100,8 @@
   },
   "1.0.2": {
     "en": "Adds a maintenance action to restart the connections to the devices."
+  },
+  "1.0.3": {
+    "en": "Fixed an issue where the no devices found screen would not be shown during pairing."
   }
 }
