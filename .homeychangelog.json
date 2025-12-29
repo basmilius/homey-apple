@@ -103,5 +103,8 @@
   },
   "1.0.3": {
     "en": "Fixed an issue where the no devices found screen would not be shown during pairing."
+  },
+  "1.0.4": {
+    "en": "Add relative volume control buttons to homepod devices. Updated apple-protocols sdk."
   }
 }
