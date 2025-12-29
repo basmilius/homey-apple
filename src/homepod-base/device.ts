@@ -15,7 +15,9 @@ const CAPABILITIES = [
     'speaker_prev',
     'speaker_stop',
     'speaker_track',
+    'volume_down',
     'volume_set',
+    'volume_up',
     'button.restart'
 ];
 
@@ -93,19 +95,15 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#airplay.remote.volumeUp();
+            await this.#airplay.protocol.volume.up();
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#airplay.remote.volumeDown();
-        });
-
-        this.registerCapabilityListener('volume_mute', async () => {
-            await this.#airplay.remote.mute();
+            await this.#airplay.protocol.volume.down();
         });
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
-            await this.#airplay.protocol.setVolume(volume);
+            await this.#airplay.protocol.volume.set(volume);
         });
     }
 

@@ -69,6 +69,8 @@ export default class extends EventEmitter<EventMap> {
 
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
+
+        await this.#device.airplayLogic.setProtocol(this.#protocol);
     }
 
     async disconnect(): Promise<void> {
@@ -92,8 +94,6 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async #onConnected(): Promise<void> {
-        await this.#device.airplayLogic.setProtocol(this.#protocol);
-
         this.emit('connected');
     }
 
