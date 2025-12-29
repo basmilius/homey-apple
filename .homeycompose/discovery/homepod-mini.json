@@ -11,7 +11,7 @@
                 "field": "txt.model",
                 "match": {
                     "type": "regex",
-                    "value": "(AudioAccessory|AudioAccessorySingle)5,1"
+                    "value": "AudioAccessory5,\\d{1}"
                 }
             }
         ]

@@ -468,8 +468,7 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "next": "authenticate",
-            "prev": "discover"
+            "next": "authenticate"
           },
           "options": {
             "singular": true,
@@ -549,8 +548,7 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "next": "authenticate",
-            "prev": "discover"
+            "next": "authenticate"
           },
           "options": {
             "singular": true,
@@ -744,7 +742,7 @@
             "field": "txt.model",
             "match": {
               "type": "regex",
-              "value": "AudioAccessory(1|6),(1,2)"
+              "value": "AudioAccessory(1|6),\\d{1}"
             }
           }
         ]
@@ -763,7 +761,7 @@
             "field": "txt.model",
             "match": {
               "type": "regex",
-              "value": "(AudioAccessory|AudioAccessorySingle)5,1"
+              "value": "AudioAccessory5,\\d{1}"
             }
           }
         ]

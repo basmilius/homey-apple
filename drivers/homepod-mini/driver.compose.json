@@ -46,8 +46,7 @@
             "id": "list_devices",
             "template": "list_devices",
             "navigation": {
-                "next": "authenticate",
-                "prev": "discover"
+                "next": "authenticate"
             },
             "options": {
                 "singular": true,

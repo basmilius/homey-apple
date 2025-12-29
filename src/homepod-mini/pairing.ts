@@ -95,7 +95,7 @@ export default class HomePodMiniPairing extends EventEmitter {
         let tries = 5;
 
         while (tries-- > 0) {
-            if (this.#devices.length > 0) {
+            if (this.#devices.length > 0 || tries === 0) {
                 await this.#session.showView('list_devices');
                 return;
             }
