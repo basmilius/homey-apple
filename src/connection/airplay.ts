@@ -106,7 +106,7 @@ export default class extends EventEmitter<EventMap> {
 
         this.#device.log('Disconnected (AirPlay), reconnecting...');
         await this.#device.setUnavailable('Disconnected (AirPlay), reconnecting...');
-        await waitFor(3000);
+        await waitFor(1000);
 
         await this.connect();
     }

@@ -85,7 +85,7 @@ export default class extends EventEmitter<EventMap> {
 
         this.#device.log('Disconnected (Companion Link), reconnecting...');
         await this.#device.setUnavailable('Disconnected (Companion Link), reconnecting...');
-        await waitFor(3000);
+        await waitFor(1000);
 
         await this.createInstance();
         await this.connect();

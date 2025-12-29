@@ -128,10 +128,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         if (url) {
             await this.#device.setAlbumArtImage(this.#artwork);
 
-            if (this.#artworkIdentifier !== url) {
-                this.#artwork.setUrl(url);
-                await this.#artwork.update();
-            }
+            this.#artwork.setUrl(url.replace('.heic', '.jpg'));
+            await this.#artwork.update();
         } else {
             await this.#device.setAlbumArtImage(this.#artworkEmpty);
         }
