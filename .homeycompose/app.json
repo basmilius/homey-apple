@@ -59,6 +59,9 @@
   "homeyCommunityTopicId": 147663,
   "contributing": {
     "donate": {
+      "paypal": {
+        "username": "basmilius"
+      },
       "githubSponsors": {
         "username": "basmilius"
       }
