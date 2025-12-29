@@ -3,7 +3,7 @@ import { App } from '@basmilius/homey-common';
 
 reporter.enable('error');
 reporter.enable('warn');
-// reporter.all();
+reporter.all();
 
 export default class AppleApp extends App<AppleApp> {
     get timingServer(): TimingServer {
