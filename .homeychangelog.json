@@ -112,5 +112,8 @@
   },
   "1.0.6": {
     "en": "Fixes a bug where unsupported artworks were loaded. Updated apple-protocols sdk."
+  },
+  "1.0.7": {
+    "en": "Add paypal donate option."
   }
 }
