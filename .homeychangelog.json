@@ -106,5 +106,8 @@
   },
   "1.0.4": {
     "en": "Add relative volume control buttons to homepod devices. Updated apple-protocols sdk."
+  },
+  "1.0.5": {
+    "en": "Updated apple-protocols sdk. Enabled verbose logging."
   }
 }
