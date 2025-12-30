@@ -127,5 +127,8 @@
   },
   "1.0.11": {
     "en": "Apple TV: Clear now playing info when the device is powered off. HomePod: Improve HomePod pairing. General: Updated apple-protocols sdk."
+  },
+  "1.0.12": {
+    "en": "Adds retry logic to HomePod pairing. Update apple-protocols sdk."
   }
 }
