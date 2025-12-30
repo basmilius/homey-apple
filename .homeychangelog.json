@@ -124,5 +124,8 @@
   },
   "1.0.10": {
     "en": "Update apple-protocols sdk."
+  },
+  "1.0.11": {
+    "en": "Apple TV: Clear now playing info when the device is powered off. HomePod: Improve HomePod pairing. General: Updated apple-protocols sdk."
   }
 }
