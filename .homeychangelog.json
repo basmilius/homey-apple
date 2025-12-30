@@ -118,5 +118,8 @@
   },
   "1.0.8": {
     "en": "Updated apple-protocols sdk. Removed already added devices from pairing list."
+  },
+  "1.0.9": {
+    "en": "Update apple-protocols sdk."
   }
 }
