@@ -49,7 +49,12 @@ export default class extends EventEmitter<EventMap> {
             this.#protocol.timingServer = this.#device.app.timingServer;
         }
 
-        await this.#protocol.connect();
+        try {
+            await this.#protocol.connect();
+        } catch (err) {
+            this.#device.error('Failed to connect to AirPlay device:', err);
+            await this.#device.setUnavailable(`Failed to connect to AirPlay device. Please file a diagnostics report. ${(err as Error).message}`);
+        }
     }
 
     async createInstance(): Promise<void> {

@@ -2,8 +2,7 @@ import { EventEmitter } from 'node:events';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 import type { AttentionState } from '@basmilius/apple-companion-link';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
-import type { Device } from '@basmilius/homey-common';
-import type { AppleApp } from '../types';
+import type { AppleTVDevice } from '../types';
 import { waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -22,10 +21,10 @@ export default class extends EventEmitter<EventMap> {
     }
 
     readonly #discoveryStrategy: Homey.DiscoveryStrategy;
-    readonly #device!: Device<AppleApp, any>;
+    readonly #device: AppleTVDevice;
     #protocol!: CompanionLinkDevice;
 
-    constructor(device: Device<AppleApp, any>, discoveryStrategy: Homey.DiscoveryStrategy) {
+    constructor(device: AppleTVDevice, discoveryStrategy: Homey.DiscoveryStrategy) {
         super();
         this.#device = device;
         this.#discoveryStrategy = discoveryStrategy;
@@ -50,7 +49,7 @@ export default class extends EventEmitter<EventMap> {
 
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
-        this.#protocol.on('power', (state: AttentionState) => this.#device.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver'));
+        this.#protocol.on('power', (state: AttentionState) => this.#onPower(state));
     }
 
     async disconnect(): Promise<void> {
@@ -89,5 +88,17 @@ export default class extends EventEmitter<EventMap> {
 
         await this.createInstance();
         await this.connect();
+    }
+
+    async #onPower(state: AttentionState): Promise<void> {
+        const isOn = state === 'awake' || state === 'screensaver';
+        await this.#device.setCapabilityValue('onoff', isOn);
+
+        if (isOn) {
+            return;
+        }
+
+        // note: When the device is turned off, clear the now playing info.
+        await this.#device.airplayLogic.clearNowPlaying();
     }
 }
