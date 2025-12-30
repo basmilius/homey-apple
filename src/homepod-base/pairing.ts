@@ -63,43 +63,46 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay({
-            address: this.#device.address,
-            service: {
-                port: this.#device.port
+        for (let attempt = 0; attempt < 3; attempt++) {
+            this.#protocol = new AirPlay({
+                address: this.#device.address,
+                service: {
+                    port: this.#device.port
+                }
+            });
+
+            this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
+
+            await this.#protocol.connect();
+            await this.#protocol.pairing.start();
+            const keys = await this.#protocol.pairing.transient();
+
+            this.emit('log', `Pairing done! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
+
+            await this.#protocol.rtsp.enableEncryption(
+                keys.accessoryToControllerKey,
+                keys.controllerToAccessoryKey
+            );
+
+            await waitFor(500);
+
+            try {
+                const info = await this.#protocol.rtsp.get('/info');
+
+                this.emit('log', `Received info response with status ${info.status}.`);
+
+                if (info.status !== 200) {
+                    throw new Error('Unable to connect to the HomePod due to a verification error. Please try again.');
+                }
+
+                this.emit('log', 'Linked to HomePod.');
+
+                await this.#session.showView('add_my_device');
+                await this.#protocol.disconnect();
+                return;
+            } catch (err) {
+                this.emit('error', (err as Error).message || String(err));
             }
-        });
-
-        this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
-
-        await this.#protocol.connect();
-        await this.#protocol.pairing.start();
-        const keys = await this.#protocol.pairing.transient();
-
-        this.emit('log', `Pairing done! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
-
-        await this.#protocol.rtsp.enableEncryption(
-            keys.accessoryToControllerKey,
-            keys.controllerToAccessoryKey
-        );
-
-        await waitFor(1000);
-
-        try {
-            const info = await this.#protocol.rtsp.get('/info');
-
-            this.emit('log', `Received info response with status ${info.status}.`);
-
-            if (info.status !== 200) {
-                throw new Error('Unable to connect to the HomePod due to a verification error. Please try again.');
-            }
-
-            this.emit('log', 'Linked to HomePod.');
-
-            await this.#session.showView('add_my_device');
-            await this.#protocol.disconnect();
-        } catch (err) {
-            this.emit('error', (err as Error).message || String(err));
         }
     }
 
