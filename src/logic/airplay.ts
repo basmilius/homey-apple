@@ -97,7 +97,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.log(this.deviceName, 'Artwork identifier changed.', identifier, item);
+        this.log(this.deviceName, 'Artwork identifier changed.', identifier);
 
         if (!item.metadata.artworkAvailable) {
             this.log(this.deviceName, 'Artwork not available.');

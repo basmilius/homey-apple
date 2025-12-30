@@ -1,18 +1,20 @@
 import { EventEmitter } from 'node:events';
 import { AirPlay } from '@basmilius/apple-airplay';
 import { waitFor } from '../utils';
-import Homey from 'homey';
+import type Homey from 'homey';
 
-export default class HomePodPairing extends EventEmitter {
+export default class HomePodBasePairing extends EventEmitter {
+    readonly #knownDevices: Homey.Device[];
     readonly #session: Homey.Driver.PairSession;
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Homey.DiscoveryResultMDNSSD | undefined;
     #protocol: AirPlay;
 
-    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[]) {
         super();
 
+        this.#knownDevices = knownDevices;
         this.#session = session;
         this.#strategy = strategy;
 
@@ -22,8 +24,13 @@ export default class HomePodPairing extends EventEmitter {
 
     async start(): Promise<void> {
         this.#session.setHandler('showView', async view => await this.onShowView(view));
-        this.#session.setHandler('list_devices', async () => this.#devices);
+
+        this.#session.setHandler('list_devices', async () => this.#devices
+            .filter(device => !this.#knownDevices.some(knownDevice => knownDevice.getData().id === device.id))
+            .toSorted((a, b) => a.name.localeCompare(b.name)));
+
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
+
         this.#session.setHandler('get_device', async () => ({
             name: this.#device?.name,
             data: {
@@ -81,8 +88,7 @@ export default class HomePodPairing extends EventEmitter {
         this.emit('log', `Received info response with status ${info.status}.`);
 
         if (info.status !== 200) {
-            // todo: Translate
-            throw new Error('Kan geen verbinding maken met de HomePod vanwege een fout in de verificatie. Probeer het opnieuw.');
+            throw new Error('Unable to connect to the HomePod due to a verification error. Please try again.');
         }
 
         this.emit('log', 'Linked to HomePod.');

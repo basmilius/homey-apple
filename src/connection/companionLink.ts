@@ -39,7 +39,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async createInstance(): Promise<void> {
-        const result = this.#discoveryStrategy.getDiscoveryResult(this.#device.getStoreValue('id')) as Homey.DiscoveryResultMDNSSD;
+        const result = this.#discoveryStrategy.getDiscoveryResult(this.#device.getData().id) as Homey.DiscoveryResultMDNSSD;
 
         this.#protocol = new CompanionLinkDevice({
             address: result.address,

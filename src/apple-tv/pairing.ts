@@ -1,13 +1,14 @@
 import { EventEmitter } from 'node:events';
 import { AirPlay } from '@basmilius/apple-airplay';
-import Homey from 'homey';
 import { waitFor } from '../utils';
+import type Homey from 'homey';
 
 type Device = Homey.DiscoveryResultMDNSSD & {
     store?: Record<string, unknown>;
 };
 
 export default class AppleTVPairing extends EventEmitter {
+    readonly #knownDevices: Homey.Device[];
     readonly #session: Homey.Driver.PairSession;
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
@@ -19,9 +20,10 @@ export default class AppleTVPairing extends EventEmitter {
     #m4: any;
     #m5: any;
 
-    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[]) {
         super();
 
+        this.#knownDevices = knownDevices;
         this.#session = session;
         this.#strategy = strategy;
 
@@ -31,9 +33,15 @@ export default class AppleTVPairing extends EventEmitter {
 
     async start(): Promise<void> {
         this.#session.setHandler('showView', async view => await this.onShowView(view));
-        this.#session.setHandler('list_devices', async () => this.#devices);
+
+        this.#session.setHandler('list_devices', async () => this.#devices
+            .filter(device => !this.#knownDevices.some(knownDevice => knownDevice.getData().id === device.id))
+            .toSorted((a, b) => a.name.localeCompare(b.name)));
+
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
+
         this.#session.setHandler('pincode', async (code: Buffer) => await this.onPincode(code));
+
         this.#session.setHandler('get_device', async () => ({
             name: this.#device?.name,
             data: {

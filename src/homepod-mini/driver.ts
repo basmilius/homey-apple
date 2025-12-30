@@ -1,6 +1,6 @@
 import Homey from 'homey';
 import HomePodBaseDriver from '../homepod-base/driver';
-import HomePodMiniPairing from './pairing';
+import HomePodBasePairing from '../homepod-base/pairing';
 
 export default class HomePodMiniDriver extends HomePodBaseDriver {
     async onInit(): Promise<void> {
@@ -8,7 +8,7 @@ export default class HomePodMiniDriver extends HomePodBaseDriver {
     }
 
     async onPair(session: Homey.Driver.PairSession): Promise<void> {
-        const pairing = new HomePodMiniPairing(session, this.getDiscoveryStrategy());
+        const pairing = new HomePodBasePairing(session, this.getDiscoveryStrategy(), this.getDevices());
 
         pairing.on('error', err => {
             // todo: Show error screen or something.
