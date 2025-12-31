@@ -130,5 +130,8 @@
   },
   "1.0.12": {
     "en": "Adds retry logic to HomePod pairing. Update apple-protocols sdk."
+  },
+  "1.0.13": {
+    "en": "Updated apple-protocols sdk."
   }
 }
