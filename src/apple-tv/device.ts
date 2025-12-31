@@ -169,4 +169,12 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
 
         await this.setAvailable();
     }
+
+    async setUnavailable(message?: string | null | undefined): Promise<void> {
+        try {
+            await super.setUnavailable(message);
+        } catch (err) {
+            this.app.log('Error while setting unavailable', err);
+        }
+    }
 }
