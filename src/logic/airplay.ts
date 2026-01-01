@@ -121,9 +121,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.log(this.deviceName, 'Artwork available, but not yet, requesting...');
-        await this.#updateArtwork(null);
-        await this.#protocol.requestPlaybackQueue(1);
+        try {
+            this.log(this.deviceName, 'Artwork available, but not yet, requesting...');
+            await this.#updateArtwork(null);
+            await this.#protocol.requestPlaybackQueue(1);
+        } catch (err) {
+            this.#device.error(this.deviceName, 'Failed to request artwork from playback queue', err);
+        }
     }
 
     async #updateArtwork(url: string | null): Promise<void> {
