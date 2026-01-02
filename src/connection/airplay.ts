@@ -113,6 +113,20 @@ export default class extends EventEmitter<EventMap> {
         await this.#device.setUnavailable('Disconnected (AirPlay), reconnecting...');
         await waitFor(1000);
 
+        const result = this.#discoveryStrategy.getDiscoveryResult(this.#device.getData().id) as Homey.DiscoveryResultMDNSSD;
+
+        this.#protocol.discoveryResult = {
+            address: result.address,
+            service: {
+                port: result.port
+            },
+            packet: {
+                additionals: [{
+                    rdata: result.txt
+                }]
+            }
+        };
+
         await this.connect();
     }
 }

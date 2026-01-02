@@ -86,7 +86,15 @@ export default class extends EventEmitter<EventMap> {
         await this.#device.setUnavailable('Disconnected (Companion Link), reconnecting...');
         await waitFor(1000);
 
-        await this.createInstance();
+        const result = this.#discoveryStrategy.getDiscoveryResult(this.#device.getData().id) as Homey.DiscoveryResultMDNSSD;
+
+        this.#protocol.discoveryResult = {
+            address: result.address,
+            service: {
+                port: result.port
+            }
+        };
+
         await this.connect();
     }
 
