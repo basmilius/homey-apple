@@ -139,5 +139,8 @@
   },
   "1.0.15": {
     "en": "Updated apple-protocols sdk."
+  },
+  "1.0.16": {
+    "en": "Update apple-protocols sdk."
   }
 }
