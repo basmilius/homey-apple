@@ -148,5 +148,8 @@
   },
   "1.0.18": {
     "en": "Update apple-protocols sdk."
+  },
+  "1.0.19": {
+    "en": "Remove unneeded step in HomePod pairing."
   }
 }
