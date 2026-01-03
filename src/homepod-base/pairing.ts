@@ -77,32 +77,10 @@ export default class HomePodBasePairing extends EventEmitter {
             await this.#protocol.pairing.start();
             const keys = await this.#protocol.pairing.transient();
 
-            this.emit('log', `Pairing done! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
+            this.emit('log', `Pairing successful! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
 
-            await this.#protocol.rtsp.enableEncryption(
-                keys.accessoryToControllerKey,
-                keys.controllerToAccessoryKey
-            );
-
-            await waitFor(500);
-
-            try {
-                const info = await this.#protocol.rtsp.get('/info');
-
-                this.emit('log', `Received info response with status ${info.status}.`);
-
-                if (info.status !== 200) {
-                    throw new Error('Unable to connect to the HomePod due to a verification error. Please try again.');
-                }
-
-                this.emit('log', 'Linked to HomePod.');
-
-                await this.#session.showView('add_my_device');
-                await this.#protocol.disconnect();
-                return;
-            } catch (err) {
-                this.emit('error', (err as Error).message || String(err));
-            }
+            await this.#protocol.disconnect();
+            await this.#session.showView('add_my_device');
         }
     }
 
