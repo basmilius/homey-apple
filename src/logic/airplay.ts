@@ -56,6 +56,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async uninitialize(): Promise<void> {
+        this.#protocol.state.removeAllListeners();
         await this.#artwork.unregister();
         await this.#artworkEmpty.unregister();
     }
@@ -160,17 +161,21 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        await this.#device.setCapabilityValue('speaker_playing', client.playbackState === Proto.PlaybackState_Enum.Playing);
-        await this.#device.setCapabilityValue('speaker_album', item.metadata.albumName);
-        await this.#device.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client.displayName || '-');
-        await this.#device.setCapabilityValue('speaker_track', item.metadata.title);
-        await this.#device.setCapabilityValue('speaker_duration', item.metadata.duration);
-        await this.#device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
+        try {
+            await this.#device.setCapabilityValue('speaker_playing', client.playbackState === Proto.PlaybackState_Enum.Playing);
+            await this.#device.setCapabilityValue('speaker_album', item.metadata.albumName);
+            await this.#device.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client.displayName || '-');
+            await this.#device.setCapabilityValue('speaker_track', item.metadata.title);
+            await this.#device.setCapabilityValue('speaker_duration', item.metadata.duration);
+            await this.#device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-        if (this.#device.hasCapability('now_playing_app')) {
-            await this.#device.setCapabilityValue('now_playing_app', client.playbackState === Proto.PlaybackState_Enum.Playing ? client.displayName : null);
+            if (this.#device.hasCapability('now_playing_app')) {
+                await this.#device.setCapabilityValue('now_playing_app', client.playbackState === Proto.PlaybackState_Enum.Playing ? client.displayName : null);
+            }
+
+            await this.#setArtwork(item.metadata.artworkIdentifier, item);
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to update now playing info', err);
         }
-
-        await this.#setArtwork(item.metadata.artworkIdentifier, item);
     }
 }
