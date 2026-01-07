@@ -154,5 +154,8 @@
   },
   "1.0.20": {
     "en": "Update apple-protocols sdk."
+  },
+  "1.0.21": {
+    "en": "Updated apple-protocols sdk. Fixed an issue where we tried to update removed devices."
   }
 }
