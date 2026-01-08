@@ -74,7 +74,9 @@ export default class AppleTVPairing extends EventEmitter {
             secretKey: credentials.secretKey.toString('hex')
         };
 
-        await this.#session.showView('add_device');
+        this.#session.showView('add_device')
+            .catch(e => this.emit('log', e));
+
         await this.#protocol.disconnect();
 
         return this.#device;
