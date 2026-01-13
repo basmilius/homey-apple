@@ -1,70 +1,77 @@
 {
-  "id": "com.basmilius.apple",
-  "version": "1.0.23",
-  "compatibility": ">=12.9.0",
-  "sdk": 3,
-  "brandColor": "#147efb",
-  "platforms": [
-    "local"
-  ],
-  "name": {
-    "en": "Apple TV & HomePod",
-    "nl": "Apple TV & HomePod"
-  },
-  "description": {
-    "en": "Control your Apple devices from your Homey.",
-    "nl": "Beheer je Apple apparaten vanuit je Homey."
-  },
-  "category": [
-    "music",
-    "video",
-    "appliances"
-  ],
-  "tags": {
-    "en": [
-      "apple",
-      "apple tv",
-      "appletv",
-      "tv",
-      "homepod",
-      "homepod mini",
-      "companion link"
+    "id": "com.basmilius.apple",
+    "version": "1.0.23",
+    "compatibility": ">=12.9.0",
+    "sdk": 3,
+    "brandColor": "#147efb",
+    "platforms": [
+        "local"
     ],
-    "nl": [
-      "apple",
-      "apple tv",
-      "appletv",
-      "tv",
-      "homepod",
-      "homepod mini",
-      "companion link"
-    ]
-  },
-  "permissions": [],
-  "images": {
-    "small": "/assets/images/small.png",
-    "large": "/assets/images/large.png",
-    "xlarge": "/assets/images/xlarge.png"
-  },
-  "author": {
-    "name": "Bas Milius",
-    "email": "bas@mili.us"
-  },
-  "bugs": {
-    "url": "https://github.com/basmilius/homey-apple/issues"
-  },
-  "homepage": "https://bas.dev",
-  "source": "https://github.com/basmilius/homey-apple",
-  "support": "https://github.com/basmilius/homey-apple/issues",
-  "homeyCommunityTopicId": 147663,
-  "contributing": {
-    "donate": {
-      "paypal": {
-        "username": "basmilius"
-      },
-      "githubSponsors": {
-        "username": "basmilius"
-      }
+    "name": {
+        "en": "Apple TV & HomePod",
+        "nl": "Apple TV & HomePod"
+    },
+    "description": {
+        "en": "Control your Apple devices from your Homey.",
+        "nl": "Beheer je Apple apparaten vanuit je Homey."
+    },
+    "category": [
+        "music",
+        "video",
+        "appliances"
+    ],
+    "tags": {
+        "en": [
+            "apple",
+            "apple tv",
+            "appletv",
+            "tv",
+            "homepod",
+            "homepod mini",
+            "companion link"
+        ],
+        "nl": [
+            "apple",
+            "apple tv",
+            "appletv",
+            "tv",
+            "homepod",
+            "homepod mini",
+            "companion link"
+        ]
+    },
+    "permissions": [],
+    "images": {
+        "small": "/assets/images/small.png",
+        "large": "/assets/images/large.png",
+        "xlarge": "/assets/images/xlarge.png"
+    },
+    "author": {
+        "name": "Bas Milius",
+        "email": "bas@mili.us"
+    },
+    "bugs": {
+        "url": "https://github.com/basmilius/homey-apple/issues"
+    },
+    "homepage": "https://bas.dev",
+    "source": "https://github.com/basmilius/homey-apple",
+    "support": "https://github.com/basmilius/homey-apple/issues",
+    "homeyCommunityTopicId": 147663,
+    "contributors": {
+        "developers": [
+            {
+                "name": "Martijn Woolschot"
+            }
+        ]
+    },
+    "contributing": {
+        "donate": {
+            "paypal": {
+                "username": "basmilius"
+            },
+            "githubSponsors": {
+                "username": "basmilius"
+            }
+        }
     }
-  }
 }
