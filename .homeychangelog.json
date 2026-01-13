@@ -166,5 +166,8 @@
   },
   "1.0.24": {
     "en": "Fixed a pairing issue on Homey Pro 2019 (Thanks Martijn!)"
+  },
+  "1.0.25": {
+    "en": "Update apple protocols SDK."
   }
 }
