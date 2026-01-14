@@ -172,5 +172,8 @@
   },
   "1.0.26": {
     "en": "Update apple-protocols SDK."
+  },
+  "1.0.27": {
+    "en": "Changed the way devices use their mdns discovery results. Updated apple-protocols SDK."
   }
 }
