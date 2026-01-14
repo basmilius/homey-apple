@@ -48,7 +48,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#protocol = protocol;
 
         this.#protocol.state.on('setArtwork', async (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
-        this.#protocol.state.on('updateContentItemArtwork', async (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message));
+        this.#protocol.state.on('updateContentItemArtwork', async (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message.contentItems[0]));
         this.#protocol.state.on('setNowPlayingClient', async (message: Proto.SetNowPlayingClientMessage) => await this.#onSetNowPlayingClient(message));
         this.#protocol.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
         this.#protocol.state.on('updateContentItem', async (message: Proto.UpdateContentItemMessage) => await this.#onUpdateContentItem(message));
