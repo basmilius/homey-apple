@@ -5,31 +5,31 @@
     "": {
       "name": "com.basmilius.apple",
       "dependencies": {
-        "@basmilius/apple-airplay": "^0.0.97",
-        "@basmilius/apple-common": "^0.0.97",
-        "@basmilius/apple-companion-link": "^0.0.97",
-        "@basmilius/apple-devices": "^0.0.97",
-        "@basmilius/apple-encoding": "^0.0.97",
+        "@basmilius/apple-airplay": "^0.0.98",
+        "@basmilius/apple-common": "^0.0.98",
+        "@basmilius/apple-companion-link": "^0.0.98",
+        "@basmilius/apple-devices": "^0.0.98",
+        "@basmilius/apple-encoding": "^0.0.98",
         "@basmilius/homey-common": "^1.10.0",
       },
       "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-        "@types/node": "^25.0.7",
+        "@types/node": "^25.0.8",
         "typescript": "^5.9.3",
       },
     },
   },
   "packages": {
-    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.97", "", { "dependencies": { "@basmilius/apple-common": "0.0.97", "@basmilius/apple-encoding": "0.0.97", "@bufbuild/protobuf": "^2.10.2" } }, "sha512-fQKdnYbXNUEL7rfdQ6ZKpiUazxuhnaxJBoOwXegZem846snR4GdNDGR1Qkyqs/i6D5278WpteKV8/d9jKphNRw=="],
+    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.98", "", { "dependencies": { "@basmilius/apple-common": "0.0.98", "@basmilius/apple-encoding": "0.0.98", "@bufbuild/protobuf": "^2.10.2" } }, "sha512-7S78pY30YUnSf2xAO2ryrS0k0VxWifQQot5B5Gzvkort1IbXrcYKKNPn9GVjRtXykuTErO6tuhBEzT9WbJHlTQ=="],
 
-    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.97", "", { "dependencies": { "@basmilius/apple-encoding": "0.0.97", "@stablelib/chacha20poly1305": "^2.0.1", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-ZcQWMgOgjfWW+EB5Y2n1wueixBLtM0IM2s+iR2kXRYl0mTDtpNZz4B0K4EsOM3XwSegvYFHf9iZbPUbuGHPEdw=="],
+    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.98", "", { "dependencies": { "@basmilius/apple-encoding": "0.0.98", "@stablelib/chacha20poly1305": "^2.0.1", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-3C8fA+10Hti+kQHmbz+c8rkG/LLwpOZ6H0AI+i/RX2T/SLrrn+deUgUV21+IECQUOYBPvDRxrNaMFz3ZKoFEJg=="],
 
-    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.97", "", { "dependencies": { "@basmilius/apple-common": "0.0.97", "@basmilius/apple-encoding": "0.0.97" } }, "sha512-v0oiQbQSzV68SLvXk95vPkhaKGrcw3Bl6nbbbV8NjYZYQ5bextRD9GJiovro7n+4KYdF0Gq63QbZZhHOeoeIHQ=="],
+    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.98", "", { "dependencies": { "@basmilius/apple-common": "0.0.98", "@basmilius/apple-encoding": "0.0.98" } }, "sha512-JX7uMrpv+FCXNf5ai7TPI5TuRj9pd7e7LmhHSbrg7elG8nsVvSPJrPIcyGN617A5ZFAniM8XIGQLBU9NUlytbA=="],
 
-    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.97", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.97", "@basmilius/apple-common": "0.0.97", "@basmilius/apple-companion-link": "0.0.97", "@basmilius/apple-encoding": "0.0.97" } }, "sha512-E8SZ3+qjmwNmZikIHBo0357FCUuzCedUE5ikkJXn5fn7ICplU7kfWUtGROY508yVLqPyH6X6m4udZpit0Duf7g=="],
+    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.98", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.98", "@basmilius/apple-common": "0.0.98", "@basmilius/apple-companion-link": "0.0.98", "@basmilius/apple-encoding": "0.0.98" } }, "sha512-Ie6/NXI2pBqBsHTArdk313Dz0RxObi2x81Qx/iCjqkTgZP7RvsEs6zctbo6L5OYK5HrXjmbi2nhaaOB/Z3gCgw=="],
 
-    "@basmilius/apple-encoding": ["@basmilius/apple-encoding@0.0.97", "", { "dependencies": { "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0" } }, "sha512-YicCYgO8GDwelr0zNoyMU4pY2ADM98ZqLpGBn2PUNfXF/wPaUXVknRy7oYoepVDs8tpdaDqCL87XAptSgNe3tA=="],
+    "@basmilius/apple-encoding": ["@basmilius/apple-encoding@0.0.98", "", { "dependencies": { "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0" } }, "sha512-JJc5cu1qC4g7RaVyX7I3fVwM8nSdLhlMSL/d20RzJ+uQfsaxrFXn63hCj+5oVGxvDPRGSrApjyn1j65eZ6vn3A=="],
 
     "@basmilius/homey-common": ["@basmilius/homey-common@1.10.0", "", {}, "sha512-mMLUHN5Xc2X2ne6upqnpFov2U0pNJuqhEixN+AXn0Ixru0TqAOhfF5qPSAsk7EzpXZoMvqxhltnZ47UVveSPEg=="],
 
@@ -61,7 +61,7 @@
 
     "@types/homey": ["homey-apps-sdk-v3-types@0.3.12", "", { "dependencies": { "@types/node": "^14.14.20" } }, "sha512-xr275VoF7FAiTi6PzElqHWpuGgSBY9hZFZsKeCTA4rluopf8sVk6zUPa+giSRSTiTrN3N3QjmHD5lUoNVwYd4g=="],
 
-    "@types/node": ["@types/node@25.0.7", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-C/er7DlIZgRJO7WtTdYovjIFzGsz0I95UlMyR9anTb4aCpBSRWe5Jc1/RvLKUfzmOxHPGjSE5+63HgLtndxU4w=="],
+    "@types/node": ["@types/node@25.0.8", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-powIePYMmC3ibL0UJ2i2s0WIbq6cg6UyVFQxSCpaPxxzAaziRfimGivjdF943sSGV6RADVbk0Nvlm5P/FB44Zg=="],
 
     "fast-srp-hap": ["fast-srp-hap@2.0.4", "", {}, "sha512-lHRYYaaIbMrhZtsdGTwPN82UbqD9Bv8QfOlKs+Dz6YRnByZifOh93EYmf2iEWFtkOEIqR2IK8cFD0UN5wLIWBQ=="],
 
