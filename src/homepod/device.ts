@@ -4,6 +4,6 @@ import type HomePodDriver from './driver';
 
 export default class HomePodDevice extends HomePodBaseDevice<HomePodDriver> {
     async createAirPlayConnection(): Promise<AirPlayConnection> {
-        return new AirPlayConnection(this, this.homey.discovery.getStrategy('homepod'));
+        return new AirPlayConnection(this, 'homepod');
     }
 }

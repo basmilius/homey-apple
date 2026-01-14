@@ -53,8 +53,8 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
-        this.#airplay = new AirPlayConnection(this, this.homey.discovery.getStrategy('appletv-airplay'));
-        this.#companionLink = new CompanionLinkConnection(this, this.homey.discovery.getStrategy('appletv-companion-link'));
+        this.#airplay = new AirPlayConnection(this, 'appletv-airplay');
+        this.#companionLink = new CompanionLinkConnection(this, 'appletv-companion-link');
 
         this.#airplay.on('connected', () => this.#onConnected());
         this.#companionLink.on('connected', () => this.#onConnected());
@@ -170,11 +170,19 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         await this.setAvailable();
     }
 
+    async setAvailable(): Promise<void> {
+        try {
+            await super.setAvailable();
+        } catch (err) {
+            this.app.log('Error while setting device available', err);
+        }
+    }
+
     async setUnavailable(message?: string | null | undefined): Promise<void> {
         try {
             await super.setUnavailable(message);
         } catch (err) {
-            this.app.log('Error while setting unavailable', err);
+            this.app.log('Error while setting device unavailable', err);
         }
     }
 }

@@ -7,3 +7,9 @@ export type {
     AppleTVDevice,
     HomePodBaseDevice
 };
+
+export type StrategyKey =
+    | 'appletv-airplay'
+    | 'appletv-companion-link'
+    | 'homepod'
+    | 'homepod-mini';

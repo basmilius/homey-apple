@@ -5,11 +5,11 @@
     "": {
       "name": "com.basmilius.apple",
       "dependencies": {
-        "@basmilius/apple-airplay": "^0.0.98",
-        "@basmilius/apple-common": "^0.0.98",
-        "@basmilius/apple-companion-link": "^0.0.98",
-        "@basmilius/apple-devices": "^0.0.98",
-        "@basmilius/apple-encoding": "^0.0.98",
+        "@basmilius/apple-airplay": "^0.0.100",
+        "@basmilius/apple-common": "^0.0.100",
+        "@basmilius/apple-companion-link": "^0.0.100",
+        "@basmilius/apple-devices": "^0.0.100",
+        "@basmilius/apple-encoding": "^0.0.100",
         "@basmilius/homey-common": "^1.10.0",
       },
       "devDependencies": {
@@ -21,15 +21,15 @@
     },
   },
   "packages": {
-    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.98", "", { "dependencies": { "@basmilius/apple-common": "0.0.98", "@basmilius/apple-encoding": "0.0.98", "@bufbuild/protobuf": "^2.10.2" } }, "sha512-7S78pY30YUnSf2xAO2ryrS0k0VxWifQQot5B5Gzvkort1IbXrcYKKNPn9GVjRtXykuTErO6tuhBEzT9WbJHlTQ=="],
+    "@basmilius/apple-airplay": ["@basmilius/apple-airplay@0.0.100", "", { "dependencies": { "@basmilius/apple-common": "0.0.100", "@basmilius/apple-encoding": "0.0.100", "@bufbuild/protobuf": "^2.10.2" } }, "sha512-B3GQH8vxS40ODtCRRdo6oNLsnHJRuCvbS/OCqdRY5vlZeEQMc5XEXpn+dvrA3xrYYyZIlqcWNZhzDA7YOhL3bw=="],
 
-    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.98", "", { "dependencies": { "@basmilius/apple-encoding": "0.0.98", "@stablelib/chacha20poly1305": "^2.0.1", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-3C8fA+10Hti+kQHmbz+c8rkG/LLwpOZ6H0AI+i/RX2T/SLrrn+deUgUV21+IECQUOYBPvDRxrNaMFz3ZKoFEJg=="],
+    "@basmilius/apple-common": ["@basmilius/apple-common@0.0.100", "", { "dependencies": { "@basmilius/apple-encoding": "0.0.100", "@stablelib/chacha20poly1305": "^2.0.1", "fast-srp-hap": "^2.0.4", "node-dns-sd": "^1.0.1", "tweetnacl": "^1.0.3", "uuid": "^13.0.0" } }, "sha512-b2shcYo3k0rBsyYlrnO0B362p7iXEnK9X9CgrsbyHnq5any7eNR1zAxNsDPBrvx+Su2JQTVm71DzXJ7mO00yYg=="],
 
-    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.98", "", { "dependencies": { "@basmilius/apple-common": "0.0.98", "@basmilius/apple-encoding": "0.0.98" } }, "sha512-JX7uMrpv+FCXNf5ai7TPI5TuRj9pd7e7LmhHSbrg7elG8nsVvSPJrPIcyGN617A5ZFAniM8XIGQLBU9NUlytbA=="],
+    "@basmilius/apple-companion-link": ["@basmilius/apple-companion-link@0.0.100", "", { "dependencies": { "@basmilius/apple-common": "0.0.100", "@basmilius/apple-encoding": "0.0.100" } }, "sha512-OzxZF/BNJ7cECdt9ogHD8C3g+bQeisc+xqROvnXplr96FJK0XtFjR/Xg3cbvhwtxvaxThX0FLO3XZdeZFRtGsg=="],
 
-    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.98", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.98", "@basmilius/apple-common": "0.0.98", "@basmilius/apple-companion-link": "0.0.98", "@basmilius/apple-encoding": "0.0.98" } }, "sha512-Ie6/NXI2pBqBsHTArdk313Dz0RxObi2x81Qx/iCjqkTgZP7RvsEs6zctbo6L5OYK5HrXjmbi2nhaaOB/Z3gCgw=="],
+    "@basmilius/apple-devices": ["@basmilius/apple-devices@0.0.100", "", { "dependencies": { "@basmilius/apple-airplay": "0.0.100", "@basmilius/apple-common": "0.0.100", "@basmilius/apple-companion-link": "0.0.100", "@basmilius/apple-encoding": "0.0.100" } }, "sha512-YTgAYkVWzQopSTpBELuIqCrByLCY9KzMqEa7Z/O+YeDZ2UH8ZcxrQWDaStM5NtumFgao5FfzIZO3e3jAUcZJkg=="],
 
-    "@basmilius/apple-encoding": ["@basmilius/apple-encoding@0.0.98", "", { "dependencies": { "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0" } }, "sha512-JJc5cu1qC4g7RaVyX7I3fVwM8nSdLhlMSL/d20RzJ+uQfsaxrFXn63hCj+5oVGxvDPRGSrApjyn1j65eZ6vn3A=="],
+    "@basmilius/apple-encoding": ["@basmilius/apple-encoding@0.0.100", "", { "dependencies": { "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0" } }, "sha512-/QpUQe+8dd87GfW1gPbw3Hul2fAmWKz5ZPJo1+1Od88yI1ZjCKCnh/9uAN5/hTzoqt1cT+jSHZaHuxeaY8Ud4A=="],
 
     "@basmilius/homey-common": ["@basmilius/homey-common@1.10.0", "", {}, "sha512-mMLUHN5Xc2X2ne6upqnpFov2U0pNJuqhEixN+AXn0Ixru0TqAOhfF5qPSAsk7EzpXZoMvqxhltnZ47UVveSPEg=="],
 

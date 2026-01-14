@@ -63,25 +63,23 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        for (let attempt = 0; attempt < 3; attempt++) {
-            this.#protocol = new AirPlay({
-                address: this.#device.address,
-                service: {
-                    port: this.#device.port
-                }
-            });
+        this.#protocol = new AirPlay({
+            address: this.#device.address,
+            service: {
+                port: this.#device.port
+            }
+        });
 
-            this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
+        this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 
-            await this.#protocol.connect();
-            await this.#protocol.pairing.start();
-            const keys = await this.#protocol.pairing.transient();
+        await this.#protocol.connect();
+        await this.#protocol.pairing.start();
+        const keys = await this.#protocol.pairing.transient();
 
-            this.emit('log', `Pairing successful! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
+        this.emit('log', `Pairing successful! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
 
-            await this.#protocol.disconnect();
-            await this.#session.showView('add_my_device');
-        }
+        await this.#protocol.disconnect();
+        await this.#session.showView('add_my_device');
     }
 
     async onShowViewDiscover(): Promise<void> {

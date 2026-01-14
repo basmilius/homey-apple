@@ -119,11 +119,19 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         await this.setAvailable();
     }
 
+    async setAvailable(): Promise<void> {
+        try {
+            await super.setAvailable();
+        } catch (err) {
+            this.app.log('Error while setting device available', err);
+        }
+    }
+
     async setUnavailable(message?: string | null | undefined): Promise<void> {
         try {
             await super.setUnavailable(message);
         } catch (err) {
-            this.app.log('Error while setting unavailable', err);
+            this.app.log('Error while setting device unavailable', err);
         }
     }
 }
