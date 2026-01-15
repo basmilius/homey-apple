@@ -1,8 +1,8 @@
 import { EventEmitter } from 'node:events';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 import { AirPlayDevice } from '@basmilius/apple-devices';
-import type { AppleTVDevice, HomePodBaseDevice, StrategyKey } from '../types';
-import { waitFor } from '../utils';
+import type { AppleTVDevice, HomePodBaseDevice } from '../types';
+import type Homey from 'homey';
 
 type EventMap = {
     connected: [];
@@ -10,10 +10,6 @@ type EventMap = {
 };
 
 export default class extends EventEmitter<EventMap> {
-    get discoveryId(): string {
-        return this.#device.getData().id;
-    }
-
     get isConnected(): boolean {
         return this.#protocol?.isConnected ?? false;
     }
@@ -30,14 +26,12 @@ export default class extends EventEmitter<EventMap> {
         return this.#protocol.state;
     }
 
-    readonly #discoveryStrategy: StrategyKey;
     readonly #device!: AppleTVDevice | HomePodBaseDevice<any>;
     #protocol!: AirPlayDevice;
 
-    constructor(device: AppleTVDevice | HomePodBaseDevice<any>, discoveryStrategy: StrategyKey) {
+    constructor(device: AppleTVDevice | HomePodBaseDevice<any>) {
         super();
         this.#device = device;
-        this.#discoveryStrategy = discoveryStrategy;
     }
 
     async connect(): Promise<void> {
@@ -60,15 +54,7 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
-    async createInstance(): Promise<void> {
-        const result = this.#device.app.discovery.get(this.#discoveryStrategy, this.discoveryId);
-
-        if (!result) {
-            this.#device.log('No discovery result found for AirPlay device');
-            await this.#device.setUnavailable(`Failed to connect to AirPlay device. Please file a diagnostics report. No discovery result found for AirPlay device with ID ${this.discoveryId}.`);
-            return;
-        }
-
+    async createInstance(result: Homey.DiscoveryResultMDNSSD): Promise<void> {
         this.#protocol = new AirPlayDevice({
             address: result.address,
             service: {
@@ -89,6 +75,24 @@ export default class extends EventEmitter<EventMap> {
 
     async disconnect(): Promise<void> {
         await this.#protocol.disconnect();
+    }
+
+    async reconnect(result?: Homey.DiscoveryResultMDNSSD): Promise<void> {
+        if (result) {
+            this.#protocol.discoveryResult = {
+                address: result.address,
+                service: {
+                    port: result.port
+                },
+                packet: {
+                    additionals: [{
+                        rdata: result.txt
+                    }]
+                }
+            };
+        }
+
+        await this.connect();
     }
 
     async #credentials(): Promise<AccessoryCredentials | null> {
@@ -113,35 +117,5 @@ export default class extends EventEmitter<EventMap> {
 
     async #onDisconnected(unexpected: boolean): Promise<void> {
         this.emit('disconnected', unexpected);
-
-        if (!unexpected) {
-            return;
-        }
-
-        this.#device.log('Disconnected (AirPlay), reconnecting...');
-        await this.#device.setUnavailable('Disconnected (AirPlay), reconnecting...');
-        await waitFor(1000);
-
-        const result = this.#device.app.discovery.get(this.#discoveryStrategy, this.discoveryId);
-
-        if (!result) {
-            this.#device.log('No discovery result found for AirPlay device');
-            await this.#device.setUnavailable(`Failed to reconnect to AirPlay device. Please file a diagnostics report. No discovery result found for AirPlay device with ID ${this.discoveryId}.`);
-            return;
-        }
-
-        this.#protocol.discoveryResult = {
-            address: result.address,
-            service: {
-                port: result.port
-            },
-            packet: {
-                additionals: [{
-                    rdata: result.txt
-                }]
-            }
-        };
-
-        await this.connect();
     }
 }

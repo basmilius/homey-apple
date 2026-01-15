@@ -1,9 +1,11 @@
 import { Proto } from '@basmilius/apple-airplay';
-import { Device } from '@basmilius/homey-common';
+import { DeviceMDNSSD } from '@basmilius/homey-common';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
 import type { AppleApp } from '../types';
+import { waitFor } from '../utils';
 import type AppleTVDriver from './driver';
+import type Homey from 'homey';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -30,7 +32,7 @@ const CAPABILITIES = [
     'button.restart'
 ];
 
-export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
+export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver> {
     get airplay(): AirPlayConnection {
         return this.#airplay;
     }
@@ -43,9 +45,26 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         return this.#companionLink;
     }
 
+    get discoveryId(): string {
+        return this.getData().id;
+    }
+
+    get discoveryResultAirPlay(): Homey.DiscoveryResultMDNSSD {
+        return this.discoveryResults['appletv-airplay'];
+    }
+
+    get discoveryResultCompanionLink(): Homey.DiscoveryResultMDNSSD {
+        return this.discoveryResults['appletv-companion-link'];
+    }
+
+    get discoveryStrategies(): string[] {
+        return ['appletv-airplay', 'appletv-companion-link'];
+    }
+
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #companionLink!: CompanionLinkConnection;
+    #connectedOnce = false;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
@@ -53,16 +72,19 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
-        this.#airplay = new AirPlayConnection(this, 'appletv-airplay');
-        this.#companionLink = new CompanionLinkConnection(this, 'appletv-companion-link');
+        this.#airplay = new AirPlayConnection(this);
+        this.#companionLink = new CompanionLinkConnection(this);
 
-        this.#airplay.on('connected', () => this.#onConnected());
-        this.#companionLink.on('connected', () => this.#onConnected());
+        this.#airplay.on('connected', () => this.#onAirPlayConnected());
+        this.#airplay.on('disconnected', (unexpected) => this.#onAirPlayDisconnected(unexpected));
+        this.#companionLink.on('connected', () => this.#onCompanionLinkConnected());
+        this.#companionLink.on('disconnected', (unexpected) => this.#onCompanionLinkDisconnected(unexpected));
 
         await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
         await this.#registerMaintenance();
-        await this.#connect();
+
+        await super.onInit();
 
         this.log('Initialized.');
     }
@@ -76,10 +98,10 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
 
     async #connect(): Promise<void> {
         try {
-            await this.#airplay.createInstance();
+            await this.#airplay.createInstance(this.discoveryResultAirPlay);
             await this.#airplay.connect();
 
-            await this.#companionLink.createInstance();
+            await this.#companionLink.createInstance(this.discoveryResultCompanionLink);
             await this.#companionLink.connect();
         } catch (err) {
             this.error('Error received', err);
@@ -170,19 +192,48 @@ export default class AppleTVDevice extends Device<AppleApp, AppleTVDriver> {
         await this.setAvailable();
     }
 
-    async setAvailable(): Promise<void> {
-        try {
-            await super.setAvailable();
-        } catch (err) {
-            this.app.log('Error while setting device available', err);
-        }
+    async #onAirPlayConnected(): Promise<void> {
+        await this.#onConnected();
     }
 
-    async setUnavailable(message?: string | null | undefined): Promise<void> {
-        try {
-            await super.setUnavailable(message);
-        } catch (err) {
-            this.app.log('Error while setting device unavailable', err);
+    async #onAirPlayDisconnected(unexpected: boolean): Promise<void> {
+        if (!unexpected) {
+            return;
         }
+
+        this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
+        await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
+        await waitFor(1000);
+
+        await this.#airplay.reconnect(this.discoveryResultAirPlay);
+    }
+
+    async #onCompanionLinkConnected(): Promise<void> {
+        await this.#onConnected();
+    }
+
+    async #onCompanionLinkDisconnected(unexpected: boolean): Promise<void> {
+        if (!unexpected) {
+            return;
+        }
+
+        this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
+        await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
+        await waitFor(1000);
+
+        await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+    }
+
+    async onDeviceDiscoveryResult(): Promise<void> {
+        if (this.#connectedOnce) {
+            return;
+        }
+
+        if (!this.discoveryResultAirPlay || !this.discoveryResultCompanionLink) {
+            return;
+        }
+
+        this.#connectedOnce = true;
+        await this.#connect();
     }
 }

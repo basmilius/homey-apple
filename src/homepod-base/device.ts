@@ -1,9 +1,11 @@
 import { Proto } from '@basmilius/apple-airplay';
-import { Device } from '@basmilius/homey-common';
+import { DeviceMDNSSD } from '@basmilius/homey-common';
 import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
 import type { AppleApp } from '../types';
+import { waitFor } from '../utils';
 import type HomePodBaseDriver from './driver';
+import type Homey from 'homey';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -21,7 +23,7 @@ const CAPABILITIES = [
     'button.restart'
 ];
 
-export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends Device<AppleApp, TDriver> {
+export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends DeviceMDNSSD<AppleApp, TDriver> {
     get airplay(): AirPlayConnection {
         return this.#airplay;
     }
@@ -30,10 +32,17 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         return this.#airplayLogic;
     }
 
+    get discoveryId(): string {
+        return this.getData().id;
+    }
+
+    get discoveryResult(): Homey.DiscoveryResultMDNSSD {
+        return this.discoveryResults[this.discoveryStrategies[0]];
+    }
+
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
-
-    abstract createAirPlayConnection(): Promise<AirPlayConnection>;
+    #connectedOnce = false;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
@@ -41,13 +50,15 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
-        this.#airplay = await this.createAirPlayConnection();
+        this.#airplay = new AirPlayConnection(this);
         this.#airplay.on('connected', () => this.#onConnected());
+        this.#airplay.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
 
         await this.removeOldCapabilities(CAPABILITIES);
         await this.#registerCapabilities();
         await this.#registerMaintenance();
-        await this.#connect();
+
+        await super.onInit();
 
         this.log('Initialized.');
     }
@@ -61,7 +72,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async #connect(): Promise<void> {
         try {
-            await this.#airplay.createInstance();
+            await this.#airplay.createInstance(this.discoveryResult);
             await this.#airplay.connect();
         } catch (err) {
             this.error('Error received', err);
@@ -71,6 +82,22 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async #disconnect(): Promise<void> {
         await this.#airplay.disconnect();
+    }
+
+    async #onConnected(): Promise<void> {
+        await this.setAvailable();
+    }
+
+    async #onDisconnected(unexpected: boolean): Promise<void> {
+        if (!unexpected) {
+            return;
+        }
+
+        this.log('Disconnected from HomePod, reconnecting...');
+        await this.setUnavailable('Disconnected from HomePod, reconnecting...');
+        await waitFor(1000);
+
+        await this.#airplay.reconnect(this.discoveryResult);
     }
 
     async #registerCapabilities(): Promise<void> {
@@ -115,23 +142,16 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         });
     }
 
-    async #onConnected(): Promise<void> {
-        await this.setAvailable();
-    }
-
-    async setAvailable(): Promise<void> {
-        try {
-            await super.setAvailable();
-        } catch (err) {
-            this.app.log('Error while setting device available', err);
+    async onDeviceDiscoveryResult(): Promise<void> {
+        if (this.#connectedOnce) {
+            return;
         }
-    }
 
-    async setUnavailable(message?: string | null | undefined): Promise<void> {
-        try {
-            await super.setUnavailable(message);
-        } catch (err) {
-            this.app.log('Error while setting device unavailable', err);
+        if (!this.discoveryResult) {
+            return;
         }
+
+        this.#connectedOnce = true;
+        await this.#connect();
     }
 }

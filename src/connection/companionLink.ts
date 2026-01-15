@@ -2,8 +2,8 @@ import { EventEmitter } from 'node:events';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
 import type { AttentionState } from '@basmilius/apple-companion-link';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
-import type { AppleTVDevice, StrategyKey } from '../types';
-import { waitFor } from '../utils';
+import type { AppleTVDevice } from '../types';
+import type Homey from 'homey';
 
 type EventMap = {
     connected: [];
@@ -11,10 +11,6 @@ type EventMap = {
 };
 
 export default class extends EventEmitter<EventMap> {
-    get discoveryId(): string {
-        return this.#device.getData().id;
-    }
-
     get isConnected(): boolean {
         return this.#protocol?.isConnected ?? false;
     }
@@ -23,32 +19,28 @@ export default class extends EventEmitter<EventMap> {
         return this.#protocol;
     }
 
-    readonly #discoveryStrategy: StrategyKey;
     readonly #device: AppleTVDevice;
     #protocol!: CompanionLinkDevice;
 
-    constructor(device: AppleTVDevice, discoveryStrategy: StrategyKey) {
+    constructor(device: AppleTVDevice) {
         super();
         this.#device = device;
-        this.#discoveryStrategy = discoveryStrategy;
     }
 
     async connect(): Promise<void> {
         const credentials = await this.#credentials();
 
         await this.#protocol.setCredentials(credentials);
-        await this.#protocol.connect();
+
+        try {
+            await this.#protocol.connect();
+        } catch (err) {
+            this.#device.error('Failed to connect to Companion Link device:', err);
+            await this.#device.setUnavailable(`Failed to connect to Companion Link device. Please file a diagnostics report. ${(err as Error).message}`);
+        }
     }
 
-    async createInstance(): Promise<void> {
-        const result = this.#device.app.discovery.get(this.#discoveryStrategy, this.discoveryId);
-
-        if (!result) {
-            this.#device.log('No discovery result found for Companion Link device');
-            await this.#device.setUnavailable(`Failed to connect to Companion Link device. Please file a diagnostics report. No discovery result found for Companion Link device with ID ${this.discoveryId}.`);
-            return;
-        }
-
+    async createInstance(result: Homey.DiscoveryResultMDNSSD): Promise<void> {
         this.#protocol = new CompanionLinkDevice({
             address: result.address,
             service: {
@@ -63,6 +55,19 @@ export default class extends EventEmitter<EventMap> {
 
     async disconnect(): Promise<void> {
         await this.#protocol.disconnect();
+    }
+
+    async reconnect(result?: Homey.DiscoveryResultMDNSSD): Promise<void> {
+        if (result) {
+            this.#protocol.discoveryResult = {
+                address: result.address,
+                service: {
+                    port: result.port
+                }
+            };
+        }
+
+        await this.connect();
     }
 
     async #credentials(): Promise<AccessoryCredentials> {
@@ -86,31 +91,6 @@ export default class extends EventEmitter<EventMap> {
 
     async #onDisconnected(unexpected: boolean): Promise<void> {
         this.emit('disconnected', unexpected);
-
-        if (!unexpected) {
-            return;
-        }
-
-        this.#device.log('Disconnected (Companion Link), reconnecting...');
-        await this.#device.setUnavailable('Disconnected (Companion Link), reconnecting...');
-        await waitFor(1000);
-
-        const result = this.#device.app.discovery.get(this.#discoveryStrategy, this.discoveryId);
-
-        if (!result) {
-            this.#device.log('No discovery result found for Companion Link device');
-            await this.#device.setUnavailable(`Failed to reconnect to Companion Link device. Please file a diagnostics report. No discovery result found for Companion Link device with ID ${this.discoveryId}.`);
-            return;
-        }
-
-        this.#protocol.discoveryResult = {
-            address: result.address,
-            service: {
-                port: result.port
-            }
-        };
-
-        await this.connect();
     }
 
     async #onPower(state: AttentionState): Promise<void> {
