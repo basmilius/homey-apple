@@ -96,7 +96,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #setArtwork(identifier: string, item: Proto.ContentItem): Promise<void> {
         if (identifier === this.#artworkIdentifier) {
-            this.log(this.deviceName, 'Artwork identifier unchanged.');
+            this.log(this.deviceName, 'Artwork identifier unchanged.', identifier);
             return;
         }
 
@@ -143,6 +143,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async #updateArtworkBuffer(buffer: Buffer): Promise<void> {
+        await this.#device.setAlbumArtImage(this.#artwork);
         this.#artwork.setStream((stream: any) => {
             const pt = new PassThrough();
             pt.end(buffer);
@@ -187,7 +188,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 await this.#device.setCapabilityValue('now_playing_app', client.playbackState === Proto.PlaybackState_Enum.Playing ? client.displayName : null);
             }
 
-            await this.#setArtwork(item.metadata.artworkIdentifier, item);
+            await this.#setArtwork(item.metadata.artworkIdentifier ?? item.identifier, item);
         } catch (err) {
             this.log(this.deviceName, 'Failed to update now playing info', err);
         }
