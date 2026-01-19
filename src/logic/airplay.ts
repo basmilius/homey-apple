@@ -162,21 +162,21 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        if (client) {
-            if (client.isCommandSupported(Proto.Command.NextTrack)) {
-                await this.#device.addCapability('speaker_next');
-            } else {
-                await this.#device.removeCapability('speaker_next');
-            }
-
-            if (client.isCommandSupported(Proto.Command.PreviousTrack)) {
-                await this.#device.addCapability('speaker_prev');
-            } else {
-                await this.#device.removeCapability('speaker_prev');
-            }
-        }
-
         try {
+            if (client) {
+                if (client.isCommandSupported(Proto.Command.NextTrack)) {
+                    await this.#device.addCapability('speaker_next');
+                } else {
+                    await this.#device.removeCapability('speaker_next');
+                }
+
+                if (client.isCommandSupported(Proto.Command.PreviousTrack)) {
+                    await this.#device.addCapability('speaker_prev');
+                } else {
+                    await this.#device.removeCapability('speaker_prev');
+                }
+            }
+
             await this.#device.setCapabilityValue('speaker_playing', client.playbackState === Proto.PlaybackState_Enum.Playing);
             await this.#device.setCapabilityValue('speaker_album', item.metadata.albumName);
             await this.#device.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client.displayName || '-');
