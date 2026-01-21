@@ -184,5 +184,8 @@
   },
   "1.0.30": {
     "en": "Fixed an issue where the app would try to update an already removed device."
+  },
+  "1.1.0": {
+    "en": "This update introduces a new power capability and a now playing app changed trigger for Apple TV devices."
   }
 }
