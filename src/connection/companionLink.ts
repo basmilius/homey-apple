@@ -4,7 +4,6 @@ import type { AttentionState } from '@basmilius/apple-companion-link';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice } from '../types';
 import type Homey from 'homey';
-import { Proto } from '@basmilius/apple-airplay';
 
 type EventMap = {
     connected: [];
@@ -99,7 +98,7 @@ export default class extends EventEmitter<EventMap> {
 
         try {
             await this.#device.setCapabilityValue('onoff', isOn);
-            await this.#device.setCapabilityValue('power', isOn);
+            await this.#device.setCapabilityValue('power', this.#device.homey.__(isOn ? 'capability.power.on' : 'capability.power.off'));
         } catch (err) {
             this.#device.error('Failed to set power state.', err);
         }

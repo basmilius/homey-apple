@@ -647,10 +647,10 @@
       "icon": "assets/capabilities/app.svg"
     },
     "power": {
-      "type": "boolean",
+      "type": "string",
       "title": {
-        "en": "On",
-        "nl": "Aan"
+        "en": "On/off",
+        "nl": "Aan/uit"
       },
       "getable": true,
       "setable": false,
