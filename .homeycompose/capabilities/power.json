@@ -1,0 +1,11 @@
+{
+    "type": "boolean",
+    "title": {
+        "en": "On",
+        "nl": "Aan"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "assets/capabilities/power.svg"
+}

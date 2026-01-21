@@ -76,6 +76,44 @@
     }
   },
   "flow": {
+    "triggers": [
+      {
+        "id": "appletv_now_playing_app_changes",
+        "title": {
+          "en": "Now playing app changes",
+          "nl": "Nu spelende app verandert"
+        },
+        "titleFormatted": {
+          "en": "Now playing app changes",
+          "nl": "Nu spelende app verandert"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "bundleIdentifier",
+            "type": "string",
+            "title": {
+              "en": "Bundle identifier",
+              "nl": "Bundle identifier"
+            }
+          },
+          {
+            "name": "displayName",
+            "type": "string",
+            "title": {
+              "en": "Display name",
+              "nl": "Weergavenaam"
+            }
+          }
+        ]
+      }
+    ],
     "actions": [
       {
         "highlight": true,
@@ -324,6 +362,7 @@
         "speaker_prev",
         "speaker_track",
         "onoff",
+        "power",
         "volume_down",
         "volume_mute",
         "volume_up",
@@ -606,6 +645,17 @@
       "setable": false,
       "uiComponent": "sensor",
       "icon": "assets/capabilities/app.svg"
+    },
+    "power": {
+      "type": "boolean",
+      "title": {
+        "en": "On",
+        "nl": "Aan"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "assets/capabilities/power.svg"
     },
     "remote_back": {
       "type": "boolean",

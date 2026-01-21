@@ -17,6 +17,7 @@ const CAPABILITIES = [
     'speaker_prev',
     'speaker_track',
     'onoff',
+    'power',
     'volume_down',
     'volume_mute',
     'volume_up',

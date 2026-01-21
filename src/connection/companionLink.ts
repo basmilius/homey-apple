@@ -4,6 +4,7 @@ import type { AttentionState } from '@basmilius/apple-companion-link';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice } from '../types';
 import type Homey from 'homey';
+import { Proto } from '@basmilius/apple-airplay';
 
 type EventMap = {
     connected: [];
@@ -84,7 +85,7 @@ export default class extends EventEmitter<EventMap> {
 
     async #onConnected(): Promise<void> {
         const state = await this.#protocol.getAttentionState();
-        await this.#device.setCapabilityValue('onoff', state === 'awake' || state === 'screensaver');
+        await this.#onPower(state);
 
         this.emit('connected');
     }
@@ -95,13 +96,21 @@ export default class extends EventEmitter<EventMap> {
 
     async #onPower(state: AttentionState): Promise<void> {
         const isOn = state === 'awake' || state === 'screensaver';
-        await this.#device.setCapabilityValue('onoff', isOn);
+
+        try {
+            await this.#device.setCapabilityValue('onoff', isOn);
+            await this.#device.setCapabilityValue('power', isOn);
+        } catch (err) {
+            this.#device.error('Failed to set power state.', err);
+        }
 
         if (isOn) {
             return;
         }
 
-        // note: When the device is turned off, clear the now playing info.
+        // note: When the device is turned off, clear the now playing info and now playing app.
         await this.#device.airplayLogic.clearNowPlaying();
+        await this.#device.setCapabilityValue('now_playing_app', null);
+        await this.#device.appDriver.triggerNowPlayingAppChanges(this.#device, '-', '-');
     }
 }
