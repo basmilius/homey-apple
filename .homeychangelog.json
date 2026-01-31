@@ -190,5 +190,8 @@
   },
   "1.1.1": {
     "en": "Allow the power capability to be set as device status."
+  },
+  "1.1.2": {
+    "en": "This update attempts to make the Apple TV Companion Link connection more stable."
   }
 }
