@@ -133,13 +133,17 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async #updateArtwork(url: string | null): Promise<void> {
-        if (url) {
-            await this.#device.setAlbumArtImage(this.#artwork);
+        try {
+            if (url) {
+                await this.#device.setAlbumArtImage(this.#artwork);
 
-            this.#artwork.setUrl(url.replace('.heic', '.jpg'));
-            await this.#artwork.update();
-        } else {
-            await this.#device.setAlbumArtImage(this.#artworkEmpty);
+                this.#artwork.setUrl(url.replace('.heic', '.jpg'));
+                await this.#artwork.update();
+            } else {
+                await this.#device.setAlbumArtImage(this.#artworkEmpty);
+            }
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to update album artwork', err);
         }
     }
 
