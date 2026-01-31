@@ -99,9 +99,11 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
 
     async #connect(): Promise<void> {
         try {
+            this.log('Connecting to Apple TV (AirPlay)...');
             await this.#airplay.createInstance(this.discoveryResultAirPlay);
             await this.#airplay.connect();
 
+            this.log('Connecting to Apple TV (Companion Link)...');
             await this.#companionLink.createInstance(this.discoveryResultCompanionLink);
             await this.#companionLink.connect();
         } catch (err) {
@@ -194,6 +196,7 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
     }
 
     async #onAirPlayConnected(): Promise<void> {
+        this.log('Connected to Apple TV (AirPlay).');
         await this.#onConnected();
     }
 
@@ -206,10 +209,12 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
         await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
         await waitFor(1000);
 
+        await this.updateDiscoveryResults();
         await this.#airplay.reconnect(this.discoveryResultAirPlay);
     }
 
     async #onCompanionLinkConnected(): Promise<void> {
+        this.log('Connected to Apple TV (Companion Link).');
         await this.#onConnected();
     }
 
@@ -222,6 +227,7 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
         await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
         await waitFor(1000);
 
+        await this.updateDiscoveryResults();
         await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
     }
 

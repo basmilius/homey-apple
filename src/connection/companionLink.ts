@@ -10,6 +10,8 @@ type EventMap = {
     disconnected: [boolean];
 };
 
+const RECONNECT_INTERVAL = 5 * 60 * 1000;
+
 export default class extends EventEmitter<EventMap> {
     get isConnected(): boolean {
         return this.#protocol?.isConnected ?? false;
@@ -21,6 +23,7 @@ export default class extends EventEmitter<EventMap> {
 
     readonly #device: AppleTVDevice;
     #protocol!: CompanionLinkDevice;
+    #reconnectInterval?: NodeJS.Timeout;
 
     constructor(device: AppleTVDevice) {
         super();
@@ -34,6 +37,7 @@ export default class extends EventEmitter<EventMap> {
 
         try {
             await this.#protocol.connect();
+            this.#startReconnectInterval();
         } catch (err) {
             this.#device.error('Failed to connect to Companion Link device:', err);
             await this.#device.setUnavailable(`Failed to connect to Companion Link device. Please file a diagnostics report. ${(err as Error).message}`);
@@ -54,6 +58,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async disconnect(): Promise<void> {
+        this.#stopReconnectInterval();
         await this.#protocol.disconnect();
     }
 
@@ -68,6 +73,28 @@ export default class extends EventEmitter<EventMap> {
         }
 
         await this.connect();
+    }
+
+    #startReconnectInterval(): void {
+        this.#stopReconnectInterval();
+
+        this.#reconnectInterval = setInterval(async () => {
+            this.#device.log('Scheduled reconnection interval reached, restarting Companion Link connection...');
+
+            try {
+                await this.#protocol.disconnect();
+                await this.connect();
+            } catch (err) {
+                this.#device.error('Failed to restart Companion Link connection:', err);
+            }
+        }, RECONNECT_INTERVAL);
+    }
+
+    #stopReconnectInterval(): void {
+        if (this.#reconnectInterval) {
+            clearInterval(this.#reconnectInterval);
+            this.#reconnectInterval = undefined;
+        }
     }
 
     async #credentials(): Promise<AccessoryCredentials> {
@@ -94,6 +121,8 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async #onPower(state: AttentionState): Promise<void> {
+        this.#device.log('#onPower()', {state});
+
         const isOn = state === 'awake' || state === 'screensaver';
 
         try {

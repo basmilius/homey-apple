@@ -97,6 +97,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         await this.setUnavailable('Disconnected from HomePod, reconnecting...');
         await waitFor(1000);
 
+        await this.updateDiscoveryResults();
         await this.#airplay.reconnect(this.discoveryResult);
     }
 
