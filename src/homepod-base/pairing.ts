@@ -63,7 +63,7 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay.Protocol({
+        this.#protocol = new AirPlay.Protocol('pairing', {
             address: this.#device.address,
             service: {
                 port: this.#device.port
