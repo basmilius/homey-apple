@@ -1,7 +1,7 @@
 import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
 import type { AirPlayDevice } from '@basmilius/apple-devices';
-import { type Device, Shortcuts } from '@basmilius/homey-common';
+import { debounce, type Device, Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import Homey from 'homey';
 import AppleTVDevice from '../apple-tv/device';
@@ -18,10 +18,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artworkIdentifier?: string;
     #protocol: AirPlayDevice;
 
+    readonly #updateNowPlayingApp: (bundleIdentifier: string | null, displayName: string | null) => Promise<void>;
+
     constructor(device: Device<AppleApp, any>) {
         super(device.app);
 
         this.#device = device;
+
+        this.#updateNowPlayingApp = debounce(this.#updateNowPlayingAppImpl, 1000, this);
     }
 
     async initialize(): Promise<void> {
@@ -34,6 +38,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async clearNowPlaying(): Promise<void> {
         this.#artworkIdentifier = undefined;
         await this.#updateArtwork(null);
+        await this.#updateNowPlayingApp(null, null);
 
         await this.#device.setCapabilityValue('speaker_album', '');
         await this.#device.setCapabilityValue('speaker_artist', '');
@@ -190,21 +195,38 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await device.setCapabilityValue('speaker_duration', item.metadata.duration);
             await device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-            const nowPlayingApp = client.playbackState === Proto.PlaybackState_Enum.Playing
+            const nowPlayingAppBundleIdentifier = client.playbackState === Proto.PlaybackState_Enum.Playing
+                ? client.bundleIdentifier
+                : null;
+
+            const nowPlayingAppDisplayName = client.playbackState === Proto.PlaybackState_Enum.Playing
                 ? client.displayName
                 : null;
 
-            if (device.hasCapability('now_playing_app') && device.getCapabilityValue('now_playing_app') !== nowPlayingApp) {
-                await device.setCapabilityValue('now_playing_app', nowPlayingApp);
-
-                if (device instanceof AppleTVDevice) {
-                    await device.appDriver.triggerNowPlayingAppChanges(device, client.bundleIdentifier, nowPlayingApp ?? '-');
-                }
-            }
-
+            await this.#updateNowPlayingApp(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
             await this.#setArtwork(item.metadata.artworkIdentifier ?? item.identifier, item);
         } catch (err) {
             this.log(this.deviceName, 'Failed to update now playing info', err);
+        }
+    }
+
+    async #updateNowPlayingAppImpl(bundleIdentifier: string | null, displayName: string | null): Promise<void> {
+        if (!this.#device.hasCapability('now_playing_app')) {
+            return;
+        }
+
+        const currentNowPlayingApp = this.#device.getCapabilityValue('now_playing_app');
+
+        if (currentNowPlayingApp === displayName) {
+            return;
+        }
+
+        this.log(this.deviceName, 'Now playing app changed.', bundleIdentifier, displayName);
+
+        await this.#device.setCapabilityValue('now_playing_app', displayName);
+
+        if (this.#device instanceof AppleTVDevice) {
+            await this.#device.appDriver.triggerNowPlayingAppChanges(this.#device, bundleIdentifier ?? '-', displayName ?? '-');
         }
     }
 }

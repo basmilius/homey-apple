@@ -144,7 +144,5 @@ export default class extends EventEmitter<EventMap> {
 
         // note: When the device is turned off, clear the now playing info and now playing app.
         await this.#device.airplayLogic.clearNowPlaying();
-        await this.#device.setCapabilityValue('now_playing_app', null);
-        await this.#device.appDriver.triggerNowPlayingAppChanges(this.#device, '-', '-');
     }
 }
