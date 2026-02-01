@@ -89,7 +89,8 @@ export default class extends EventEmitter<EventMap> {
 
             try {
                 await this.#protocol.disconnect();
-                await this.connect();
+                await this.#device.updateDiscoveryResults();
+                await this.reconnect(this.#device.discoveryResultCompanionLink);
             } catch (err) {
                 this.#device.error('Failed to restart Companion Link connection:', err);
             }
