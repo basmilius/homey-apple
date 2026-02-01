@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { AirPlay } from '@basmilius/apple-airplay';
+import * as AirPlay from '@basmilius/apple-airplay';
 import { waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -9,7 +9,7 @@ export default class HomePodBasePairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Homey.DiscoveryResultMDNSSD | undefined;
-    #protocol: AirPlay;
+    #protocol: AirPlay.Protocol;
 
     constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[]) {
         super();
@@ -63,7 +63,7 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay({
+        this.#protocol = new AirPlay.Protocol({
             address: this.#device.address,
             service: {
                 port: this.#device.port

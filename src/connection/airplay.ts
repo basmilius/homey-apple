@@ -55,7 +55,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async createInstance(result: Homey.DiscoveryResultMDNSSD): Promise<void> {
-        this.#protocol = new AirPlayDevice({
+        this.#protocol = new AirPlayDevice(result.id, {
             address: result.address,
             service: {
                 port: result.port

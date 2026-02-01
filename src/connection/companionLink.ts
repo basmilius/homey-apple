@@ -1,9 +1,15 @@
 import { EventEmitter } from 'node:events';
 import type { AccessoryCredentials } from '@basmilius/apple-common';
-import type { AttentionState } from '@basmilius/apple-companion-link';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice } from '../types';
 import type Homey from 'homey';
+
+export type AttentionState =
+    | 'unknown'
+    | 'asleep'
+    | 'screensaver'
+    | 'awake'
+    | 'idle';
 
 type EventMap = {
     connected: [];
@@ -45,7 +51,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async createInstance(result: Homey.DiscoveryResultMDNSSD): Promise<void> {
-        this.#protocol = new CompanionLinkDevice({
+        this.#protocol = new CompanionLinkDevice(result.id, {
             address: result.address,
             service: {
                 port: result.port

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { AirPlay } from '@basmilius/apple-airplay';
+import * as AirPlay from '@basmilius/apple-airplay';
 import { waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -13,7 +13,7 @@ export default class AppleTVPairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Device | undefined;
-    #protocol: AirPlay;
+    #protocol: AirPlay.Protocol;
     #m1: any;
     #m2: any;
     #m3: any;
@@ -103,7 +103,7 @@ export default class AppleTVPairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay({
+        this.#protocol = new AirPlay.Protocol({
             address: this.#device.address,
             service: {
                 port: this.#device.port
