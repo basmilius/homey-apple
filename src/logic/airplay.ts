@@ -36,18 +36,22 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async clearNowPlaying(): Promise<void> {
-        this.#artworkIdentifier = undefined;
-        await this.#updateArtwork(null);
-        await this.#updateNowPlayingApp(null, null);
+        try {
+            this.#artworkIdentifier = undefined;
+            await this.#updateArtwork(null);
+            await this.#updateNowPlayingApp(null, null);
 
-        await this.#device.setCapabilityValue('speaker_album', '');
-        await this.#device.setCapabilityValue('speaker_artist', '');
-        await this.#device.setCapabilityValue('speaker_track', '');
-        await this.#device.setCapabilityValue('speaker_duration', -1);
-        await this.#device.setCapabilityValue('speaker_position', -1);
-        await this.#device.setCapabilityValue('speaker_playing', false);
+            await this.#device.setCapabilityValue('speaker_album', '');
+            await this.#device.setCapabilityValue('speaker_artist', '');
+            await this.#device.setCapabilityValue('speaker_track', '');
+            await this.#device.setCapabilityValue('speaker_duration', -1);
+            await this.#device.setCapabilityValue('speaker_position', -1);
+            await this.#device.setCapabilityValue('speaker_playing', false);
 
-        this.log(this.deviceName, 'Now playing info cleared.');
+            this.log(this.deviceName, 'Now playing info cleared.');
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to clear now playing info', err);
+        }
     }
 
     async setProtocol(protocol: AirPlayDevice): Promise<void> {
