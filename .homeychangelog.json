@@ -196,5 +196,8 @@
   },
   "1.1.3": {
     "en": "This update fixes an internal artwork update error."
+  },
+  "1.1.4": {
+    "en": "This update prevents triggering the now playing app changed trigger if the app is the same."
   }
 }
