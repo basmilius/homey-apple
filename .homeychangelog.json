@@ -202,5 +202,8 @@
   },
   "1.1.5": {
     "en": "In this update, the underlying apple-protocols sdk has been cleaned up and made more robust. The app itself doesn't have anything new, but expect connection improvements."
+  },
+  "1.1.6": {
+    "en": "This update improves the companion link reconnect logic."
   }
 }
