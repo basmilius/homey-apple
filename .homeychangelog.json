@@ -199,5 +199,8 @@
   },
   "1.1.4": {
     "en": "This update prevents triggering the now playing app changed trigger if the app is the same."
+  },
+  "1.1.5": {
+    "en": "In this update, the underlying apple-protocols sdk has been cleaned up and made more robust. The app itself doesn't have anything new, but expect connection improvements."
   }
 }
