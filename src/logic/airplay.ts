@@ -190,11 +190,15 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await device.setCapabilityValue('speaker_duration', item.metadata.duration);
             await device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-            if (device.hasCapability('now_playing_app')) {
-                await device.setCapabilityValue('now_playing_app', client.playbackState === Proto.PlaybackState_Enum.Playing ? client.displayName : null);
+            const nowPlayingApp = client.playbackState === Proto.PlaybackState_Enum.Playing
+                ? client.displayName
+                : null;
+
+            if (device.hasCapability('now_playing_app') && device.getCapabilityValue('now_playing_app') !== nowPlayingApp) {
+                await device.setCapabilityValue('now_playing_app', nowPlayingApp);
 
                 if (device instanceof AppleTVDevice) {
-                    await device.appDriver.triggerNowPlayingAppChanges(device, client.bundleIdentifier, client.displayName ?? '-');
+                    await device.appDriver.triggerNowPlayingAppChanges(device, client.bundleIdentifier, nowPlayingApp ?? '-');
                 }
             }
 
