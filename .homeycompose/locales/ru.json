@@ -1,0 +1,12 @@
+{
+    "appletv": {
+        "cannot_fetch_apps_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список приложений.",
+        "cannot_fetch_accounts_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список аккаунтов."
+    },
+    "capability": {
+        "power": {
+            "off": "Выключен",
+            "on": "Включен"
+        }
+    }
+}

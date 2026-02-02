@@ -1,0 +1,12 @@
+{
+    "appletv": {
+        "cannot_fetch_apps_because_turned_off": "Apple TV'en skal være tændt for at kunne indlæse applikationslisten.",
+        "cannot_fetch_accounts_because_turned_off": "Apple TV'en skal være tændt for at kunne indlæse kontolisten."
+    },
+    "capability": {
+        "power": {
+            "off": "Slukket",
+            "on": "Tændt"
+        }
+    }
+}

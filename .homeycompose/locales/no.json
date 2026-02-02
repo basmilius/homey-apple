@@ -1,0 +1,12 @@
+{
+    "appletv": {
+        "cannot_fetch_apps_because_turned_off": "Apple TV-en må være slått på for å laste inn applistasjen.",
+        "cannot_fetch_accounts_because_turned_off": "Apple TV-en må være slått på for å laste inn kontolistasjen."
+    },
+    "capability": {
+        "power": {
+            "off": "Av",
+            "on": "På"
+        }
+    }
+}

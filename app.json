@@ -10,11 +10,33 @@
   ],
   "name": {
     "en": "Apple TV & HomePod",
-    "nl": "Apple TV & HomePod"
+    "nl": "Apple TV & HomePod",
+    "da": "Apple TV & HomePod",
+    "de": "Apple TV & HomePod",
+    "es": "Apple TV & HomePod",
+    "fr": "Apple TV & HomePod",
+    "it": "Apple TV & HomePod",
+    "no": "Apple TV & HomePod",
+    "sv": "Apple TV & HomePod",
+    "pl": "Apple TV & HomePod",
+    "ru": "Apple TV & HomePod",
+    "ko": "Apple TV & HomePod",
+    "ar": "Apple TV & HomePod"
   },
   "description": {
     "en": "Control your Apple devices from your Homey.",
-    "nl": "Beheer je Apple apparaten vanuit je Homey."
+    "nl": "Beheer je Apple apparaten vanuit je Homey.",
+    "da": "Styr dine Apple-enheder fra din Homey.",
+    "de": "Steuere deine Apple-Geräte von deinem Homey aus.",
+    "es": "Controla tus dispositivos Apple desde tu Homey.",
+    "fr": "Contrôlez vos appareils Apple depuis votre Homey.",
+    "it": "Controlla i tuoi dispositivi Apple dal tuo Homey.",
+    "no": "Kontroller Apple-enhetene dine fra Homey.",
+    "sv": "Styr dina Apple-enheter från din Homey.",
+    "pl": "Steruj urządzeniami Apple z poziomu Homey.",
+    "ru": "Управляйте устройствами Apple с помощью Homey.",
+    "ko": "Homey에서 Apple 기기를 제어하세요.",
+    "ar": "تحكم في أجهزة Apple الخاصة بك من Homey."
   },
   "category": [
     "music",
@@ -32,6 +54,105 @@
       "companion link"
     ],
     "nl": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "da": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "de": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "es": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "fr": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "it": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "no": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "sv": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "pl": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "ru": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "ko": [
+      "apple",
+      "apple tv",
+      "appletv",
+      "tv",
+      "homepod",
+      "homepod mini",
+      "companion link"
+    ],
+    "ar": [
       "apple",
       "apple tv",
       "appletv",

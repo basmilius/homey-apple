@@ -1,0 +1,12 @@
+{
+    "appletv": {
+        "cannot_fetch_apps_because_turned_off": "L'Apple TV doit être allumée pour charger la liste des applications.",
+        "cannot_fetch_accounts_because_turned_off": "L'Apple TV doit être allumée pour charger la liste des comptes."
+    },
+    "capability": {
+        "power": {
+            "off": "Éteint",
+            "on": "Allumé"
+        }
+    }
+}

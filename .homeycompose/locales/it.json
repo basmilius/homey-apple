@@ -1,0 +1,12 @@
+{
+    "appletv": {
+        "cannot_fetch_apps_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco delle applicazioni.",
+        "cannot_fetch_accounts_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco degli account."
+    },
+    "capability": {
+        "power": {
+            "off": "Spento",
+            "on": "Acceso"
+        }
+    }
+}

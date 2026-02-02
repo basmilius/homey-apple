@@ -1,0 +1,12 @@
+{
+    "appletv": {
+        "cannot_fetch_apps_because_turned_off": "El Apple TV debe estar encendido para cargar la lista de aplicaciones.",
+        "cannot_fetch_accounts_because_turned_off": "El Apple TV debe estar encendido para cargar la lista de cuentas."
+    },
+    "capability": {
+        "power": {
+            "off": "Apagado",
+            "on": "Encendido"
+        }
+    }
+}
