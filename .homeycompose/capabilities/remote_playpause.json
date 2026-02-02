@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Play/Pause",
-        "nl": "Play/Pauze"
+        "nl": "Play/Pauze",
+        "da": "Afspil/Pause",
+        "de": "Wiedergabe/Pause",
+        "es": "Reproducir/Pausar",
+        "fr": "Lecture/Pause",
+        "it": "Riproduci/Pausa",
+        "no": "Spill/Pause",
+        "sv": "Spela/Pausa",
+        "pl": "Odtwórz/Pauza",
+        "ru": "Воспроизвести/Пауза",
+        "ko": "재생/일시정지",
+        "ar": "تشغيل/إيقاف مؤقت"
     },
     "getable": false,
     "setable": true,

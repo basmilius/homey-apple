@@ -2,7 +2,18 @@
     "type": "string",
     "title": {
         "en": "On/off",
-        "nl": "Aan/uit"
+        "nl": "Aan/uit",
+        "da": "Tænd/sluk",
+        "de": "Ein/Aus",
+        "es": "Encender/apagar",
+        "fr": "Marche/arrêt",
+        "it": "Acceso/spento",
+        "no": "På/av",
+        "sv": "På/av",
+        "pl": "Włącz/wyłącz",
+        "ru": "Вкл/выкл",
+        "ko": "켜기/끄기",
+        "ar": "تشغيل/إيقاف"
     },
     "getable": true,
     "setable": false,

@@ -1,0 +1,12 @@
+{
+  "appletv": {
+    "cannot_fetch_apps_because_turned_off": "Apple TV musi być włączony, aby załadować listę aplikacji.",
+    "cannot_fetch_accounts_because_turned_off": "Apple TV musi być włączony, aby załadować listę kont."
+  },
+  "capability": {
+    "power": {
+      "off": "Wyłączony",
+      "on": "Włączony"
+    }
+  }
+}

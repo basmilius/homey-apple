@@ -2,11 +2,33 @@
     "id": "appletv_switch_account",
     "title": {
         "en": "Switch account",
-        "nl": "Wissel van gebruiker"
+        "nl": "Wissel van gebruiker",
+        "da": "Skift konto",
+        "de": "Konto wechseln",
+        "es": "Cambiar cuenta",
+        "fr": "Changer de compte",
+        "it": "Cambia account",
+        "no": "Bytt konto",
+        "sv": "Byt konto",
+        "pl": "Przełącz konto",
+        "ru": "Сменить аккаунт",
+        "ko": "계정 전환",
+        "ar": "تبديل الحساب"
     },
     "titleFormatted": {
         "en": "Switch to account [[account]]",
-        "nl": "Wissel naar gebruiker [[account]]"
+        "nl": "Wissel naar gebruiker [[account]]",
+        "da": "Skift til konto [[account]]",
+        "de": "Zu Konto [[account]] wechseln",
+        "es": "Cambiar a la cuenta [[account]]",
+        "fr": "Passer à l'utilisateur [[account]]",
+        "it": "Passa all'account [[account]]",
+        "no": "Bytt til konto [[account]]",
+        "sv": "Byt till konto [[account]]",
+        "pl": "Przełącz na konto [[account]]",
+        "ru": "Переключиться на аккаунт [[account]]",
+        "ko": "[[account]] 계정으로 전환하기",
+        "ar": "التبديل إلى الحساب [[account]]"
     },
     "args": [
         {
@@ -19,7 +41,18 @@
             "name": "account",
             "title": {
                 "en": "Account",
-                "nl": "Gebruiker"
+                "nl": "Gebruiker",
+                "da": "Konto",
+                "de": "Konto",
+                "es": "Cuenta",
+                "fr": "Compte",
+                "it": "Account",
+                "no": "Konto",
+                "sv": "Konto",
+                "pl": "Konto",
+                "ru": "Аккаунт",
+                "ko": "계정",
+                "ar": "الحساب"
             }
         }
     ]

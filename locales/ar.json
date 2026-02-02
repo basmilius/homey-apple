@@ -1,0 +1,12 @@
+{
+  "appletv": {
+    "cannot_fetch_apps_because_turned_off": "يجب تشغيل Apple TV لتحميل قائمة التطبيقات.",
+    "cannot_fetch_accounts_because_turned_off": "يجب تشغيل Apple TV لتحميل قائمة الحسابات."
+  },
+  "capability": {
+    "power": {
+      "off": "إيقاف",
+      "on": "تشغيل"
+    }
+  }
+}

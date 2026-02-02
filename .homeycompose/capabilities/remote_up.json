@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Up",
-        "nl": "Omhoog"
+        "nl": "Omhoog",
+        "da": "Op",
+        "de": "Hoch",
+        "es": "Arriba",
+        "fr": "Jusqu'à",
+        "it": "Su",
+        "no": "Opp",
+        "sv": "Upp",
+        "pl": "W górę",
+        "ru": "Вверх",
+        "ko": "업",
+        "ar": "تشغيل"
     },
     "getable": false,
     "setable": true,

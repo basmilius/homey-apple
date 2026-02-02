@@ -1,0 +1,3 @@
+Przejmij pełną kontrolę nad swoim Apple TV i HomePod bezpośrednio z Homey. Używaj poleceń zdalnych, aby nawigować, odtwarzać, wstrzymywać, regulować głośność oraz przełączać się między aplikacjami lub kontami użytkowników. Monitoruj, co jest odtwarzane w czasie rzeczywistym, z szczegółowymi informacjami o aktualnie odtwarzanym utworze, w tym tytuł, artysta, album i aktywna aplikacja.
+
+Integruj swoje urządzenia Apple w przepływach Homey, aby tworzyć automatyzacje, które wzbogacą twoje doświadczenie rozrywkowe. Ustaw nastrój, gdy zaczyna się wieczór filmowy, wstrzymaj odtwarzanie, gdy zadzwoni dzwonek do drzwi, lub obudź swoje Apple TV, gdy wrócisz do domu. Cała komunikacja odbywa się lokalnie w twojej sieci, co zapewnia szybką i niezawodną kontrolę.

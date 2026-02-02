@@ -1,0 +1,3 @@
+Toma el control total de tus dispositivos Apple TV y HomePod directamente desde Homey. Usa comandos remotos para navegar, reproducir, pausar, ajustar el volumen y cambiar entre aplicaciones o cuentas de usuario. Monitorea lo que se está reproduciendo en tiempo real con información detallada de lo que se está reproduciendo, incluyendo el título de la pista, el artista, el álbum y la aplicación actualmente activa.
+
+Integra tus dispositivos Apple en los flujos de Homey para crear automatizaciones que mejoren tu experiencia de entretenimiento. Crea el ambiente cuando empiece la noche de películas, pausa la reproducción cuando suene el timbre, o enciende tu Apple TV cuando llegues a casa. Toda la comunicación ocurre localmente en tu red para un control rápido y confiable.

@@ -2,7 +2,18 @@
     "type": "string",
     "title": {
         "en": "Now Playing App",
-        "nl": "Nu spelende App"
+        "nl": "Nu spelende App",
+        "da": "Now Playing App",
+        "de": "Jetzt läuft App",
+        "es": "App Reproduciendo Ahora",
+        "fr": "Application Lecture en cours",
+        "it": "App In Riproduzione",
+        "no": "Nå Spilles App",
+        "sv": "Nu spelas-appen",
+        "pl": "Aplikacja Teraz Odtwarzane",
+        "ru": "Приложение \"Сейчас играет\"",
+        "ko": "현재 재생 중 앱",
+        "ar": "التطبيق قيد التشغيل الآن"
     },
     "getable": true,
     "setable": false,

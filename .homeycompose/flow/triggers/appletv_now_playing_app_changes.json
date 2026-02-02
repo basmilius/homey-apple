@@ -2,11 +2,33 @@
     "id": "appletv_now_playing_app_changes",
     "title": {
         "en": "Now playing app changes",
-        "nl": "Nu spelende app verandert"
+        "nl": "Nu spelende app verandert",
+        "da": "Nu afspilles appændringer",
+        "de": "Jetzt spielende App-Änderungen",
+        "es": "Cambios en la aplicación de reproducción ahora",
+        "fr": "Modifications de l'application en cours de lecture",
+        "it": "Modifiche all'app di riproduzione ora in corso",
+        "no": "Nåværende app-endringer",
+        "sv": "Nu spelas appändringar",
+        "pl": "Zmiany w aplikacji Teraz odtwarzane",
+        "ru": "Изменения в приложении \"Сейчас играет\"",
+        "ko": "이제 재생 중인 앱 변경사항",
+        "ar": "تغييرات تطبيق التشغيل الآن"
     },
     "titleFormatted": {
         "en": "Now playing app changes",
-        "nl": "Nu spelende app verandert"
+        "nl": "Nu spelende app verandert",
+        "da": "Ændringer i nuværende afspilningsapp",
+        "de": "Änderungen der Jetzt-Läuft-App",
+        "es": "Cambios en la aplicación de reproducción ahora",
+        "fr": "Modifications de l'application en cours de lecture",
+        "it": "Modifiche all'app di riproduzione ora in corso",
+        "no": "Nåværende app-endringer for avspilling",
+        "sv": "Nu spelas appändringar",
+        "pl": "Zmiany w aplikacji Teraz odtwarzane",
+        "ru": "Изменения в приложении \"Сейчас играет\"",
+        "ko": "이제 재생 중인 앱 변경사항",
+        "ar": "تغييرات تطبيق التشغيل الآن"
     },
     "args": [
         {
@@ -21,7 +43,18 @@
             "type": "string",
             "title": {
                 "en": "Bundle identifier",
-                "nl": "Bundle identifier"
+                "nl": "Bundle identifier",
+                "da": "Bundle-identifikator",
+                "de": "Bundle-Identifier",
+                "es": "Identificador de paquete",
+                "fr": "Identifiant de bundle",
+                "it": "Identificatore del bundle",
+                "no": "Pakkebunt-ID",
+                "sv": "Paketidentifierare",
+                "pl": "Identyfikator pakietu",
+                "ru": "Идентификатор пакета",
+                "ko": "번들 식별자",
+                "ar": "معرّف الحزمة"
             }
         },
         {
@@ -29,7 +62,18 @@
             "type": "string",
             "title": {
                 "en": "Display name",
-                "nl": "Weergavenaam"
+                "nl": "Weergavenaam",
+                "da": "Visningsnavn",
+                "de": "Anzeigename",
+                "es": "Nombre para mostrar",
+                "fr": "Nom d'affichage",
+                "it": "Nome visualizzato",
+                "no": "Visningsnavn",
+                "sv": "Visningsnamn",
+                "pl": "Nazwa wyświetlana",
+                "ru": "Отображаемое имя",
+                "ko": "디스플레이 이름",
+                "ar": "اسم العرض"
             }
         }
     ]

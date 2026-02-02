@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Left",
-        "nl": "Links"
+        "nl": "Links",
+        "da": "Venstre",
+        "de": "Links",
+        "es": "Izquierda",
+        "fr": "Gauche",
+        "it": "Sinistra",
+        "no": "Venstre",
+        "sv": "Vänster",
+        "pl": "Lewo",
+        "ru": "Левый",
+        "ko": "왼쪽",
+        "ar": "يسار"
     },
     "getable": false,
     "setable": true,

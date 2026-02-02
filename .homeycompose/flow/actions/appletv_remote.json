@@ -2,11 +2,33 @@
     "id": "appletv_remote",
     "title": {
         "en": "Execute remote command",
-        "nl": "Voer afstandsbediening commando uit"
+        "nl": "Voer afstandsbediening commando uit",
+        "da": "Udfør fjernkommando",
+        "de": "Führe Fernbefehl aus",
+        "es": "Ejecutar comando remoto",
+        "fr": "Exécuter une commande à distance",
+        "it": "Esegui comando remoto",
+        "no": "Utfør fjernkommando",
+        "sv": "Utför fjärrkommando",
+        "pl": "Wykonaj polecenie zdalne",
+        "ru": "Выполнить удалённую команду",
+        "ko": "원격 명령 실행",
+        "ar": "تنفيذ أمر عن بُعد"
     },
     "titleFormatted": {
         "en": "Execute [[command]]",
-        "nl": "Voer [[command]] uit"
+        "nl": "Voer [[command]] uit",
+        "da": "Udfør [[command]]",
+        "de": "Führe [[command]] aus",
+        "es": "Ejecutar [[command]]",
+        "fr": "Exécuter [[command]]",
+        "it": "Esegui [[command]]",
+        "no": "Utfør [[command]]",
+        "sv": "Utför [[command]]",
+        "pl": "Wykonaj [[command]]",
+        "ru": "Выполнить [[command]]",
+        "ko": "[[command]] 실행",
+        "ar": "نفذ [[command]]"
     },
     "args": [
         {
@@ -19,126 +41,324 @@
             "name": "command",
             "title": {
                 "en": "Command",
-                "nl": "Commando"
+                "nl": "Commando",
+                "da": "Kommando",
+                "de": "Befehl",
+                "es": "Comando",
+                "fr": "Commande",
+                "it": "Comando",
+                "no": "Kommando",
+                "sv": "Kommando",
+                "pl": "Polecenie",
+                "ru": "Команда",
+                "ko": "명령",
+                "ar": "أمر"
             },
             "values": [
                 {
                     "id": "up",
                     "label": {
                         "en": "Up",
-                        "nl": "Omhoog"
+                        "nl": "Omhoog",
+                        "da": "Op",
+                        "de": "Hoch",
+                        "es": "Arriba",
+                        "fr": "Haut",
+                        "it": "Su",
+                        "no": "Opp",
+                        "sv": "Upp",
+                        "pl": "W górę",
+                        "ru": "Вверх",
+                        "ko": "업",
+                        "ar": "أعلى"
                     }
                 },
                 {
                     "id": "down",
                     "label": {
                         "en": "Down",
-                        "nl": "Omlaag"
+                        "nl": "Omlaag",
+                        "da": "Ned",
+                        "de": "Unten",
+                        "es": "Abajo",
+                        "fr": "Bas",
+                        "it": "Giù",
+                        "no": "Ned",
+                        "sv": "Ner",
+                        "pl": "Dół",
+                        "ru": "Вниз",
+                        "ko": "아래",
+                        "ar": "أسفل"
                     }
                 },
                 {
                     "id": "left",
                     "label": {
                         "en": "Left",
-                        "nl": "Links"
+                        "nl": "Links",
+                        "da": "Venstre",
+                        "de": "Links",
+                        "es": "Izquierda",
+                        "fr": "Gauche",
+                        "it": "Sinistra",
+                        "no": "Venstre",
+                        "sv": "Vänster",
+                        "pl": "Lewo",
+                        "ru": "Левый",
+                        "ko": "왼쪽",
+                        "ar": "يسار"
                     }
                 },
                 {
                     "id": "right",
                     "label": {
                         "en": "Right",
-                        "nl": "Rechts"
+                        "nl": "Rechts",
+                        "da": "Rigtigt",
+                        "de": "Richtig",
+                        "es": "Correcto",
+                        "fr": "D'accord",
+                        "it": "Giusto",
+                        "no": "Riktig",
+                        "sv": "Rätt",
+                        "pl": "Dobrze",
+                        "ru": "Верно",
+                        "ko": "맞아요",
+                        "ar": "صحيح"
                     }
                 },
                 {
                     "id": "select",
                     "label": {
                         "en": "Select",
-                        "nl": "Selecteer"
+                        "nl": "Selecteer",
+                        "da": "Vælg",
+                        "de": "Auswählen",
+                        "es": "Seleccionar",
+                        "fr": "Sélectionner",
+                        "it": "Seleziona",
+                        "no": "Velg",
+                        "sv": "Välj",
+                        "pl": "Wybierz",
+                        "ru": "Выбрать",
+                        "ko": "선택",
+                        "ar": "اختر"
                     }
                 },
                 {
                     "id": "menu",
                     "label": {
                         "en": "Menu/Back",
-                        "nl": "Menu/Terug"
+                        "nl": "Menu/Terug",
+                        "da": "Menu/Tilbage",
+                        "de": "Menü/Zurück",
+                        "es": "Menú/Atrás",
+                        "fr": "Menu/Retour",
+                        "it": "Menu/Indietro",
+                        "no": "Meny/Tilbake",
+                        "sv": "Meny/Tillbaka",
+                        "pl": "Menu/Wstecz",
+                        "ru": "Меню/Назад",
+                        "ko": "메뉴/뒤로",
+                        "ar": "القائمة/الرجوع"
                     }
                 },
                 {
                     "id": "home",
                     "label": {
                         "en": "Home",
-                        "nl": "Home"
+                        "nl": "Home",
+                        "da": "Hjem",
+                        "de": "Zuhause",
+                        "es": "Inicio",
+                        "fr": "Accueil",
+                        "it": "Casa",
+                        "no": "Hjem",
+                        "sv": "Hem",
+                        "pl": "Dom",
+                        "ru": "Дом",
+                        "ko": "홈",
+                        "ar": "الصفحة الرئيسية"
                     }
                 },
                 {
                     "id": "play",
                     "label": {
                         "en": "Play",
-                        "nl": "Afspelen"
+                        "nl": "Afspelen",
+                        "da": "Afspil",
+                        "de": "Abspielen",
+                        "es": "Reproducir",
+                        "fr": "Lire",
+                        "it": "Riproduci",
+                        "no": "Spill",
+                        "sv": "Spela",
+                        "pl": "Odtwórz",
+                        "ru": "Воспроизвести",
+                        "ko": "재생",
+                        "ar": "تشغيل"
                     }
                 },
                 {
                     "id": "pause",
                     "label": {
                         "en": "Pause",
-                        "nl": "Pauzeren"
+                        "nl": "Pauzeren",
+                        "da": "Pause",
+                        "de": "Pause",
+                        "es": "Pausa",
+                        "fr": "Pause",
+                        "it": "Pausa",
+                        "no": "Pause",
+                        "sv": "Pausa",
+                        "pl": "Pauza",
+                        "ru": "Пауза",
+                        "ko": "일시 정지",
+                        "ar": "إيقاف مؤقت"
                     }
                 },
                 {
                     "id": "playPause",
                     "label": {
                         "en": "Play/Pause",
-                        "nl": "Afspelen/Pauzeren"
+                        "nl": "Afspelen/Pauzeren",
+                        "da": "Afspil/Pause",
+                        "de": "Wiedergabe/Pause",
+                        "es": "Reproducir/Pausar",
+                        "fr": "Lecture/Pause",
+                        "it": "Riproduci/Pausa",
+                        "no": "Spill/Pause",
+                        "sv": "Spela/Pausa",
+                        "pl": "Odtwórz/Pauza",
+                        "ru": "Воспроизведение/Пауза",
+                        "ko": "재생/일시 정지",
+                        "ar": "تشغيل/إيقاف مؤقت"
                     }
                 },
                 {
                     "id": "next",
                     "label": {
                         "en": "Next",
-                        "nl": "Volgende"
+                        "nl": "Volgende",
+                        "da": "Næste",
+                        "de": "Weiter",
+                        "es": "Siguiente",
+                        "fr": "Suivant",
+                        "it": "Avanti",
+                        "no": "Neste",
+                        "sv": "Nästa",
+                        "pl": "Dalej",
+                        "ru": "Далее",
+                        "ko": "다음",
+                        "ar": "التالي"
                     }
                 },
                 {
                     "id": "previous",
                     "label": {
                         "en": "Previous",
-                        "nl": "Vorige"
+                        "nl": "Vorige",
+                        "da": "Forrige",
+                        "de": "Vorherige",
+                        "es": "Anterior",
+                        "fr": "Précédent",
+                        "it": "Precedente",
+                        "no": "Forrige",
+                        "sv": "Föregående",
+                        "pl": "Poprzedni",
+                        "ru": "Предыдущий",
+                        "ko": "이전",
+                        "ar": "السابق"
                     }
                 },
                 {
                     "id": "volumeUp",
                     "label": {
                         "en": "Volume Up",
-                        "nl": "Volume omhoog"
+                        "nl": "Volume omhoog",
+                        "da": "Skru op for lyden",
+                        "de": "Lauter stellen",
+                        "es": "Subir volumen",
+                        "fr": "Augmenter le volume",
+                        "it": "Aumenta Volume",
+                        "no": "Volum opp",
+                        "sv": "Volym upp",
+                        "pl": "Zwiększ głośność",
+                        "ru": "Увеличить громкость",
+                        "ko": "볼륨 올리기",
+                        "ar": "رفع الصوت"
                     }
                 },
                 {
                     "id": "volumeDown",
                     "label": {
                         "en": "Volume Down",
-                        "nl": "Volume omlaag"
+                        "nl": "Volume omlaag",
+                        "da": "Skru ned for lyden",
+                        "de": "Leiser",
+                        "es": "Bajar volumen",
+                        "fr": "Baisser le volume",
+                        "it": "Abbassa il volume",
+                        "no": "Volum ned",
+                        "sv": "Volym ner",
+                        "pl": "Ściszanie dźwięku",
+                        "ru": "Уменьшить громкость",
+                        "ko": "볼륨 낮추기",
+                        "ar": "خفض الصوت"
                     }
                 },
                 {
                     "id": "mute",
                     "label": {
                         "en": "Mute",
-                        "nl": "Dempen"
+                        "nl": "Dempen",
+                        "da": "Slå lyd fra",
+                        "de": "Stummschalten",
+                        "es": "Silenciar",
+                        "fr": "Muet",
+                        "it": "Disattiva audio",
+                        "no": "Demp",
+                        "sv": "Stäng av ljudet",
+                        "pl": "Wycisz",
+                        "ru": "Отключить звук",
+                        "ko": "음소거",
+                        "ar": "كتم الصوت"
                     }
                 },
                 {
                     "id": "wake",
                     "label": {
                         "en": "Wake",
-                        "nl": "Activeren"
+                        "nl": "Activeren",
+                        "da": "Væk",
+                        "de": "Aufwecken",
+                        "es": "Despertar",
+                        "fr": "Réveille",
+                        "it": "Sveglia",
+                        "no": "Vekk opp",
+                        "sv": "Väck",
+                        "pl": "Obudź",
+                        "ru": "Проснись",
+                        "ko": "깨우기",
+                        "ar": "استيقظ"
                     }
                 },
                 {
                     "id": "suspend",
                     "label": {
                         "en": "Sleep",
-                        "nl": "Slaapstand"
+                        "nl": "Slaapstand",
+                        "da": "Søvn",
+                        "de": "Schlaf",
+                        "es": "Dormir",
+                        "fr": "Sommeil",
+                        "it": "Sonno",
+                        "no": "Søvn",
+                        "sv": "Sömn",
+                        "pl": "Sen",
+                        "ru": "Сон",
+                        "ko": "수면",
+                        "ar": "نوم"
                     }
                 }
             ]

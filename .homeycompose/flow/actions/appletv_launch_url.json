@@ -2,11 +2,33 @@
     "id": "appletv_launch_url",
     "title": {
         "en": "Launch a URL",
-        "nl": "Open een URL"
+        "nl": "Open een URL",
+        "da": "Åbn en URL",
+        "de": "Eine URL starten",
+        "es": "Abrir una URL",
+        "fr": "Lancer une URL",
+        "it": "Avvia un URL",
+        "no": "Åpne en URL",
+        "sv": "Starta en URL",
+        "pl": "Uruchom URL",
+        "ru": "Запустить URL",
+        "ko": "URL 실행",
+        "ar": "فتح رابط URL"
     },
     "titleFormatted": {
         "en": "Launch URL [[url]]",
-        "nl": "Open URL [[url]]"
+        "nl": "Open URL [[url]]",
+        "da": "Start URL [[url]]",
+        "de": "URL starten [[url]]",
+        "es": "Abrir URL [[url]]",
+        "fr": "Lancer l'URL [[url]]",
+        "it": "Avvia URL [[url]]",
+        "no": "Start URL [[url]]",
+        "sv": "Starta URL [[url]]",
+        "pl": "Uruchom URL [[url]]",
+        "ru": "Запустить URL [[url]]",
+        "ko": "URL 실행 [[url]]",
+        "ar": "افتح الرابط [[url]]"
     },
     "args": [
         {
@@ -20,7 +42,18 @@
             "required": true,
             "title": {
                 "en": "URL",
-                "nl": "URL"
+                "nl": "URL",
+                "da": "URL",
+                "de": "URL",
+                "es": "URL",
+                "fr": "URL",
+                "it": "URL",
+                "no": "URL",
+                "sv": "URL",
+                "pl": "URL",
+                "ru": "URL",
+                "ko": "URL",
+                "ar": "الرابط"
             }
         }
     ]

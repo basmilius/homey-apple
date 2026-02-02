@@ -1,0 +1,3 @@
+Ta full kontroll över dina Apple TV- och HomePod-enheter direkt från Homey. Använd fjärrkommandon för att navigera, spela, pausa, justera volymen och växla mellan appar eller användarkonton. Övervaka vad som spelas i realtid med detaljerad nu spelas-information inklusive låttitel, artist, album och den för närvarande aktiva appen.
+
+Integrera dina Apple-enheter i Homey-flöden för att skapa automationer som förbättrar din underhållningsupplevelse. Skapa stämning när filmkvällen börjar, pausa uppspelningen när dörrklockan ringer, eller väck din Apple TV när du kommer hem. All kommunikation sker lokalt på ditt nätverk för snabb och tillförlitlig kontroll.

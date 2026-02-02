@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Back",
-        "nl": "Terug"
+        "nl": "Terug",
+        "da": "Tilbage",
+        "de": "Zurück",
+        "es": "Atrás",
+        "fr": "Retour",
+        "it": "Indietro",
+        "no": "Tilbake",
+        "sv": "Tillbaka",
+        "pl": "Wstecz",
+        "ru": "Назад",
+        "ko": "뒤로",
+        "ar": "رجوع"
     },
     "getable": false,
     "setable": true,

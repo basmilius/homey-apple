@@ -3,11 +3,33 @@
     "id": "appletv_launch_app",
     "title": {
         "en": "Launch an app",
-        "nl": "Open een app"
+        "nl": "Open een app",
+        "da": "Start en app",
+        "de": "Eine App starten",
+        "es": "Iniciar una app",
+        "fr": "Lancer une application",
+        "it": "Avvia un'app",
+        "no": "Start en app",
+        "sv": "Starta en app",
+        "pl": "Uruchom aplikację",
+        "ru": "Запустить приложение",
+        "ko": "앱 실행",
+        "ar": "افتح تطبيقًا"
     },
     "titleFormatted": {
         "en": "Launch app [[app]]",
-        "nl": "Open app [[app]]"
+        "nl": "Open app [[app]]",
+        "da": "Start appen [[app]]",
+        "de": "App [[app]] starten",
+        "es": "Inicia la app [[app]]",
+        "fr": "Lancer l'application [[app]]",
+        "it": "Avvia l'app [[app]]",
+        "no": "Start appen [[app]]",
+        "sv": "Starta appen [[app]]",
+        "pl": "Uruchom aplikację [[app]]",
+        "ru": "Запустите приложение [[app]]",
+        "ko": "앱 [[app]] 실행",
+        "ar": "افتح التطبيق [[app]]"
     },
     "args": [
         {
@@ -20,7 +42,18 @@
             "name": "app",
             "title": {
                 "en": "App",
-                "nl": "App"
+                "nl": "App",
+                "da": "App",
+                "de": "App",
+                "es": "App",
+                "fr": "App",
+                "it": "App",
+                "no": "App",
+                "sv": "App",
+                "pl": "Aplikacja",
+                "ru": "Приложение",
+                "ko": "앱",
+                "ar": "تطبيق"
             }
         }
     ]

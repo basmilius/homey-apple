@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Select",
-        "nl": "Selecteer"
+        "nl": "Selecteer",
+        "da": "Vælg",
+        "de": "Auswählen",
+        "es": "Seleccionar",
+        "fr": "Sélectionner",
+        "it": "Seleziona",
+        "no": "Velg",
+        "sv": "Välj",
+        "pl": "Wybierz",
+        "ru": "Выбрать",
+        "ko": "선택",
+        "ar": "اختر"
     },
     "getable": false,
     "setable": true,

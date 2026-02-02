@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Down",
-        "nl": "Omlaag"
+        "nl": "Omlaag",
+        "da": "Ned",
+        "de": "Unten",
+        "es": "Abajo",
+        "fr": "Bas",
+        "it": "Giù",
+        "no": "Ned",
+        "sv": "Ner",
+        "pl": "Dół",
+        "ru": "Вниз",
+        "ko": "아래",
+        "ar": "أسفل"
     },
     "getable": false,
     "setable": true,

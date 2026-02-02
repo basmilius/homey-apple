@@ -2,7 +2,18 @@
     "type": "boolean",
     "title": {
         "en": "Right",
-        "nl": "Rechts"
+        "nl": "Rechts",
+        "da": "Højre",
+        "de": "Richtig",
+        "es": "Correcto",
+        "fr": "D'accord",
+        "it": "Giusto",
+        "no": "Riktig",
+        "sv": "Rätt",
+        "pl": "Zgadza się",
+        "ru": "Правильно",
+        "ko": "맞아요",
+        "ar": "صحيح"
     },
     "getable": false,
     "setable": true,

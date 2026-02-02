@@ -1,81 +1,117 @@
 {
-    "name": {
-        "en": "HomePod Mini",
-        "nl": "HomePod Mini"
-    },
-    "class": "speaker",
-    "discovery": "homepod-mini",
-    "capabilities": [
-        "speaker_album",
-        "speaker_artist",
-        "speaker_duration",
-        "speaker_next",
-        "speaker_playing",
-        "speaker_position",
-        "speaker_prev",
-        "speaker_stop",
-        "speaker_track",
-        "volume_down",
-        "volume_set",
-        "volume_up",
-        "button.restart"
-    ],
-    "capabilitiesOptions": {
-        "button.restart": {
-            "maintenanceAction": true,
-            "title": {
-                "en": "Restart connection",
-                "nl": "Herstart verbinding"
-            },
-            "desc": {
-                "en": "Restart the connection to the HomePod Mini.",
-                "nl": "Herstart de verbinding met de HomePod Mini."
-            }
-        }
-    },
-    "platforms": [
-        "local"
-    ],
-    "connectivity": [
-        "lan"
-    ],
-    "pair": [
-        {
-            "id": "discover",
-            "template": "loading"
-        },
-        {
-            "id": "list_devices",
-            "template": "list_devices",
-            "navigation": {
-                "next": "authenticate"
-            },
-            "options": {
-                "singular": true,
-                "title": {
-                    "en": "Select the device you want to add",
-                    "nl": "Selecteer het apparaat die je wil toevoegen",
-                    "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
-                    "fr": "Sélectionnez l'appareil que vous voulez ajouter",
-                    "it": "Seleziona il dispositivo che si desidera aggiungere",
-                    "sv": "Välj enheten du vill lägga till",
-                    "no": "Velg enheten du vil legge til",
-                    "es": "Seleccione el dispositivo que desea agregar",
-                    "da": "Vælg enheden, du vil tilføje",
-                    "pl": "Wybierz urządzenie, które chcesz dodać"
-                }
-            }
-        },
-        {
-            "id": "authenticate",
-            "template": "loading"
-        },
-        {
-            "id": "add_my_device"
-        }
-    ],
-    "images": {
-        "small": "{{driverAssetsPath}}/images/small.png",
-        "large": "{{driverAssetsPath}}/images/large.png"
+  "name": {
+    "en": "HomePod Mini",
+    "nl": "HomePod Mini",
+    "da": "HomePod Mini",
+    "de": "HomePod Mini",
+    "es": "HomePod Mini",
+    "fr": "HomePod Mini",
+    "it": "HomePod Mini",
+    "no": "HomePod Mini",
+    "sv": "HomePod Mini",
+    "pl": "HomePod Mini",
+    "ru": "HomePod Mini",
+    "ko": "HomePod Mini",
+    "ar": "HomePod Mini"
+  },
+  "class": "speaker",
+  "discovery": "homepod-mini",
+  "capabilities": [
+    "speaker_album",
+    "speaker_artist",
+    "speaker_duration",
+    "speaker_next",
+    "speaker_playing",
+    "speaker_position",
+    "speaker_prev",
+    "speaker_stop",
+    "speaker_track",
+    "volume_down",
+    "volume_set",
+    "volume_up",
+    "button.restart"
+  ],
+  "capabilitiesOptions": {
+    "button.restart": {
+      "maintenanceAction": true,
+      "title": {
+        "en": "Restart connection",
+        "nl": "Herstart verbinding",
+        "da": "Genstart forbindelse",
+        "de": "Verbindung neu starten",
+        "es": "Reiniciar conexión",
+        "fr": "Redémarrer la connexion",
+        "it": "Riavvia connessione",
+        "no": "Start tilkobling på nytt",
+        "sv": "Starta om anslutningen",
+        "pl": "Ponownie nawiąż połączenie",
+        "ru": "Перезапустить подключение",
+        "ko": "연결 다시 시작",
+        "ar": "إعادة تشغيل الاتصال"
+      },
+      "desc": {
+        "en": "Restart the connection to the HomePod Mini.",
+        "nl": "Herstart de verbinding met de HomePod Mini.",
+        "da": "Genstart forbindelsen til HomePod Mini.",
+        "de": "Starte die Verbindung zum HomePod Mini neu.",
+        "es": "Reinicia la conexión con el HomePod Mini.",
+        "fr": "Redémarrez la connexion au HomePod Mini.",
+        "it": "Riavvia la connessione al HomePod Mini.",
+        "no": "Start tilkoblingen til HomePod Mini på nytt.",
+        "sv": "Starta om anslutningen till HomePod Mini.",
+        "pl": "Uruchom ponownie połączenie z HomePod Mini.",
+        "ru": "Перезапустите подключение к HomePod Mini.",
+        "ko": "HomePod Mini와의 연결을 다시 시작하세요.",
+        "ar": "أعد تشغيل الاتصال بجهاز HomePod Mini."
+      }
     }
+  },
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "lan"
+  ],
+  "pair": [
+    {
+      "id": "discover",
+      "template": "loading"
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "authenticate"
+      },
+      "options": {
+        "singular": true,
+        "title": {
+          "en": "Select the device you want to add",
+          "nl": "Selecteer het apparaat die je wil toevoegen",
+          "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
+          "fr": "Sélectionnez l'appareil que vous voulez ajouter",
+          "it": "Seleziona il dispositivo che si desidera aggiungere",
+          "sv": "Välj enheten du vill lägga till",
+          "no": "Velg enheten du vil legge til",
+          "es": "Seleccione el dispositivo que desea agregar",
+          "da": "Vælg enheden, du vil tilføje",
+          "pl": "Wybierz urządzenie, które chcesz dodać",
+          "ru": "Выберите устройство, которое хотите добавить",
+          "ko": "추가할 기기를 선택하세요.",
+          "ar": "اختر الجهاز الذي تريد إضافته"
+        }
+      }
+    },
+    {
+      "id": "authenticate",
+      "template": "loading"
+    },
+    {
+      "id": "add_my_device"
+    }
+  ],
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png"
+  }
 }
