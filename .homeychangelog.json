@@ -208,5 +208,8 @@
   },
   "1.1.7": {
     "en": "Update apple-protocols SDK."
+  },
+  "1.2.0": {
+    "en": "This update adds translations for all supported languages."
   }
 }
