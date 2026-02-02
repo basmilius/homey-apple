@@ -205,5 +205,8 @@
   },
   "1.1.6": {
     "en": "This update improves the companion link reconnect logic."
+  },
+  "1.1.7": {
+    "en": "Update apple-protocols SDK."
   }
 }
