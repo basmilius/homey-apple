@@ -211,5 +211,8 @@
   },
   "1.2.0": {
     "en": "This update adds translations for all supported languages."
+  },
+  "1.2.1": {
+    "en": "Updated apple-protocols SDK."
   }
 }
