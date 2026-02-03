@@ -5,11 +5,11 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.4.0",
-        "@basmilius/apple-common": "^0.4.0",
-        "@basmilius/apple-companion-link": "^0.4.0",
-        "@basmilius/apple-devices": "^0.4.0",
-        "@basmilius/apple-encoding": "^0.4.0",
+        "@basmilius/apple-airplay": "^0.4.1",
+        "@basmilius/apple-common": "^0.4.1",
+        "@basmilius/apple-companion-link": "^0.4.1",
+        "@basmilius/apple-devices": "^0.4.1",
+        "@basmilius/apple-encoding": "^0.4.1",
         "@basmilius/homey-common": "^1.15.0"
     },
     "devDependencies": {
