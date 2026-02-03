@@ -1,8 +1,7 @@
 import { EventEmitter } from 'node:events';
-import type { AccessoryCredentials } from '@basmilius/apple-common';
+import { type AccessoryCredentials, COMPANION_LINK_SERVICE, type DiscoveryResult } from '@basmilius/apple-common';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice } from '../types';
-import type Homey from 'homey';
 
 export type AttentionState =
     | 'unknown'
@@ -50,14 +49,8 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
-    async createInstance(result: Homey.DiscoveryResultMDNSSD): Promise<void> {
-        this.#protocol = new CompanionLinkDevice(result.id, {
-            address: result.address,
-            service: {
-                port: result.port
-            }
-        });
-
+    async createInstance(result: DiscoveryResult): Promise<void> {
+        this.#protocol = new CompanionLinkDevice(result);
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
         this.#protocol.on('power', (state: AttentionState) => this.#onPower(state));
@@ -68,14 +61,9 @@ export default class extends EventEmitter<EventMap> {
         await this.#protocol.disconnect();
     }
 
-    async reconnect(result?: Homey.DiscoveryResultMDNSSD): Promise<void> {
-        if (result) {
-            this.#protocol.discoveryResult = {
-                address: result.address,
-                service: {
-                    port: result.port
-                }
-            };
+    async reconnect(discoveryResult?: DiscoveryResult): Promise<void> {
+        if (discoveryResult) {
+            this.#protocol.discoveryResult = discoveryResult;
         }
 
         await this.connect();
@@ -89,7 +77,7 @@ export default class extends EventEmitter<EventMap> {
 
             try {
                 await this.#protocol.disconnect();
-                await this.#device.updateDiscoveryResults();
+                await this.#device.findService(COMPANION_LINK_SERVICE);
                 await this.reconnect(this.#device.discoveryResultCompanionLink);
             } catch (err) {
                 this.#device.error('Failed to restart Companion Link connection:', err);
@@ -117,9 +105,6 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async #onConnected(): Promise<void> {
-        const state = await this.#protocol.getAttentionState();
-        await this.#onPower(state);
-
         this.emit('connected');
     }
 

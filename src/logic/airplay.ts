@@ -16,6 +16,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artwork!: Homey.Image;
     #artworkEmpty!: Homey.Image;
     #artworkIdentifier?: string;
+    #artworkRequestingIdentifier?: string;
     #protocol: AirPlayDevice;
 
     readonly #updateNowPlayingApp: (bundleIdentifier: string | null, displayName: string | null) => Promise<void>;
@@ -57,8 +58,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async setProtocol(protocol: AirPlayDevice): Promise<void> {
         this.#protocol = protocol;
 
-        // this.#protocol.state.on('setArtwork', async (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
-        // this.#protocol.state.on('updateContentItemArtwork', async (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message.contentItems[0]));
+        this.#protocol.state.on('setArtwork', async (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
+        this.#protocol.state.on('updateContentItemArtwork', async (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message.contentItems[0]));
         this.#protocol.state.on('setNowPlayingClient', async (message: Proto.SetNowPlayingClientMessage) => await this.#onSetNowPlayingClient(message));
         this.#protocol.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
         this.#protocol.state.on('updateContentItem', async (message: Proto.UpdateContentItemMessage) => await this.#onUpdateContentItem(message));
@@ -132,8 +133,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
+        if (this.#artworkRequestingIdentifier === identifier) {
+            this.log(this.deviceName, 'Artwork available, but already requested.');
+            return;
+        }
+
         try {
             this.log(this.deviceName, 'Artwork available, but not yet, requesting...');
+            this.#artworkRequestingIdentifier = identifier;
             await this.#updateArtwork(null);
             await this.#protocol.requestPlaybackQueue(1);
         } catch (err) {
@@ -208,7 +215,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 : null;
 
             await this.#updateNowPlayingApp(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
-            await this.#setArtwork(item.metadata.artworkIdentifier ?? item.identifier, item);
+            await this.#setArtwork(item.metadata.artworkIdentifier || item.metadata.contentIdentifier || item.identifier, item);
         } catch (err) {
             this.log(this.deviceName, 'Failed to update now playing info', err);
         }

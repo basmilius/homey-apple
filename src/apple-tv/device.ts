@@ -1,11 +1,10 @@
 import { Proto } from '@basmilius/apple-airplay';
-import { DeviceMDNSSD } from '@basmilius/homey-common';
+import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type Discovery, type DiscoveryResult } from '@basmilius/apple-common';
+import { DiscoverableDevice } from '../base';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import type { AppleApp } from '../types';
 import { waitFor } from '../utils';
 import type AppleTVDriver from './driver';
-import type Homey from 'homey';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -33,7 +32,7 @@ const CAPABILITIES = [
     'button.restart'
 ];
 
-export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver> {
+export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     get airplay(): AirPlayConnection {
         return this.#airplay;
     }
@@ -46,20 +45,19 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
         return this.#companionLink;
     }
 
-    get discoveryId(): string {
-        return this.getData().id;
+    get discoveryResultAirPlay(): DiscoveryResult {
+        return this.discoveryResults[AIRPLAY_SERVICE];
     }
 
-    get discoveryResultAirPlay(): Homey.DiscoveryResultMDNSSD {
-        return this.discoveryResults['appletv-airplay'];
+    get discoveryResultCompanionLink(): DiscoveryResult {
+        return this.discoveryResults[COMPANION_LINK_SERVICE];
     }
 
-    get discoveryResultCompanionLink(): Homey.DiscoveryResultMDNSSD {
-        return this.discoveryResults['appletv-companion-link'];
-    }
-
-    get discoveryStrategies(): string[] {
-        return ['appletv-airplay', 'appletv-companion-link'];
+    get services(): Record<string, Discovery> {
+        return {
+            [AIRPLAY_SERVICE]: this.homey.discovery.getStrategy('airplay'),
+            [COMPANION_LINK_SERVICE]: this.homey.discovery.getStrategy('companion-link')
+        };
     }
 
     #airplay!: AirPlayConnection;
@@ -156,9 +154,13 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
 
     async #registerMaintenance(): Promise<void> {
         this.registerCapabilityListener('button.restart', async () => {
-            await this.#disconnect();
-            await this.#airplayLogic.clearNowPlaying();
-            await this.#connect();
+            try {
+                await this.#disconnect();
+                await this.#airplayLogic.clearNowPlaying();
+                await this.#connect();
+            } catch (err) {
+                this.error(err);
+            }
         });
     }
 
@@ -209,7 +211,7 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
         await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
         await waitFor(1000);
 
-        await this.updateDiscoveryResults();
+        await this.findService(AIRPLAY_SERVICE);
         await this.#airplay.reconnect(this.discoveryResultAirPlay);
     }
 
@@ -227,11 +229,13 @@ export default class AppleTVDevice extends DeviceMDNSSD<AppleApp, AppleTVDriver>
         await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
         await waitFor(1000);
 
-        await this.updateDiscoveryResults();
+        await this.findService(COMPANION_LINK_SERVICE);
         await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
     }
 
-    async onDeviceDiscoveryResult(): Promise<void> {
+    async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
+        await super.onServiceFound(service, discoveryResult);
+
         if (this.#connectedOnce) {
             return;
         }

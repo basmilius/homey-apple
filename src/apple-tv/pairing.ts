@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import * as AirPlay from '@basmilius/apple-airplay';
-import { waitFor } from '../utils';
+import { convertDiscoveryResult, waitFor } from '../utils';
 import type Homey from 'homey';
 
 type Device = Homey.DiscoveryResultMDNSSD & {
@@ -36,6 +36,7 @@ export default class AppleTVPairing extends EventEmitter {
 
         this.#session.setHandler('list_devices', async () => this.#devices
             .filter(device => !this.#knownDevices.some(knownDevice => knownDevice.getData().id === device.id))
+            .filter(device => (device.txt as any).model.match(/AppleTV\d+,\d+/))
             .toSorted((a, b) => a.name.localeCompare(b.name)));
 
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
@@ -103,12 +104,7 @@ export default class AppleTVPairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay.Protocol('pairing', {
-            address: this.#device.address,
-            service: {
-                port: this.#device.port
-            }
-        });
+        this.#protocol = new AirPlay.Protocol(convertDiscoveryResult(this.#device));
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 

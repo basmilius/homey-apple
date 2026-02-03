@@ -1,20 +1,22 @@
 import { EventEmitter } from 'node:events';
 import * as AirPlay from '@basmilius/apple-airplay';
-import { waitFor } from '../utils';
+import { convertDiscoveryResult, waitFor } from '../utils';
 import type Homey from 'homey';
 
 export default class HomePodBasePairing extends EventEmitter {
     readonly #knownDevices: Homey.Device[];
+    readonly #modelFilter: RegExp;
     readonly #session: Homey.Driver.PairSession;
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Homey.DiscoveryResultMDNSSD | undefined;
     #protocol: AirPlay.Protocol;
 
-    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[]) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[]) {
         super();
 
         this.#knownDevices = knownDevices;
+        this.#modelFilter = modelFilter;
         this.#session = session;
         this.#strategy = strategy;
 
@@ -27,6 +29,7 @@ export default class HomePodBasePairing extends EventEmitter {
 
         this.#session.setHandler('list_devices', async () => this.#devices
             .filter(device => !this.#knownDevices.some(knownDevice => knownDevice.getData().id === device.id))
+            .filter(device => (device.txt as any).model.match(this.#modelFilter))
             .toSorted((a, b) => a.name.localeCompare(b.name)));
 
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
@@ -34,9 +37,6 @@ export default class HomePodBasePairing extends EventEmitter {
         this.#session.setHandler('get_device', async () => ({
             name: this.#device?.name,
             data: {
-                id: this.#device?.id
-            },
-            store: {
                 id: this.#device?.id
             }
         }));
@@ -63,12 +63,7 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay.Protocol('pairing', {
-            address: this.#device.address,
-            service: {
-                port: this.#device.port
-            }
-        });
+        this.#protocol = new AirPlay.Protocol(convertDiscoveryResult(this.#device));
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 

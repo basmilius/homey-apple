@@ -1,11 +1,10 @@
 import { Proto } from '@basmilius/apple-airplay';
-import { DeviceMDNSSD } from '@basmilius/homey-common';
+import { AIRPLAY_SERVICE, type Discovery, type DiscoveryResult } from '@basmilius/apple-common';
+import { DiscoverableDevice } from '../base';
 import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import type { AppleApp } from '../types';
 import { waitFor } from '../utils';
 import type HomePodBaseDriver from './driver';
-import type Homey from 'homey';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -23,7 +22,7 @@ const CAPABILITIES = [
     'button.restart'
 ];
 
-export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends DeviceMDNSSD<AppleApp, TDriver> {
+export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends DiscoverableDevice<TDriver> {
     get airplay(): AirPlayConnection {
         return this.#airplay;
     }
@@ -32,12 +31,14 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         return this.#airplayLogic;
     }
 
-    get discoveryId(): string {
-        return this.getData().id;
+    get discoveryResult(): DiscoveryResult {
+        return this.discoveryResults[AIRPLAY_SERVICE];
     }
 
-    get discoveryResult(): Homey.DiscoveryResultMDNSSD {
-        return this.discoveryResults[this.discoveryStrategies[0]];
+    get services(): Record<string, Discovery> {
+        return {
+            [AIRPLAY_SERVICE]: this.homey.discovery.getStrategy('airplay')
+        };
     }
 
     #airplay!: AirPlayConnection;
@@ -97,7 +98,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         await this.setUnavailable('Disconnected from HomePod, reconnecting...');
         await waitFor(1000);
 
-        await this.updateDiscoveryResults();
+        await this.findService(AIRPLAY_SERVICE);
         await this.#airplay.reconnect(this.discoveryResult);
     }
 
@@ -143,7 +144,9 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         });
     }
 
-    async onDeviceDiscoveryResult(): Promise<void> {
+    async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
+        await super.onServiceFound(service, discoveryResult);
+
         if (this.#connectedOnce) {
             return;
         }

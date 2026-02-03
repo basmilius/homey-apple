@@ -1,8 +1,7 @@
 import { EventEmitter } from 'node:events';
-import type { AccessoryCredentials } from '@basmilius/apple-common';
+import type { AccessoryCredentials, DiscoveryResult } from '@basmilius/apple-common';
 import { AirPlayDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice, HomePodBaseDevice } from '../types';
-import type Homey from 'homey';
 
 type EventMap = {
     connected: [];
@@ -54,19 +53,8 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
-    async createInstance(result: Homey.DiscoveryResultMDNSSD): Promise<void> {
-        this.#protocol = new AirPlayDevice(result.id, {
-            address: result.address,
-            service: {
-                port: result.port
-            },
-            packet: {
-                additionals: [{
-                    rdata: result.txt
-                }]
-            }
-        });
-
+    async createInstance(discoveryResult: DiscoveryResult): Promise<void> {
+        this.#protocol = new AirPlayDevice(discoveryResult);
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
 
@@ -77,19 +65,9 @@ export default class extends EventEmitter<EventMap> {
         await this.#protocol.disconnect();
     }
 
-    async reconnect(result?: Homey.DiscoveryResultMDNSSD): Promise<void> {
-        if (result) {
-            this.#protocol.discoveryResult = {
-                address: result.address,
-                service: {
-                    port: result.port
-                },
-                packet: {
-                    additionals: [{
-                        rdata: result.txt
-                    }]
-                }
-            };
+    async reconnect(discoveryResult: DiscoveryResult): Promise<void> {
+        if (discoveryResult) {
+            this.#protocol.discoveryResult = discoveryResult;
         }
 
         await this.connect();

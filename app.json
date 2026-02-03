@@ -846,7 +846,7 @@
         "ar": "Apple TV"
       },
       "class": "settopbox",
-      "discovery": "appletv-airplay",
+      "discovery": "airplay",
       "capabilities": [
         "speaker_album",
         "speaker_artist",
@@ -1012,7 +1012,7 @@
         "ar": "HomePod"
       },
       "class": "speaker",
-      "discovery": "homepod",
+      "discovery": "airplay",
       "capabilities": [
         "speaker_album",
         "speaker_artist",
@@ -1130,7 +1130,7 @@
         "ar": "HomePod Mini"
       },
       "class": "speaker",
-      "discovery": "homepod-mini",
+      "discovery": "airplay",
       "capabilities": [
         "speaker_album",
         "speaker_artist",
@@ -1463,81 +1463,21 @@
     }
   },
   "discovery": {
-    "appletv-airplay": {
+    "airplay": {
       "type": "mdns-sd",
       "mdns-sd": {
         "name": "_airplay",
         "protocol": "tcp"
       },
-      "id": "{{host}}",
-      "conditions": [
-        [
-          {
-            "field": "txt.model",
-            "match": {
-              "type": "regex",
-              "value": "AppleTV\\d+,\\d+"
-            }
-          }
-        ]
-      ]
+      "id": "{{host}}"
     },
-    "appletv-companion-link": {
+    "companion-link": {
       "type": "mdns-sd",
       "mdns-sd": {
         "name": "_companion-link",
         "protocol": "tcp"
       },
-      "id": "{{host}}",
-      "conditions": [
-        [
-          {
-            "field": "txt.rpmd",
-            "match": {
-              "type": "regex",
-              "value": "AppleTV\\d+,\\d+"
-            }
-          }
-        ]
-      ]
-    },
-    "homepod": {
-      "type": "mdns-sd",
-      "mdns-sd": {
-        "name": "_airplay",
-        "protocol": "tcp"
-      },
-      "id": "{{host}}",
-      "conditions": [
-        [
-          {
-            "field": "txt.model",
-            "match": {
-              "type": "regex",
-              "value": "AudioAccessory(1|6),\\d{1}"
-            }
-          }
-        ]
-      ]
-    },
-    "homepod-mini": {
-      "type": "mdns-sd",
-      "mdns-sd": {
-        "name": "_airplay",
-        "protocol": "tcp"
-      },
-      "id": "{{host}}",
-      "conditions": [
-        [
-          {
-            "field": "txt.model",
-            "match": {
-              "type": "regex",
-              "value": "AudioAccessory5,\\d{1}"
-            }
-          }
-        ]
-      ]
+      "id": "{{host}}"
     }
   }
 }
