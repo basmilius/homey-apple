@@ -214,5 +214,8 @@
   },
   "1.2.1": {
     "en": "Updated apple-protocols SDK."
+  },
+  "1.2.2": {
+    "en": "Refactored all discovery-related code."
   }
 }
