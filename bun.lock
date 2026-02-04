@@ -10,7 +10,7 @@
         "@basmilius/apple-companion-link": "^0.5.2",
         "@basmilius/apple-devices": "^0.5.2",
         "@basmilius/apple-encoding": "^0.5.2",
-        "@basmilius/homey-common": "^1.15.0",
+        "@basmilius/homey-common": "^1.17.0",
       },
       "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
@@ -31,7 +31,7 @@
 
     "@basmilius/apple-encoding": ["@basmilius/apple-encoding@0.5.2", "", { "dependencies": { "@plist/binary.parse": "^1.1.0", "@plist/binary.serialize": "^1.1.0" } }, "sha512-N3IiNnhUyPKUkiQ748O2gXznJlV9hIuiD61e4JkPRxd3QLlmJAlu3e0hUzXV4bP62eVH2W8/Eld+d+N/Swx6FA=="],
 
-    "@basmilius/homey-common": ["@basmilius/homey-common@1.15.0", "", {}, "sha512-iwbaaE7Z9/AaDxJ2Hv2QiCOa6KURy7Fqxzl2D4/NQ0tRErXnmonDlspjOeRDVD0C2PYjn/piV51mLqUb7n0sbQ=="],
+    "@basmilius/homey-common": ["@basmilius/homey-common@1.17.0", "", {}, "sha512-b52ND0Mm0Rcwqqd3nsf2WKjZ52hBfgFo5aFTCi9ZdsFSxy3kur+SottZIQlfCN4Rj5gXPotzAer6tUwWCPwX1g=="],
 
     "@bufbuild/protobuf": ["@bufbuild/protobuf@2.11.0", "", {}, "sha512-sBXGT13cpmPR5BMgHE6UEEfEaShh5Ror6rfN3yEK5si7QVrtZg8LEPQb0VVhiLRUslD2yLnXtnRzG035J/mZXQ=="],
 

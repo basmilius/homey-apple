@@ -37,7 +37,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     get services(): Record<string, Discovery> {
         return {
-            [AIRPLAY_SERVICE]: this.homey.discovery.getStrategy('airplay')
+            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay')
         };
     }
 

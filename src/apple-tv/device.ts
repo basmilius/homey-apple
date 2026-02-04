@@ -55,8 +55,8 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     get services(): Record<string, Discovery> {
         return {
-            [AIRPLAY_SERVICE]: this.homey.discovery.getStrategy('airplay'),
-            [COMPANION_LINK_SERVICE]: this.homey.discovery.getStrategy('companion-link')
+            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay'),
+            [COMPANION_LINK_SERVICE]: this.discovery.getStrategy('companion-link')
         };
     }
 
