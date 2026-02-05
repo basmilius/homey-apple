@@ -36,6 +36,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         await this.clearNowPlaying();
     }
 
+    async uninitialize(): Promise<void> {
+        this.#protocol.state.removeAllListeners();
+        await this.#artwork.unregister();
+        await this.#artworkEmpty.unregister();
+    }
+
     async clearNowPlaying(): Promise<void> {
         try {
             this.#artworkIdentifier = undefined;
@@ -66,12 +72,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#protocol.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
 
-    async uninitialize(): Promise<void> {
-        this.#protocol.state.removeAllListeners();
-        await this.#artwork.unregister();
-        await this.#artworkEmpty.unregister();
-    }
-
     async #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): Promise<void> {
         this.log(this.deviceName, `Now playing client updated to ${message.client?.bundleIdentifier}.`);
     }
@@ -97,12 +97,16 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async #onVolumeDidChange(): Promise<void> {
-        if (!this.#device.hasCapability('volume_set')) {
-            return;
-        }
+        try {
+            if (!this.#device.hasCapability('volume_set')) {
+                return;
+            }
 
-        this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
-        await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
+            this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
+            await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to update volume:', err);
+        }
     }
 
     async #setArtwork(identifier: string, item: Proto.ContentItem): Promise<void> {
