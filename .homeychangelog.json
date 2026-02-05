@@ -217,5 +217,8 @@
   },
   "1.2.2": {
     "en": "Refactored all discovery-related code."
+  },
+  "1.2.3": {
+    "en": "Updated apple-protocols SDK. Fixed a race condition."
   }
 }
