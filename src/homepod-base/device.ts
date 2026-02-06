@@ -1,5 +1,7 @@
 import { Proto } from '@basmilius/apple-airplay';
+import { Url as UrlAudioSource } from '@basmilius/apple-audio-source';
 import { AIRPLAY_SERVICE, type Discovery, type DiscoveryResult } from '@basmilius/apple-common';
+import { RaopClient } from '@basmilius/apple-raop';
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
@@ -157,5 +159,31 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         this.#connectedOnce = true;
         await this.#connect();
+    }
+
+    async playUrl(url: string, volume?: number): Promise<void> {
+        if (!this.app.useTimingServer) {
+            throw new Error('Timing server is not enabled.');
+        }
+
+        const client = await RaopClient.create(this.discoveryResult, this.app.timingServer);
+        const audioSource = await UrlAudioSource.fromUrl(url);
+
+        // Let the actual playback happen in the background.
+        new Promise<void>(async resolve => {
+            await client.stream(audioSource, {
+                metadata: {
+                    title: 'Olympics',
+                    artist: 'RAOP Test',
+                    album: 'Test Album',
+                    duration: 5
+                },
+                volume
+            });
+
+            await client.close();
+
+            resolve();
+        });
     }
 }

@@ -1,0 +1,85 @@
+{
+    "id": "homepod_play_url_at_volume",
+    "title": {
+        "en": "Play URL at volume",
+        "nl": "Speel URL op volume",
+        "da": "Afspil URL ved lydstyrke",
+        "de": "URL mit Lautstärke abspielen",
+        "es": "Reproducir URL con volumen",
+        "fr": "Lire l'URL au volume",
+        "it": "Riproduci URL al volume",
+        "no": "Spill av URL ved volum",
+        "sv": "Spela URL vid volym",
+        "pl": "Odtwórz URL przy głośności",
+        "ru": "Воспроизвести URL с громкостью",
+        "ko": "볼륨으로 URL 재생",
+        "ar": "تشغيل الرابط بمستوى الصوت"
+    },
+    "titleFormatted": {
+        "en": "Play URL [[url]] at volume [[volume]]",
+        "nl": "Speel URL [[url]] op volume [[volume]]",
+        "da": "Afspil URL [[url]] ved lydstyrke [[volume]]",
+        "de": "URL [[url]] mit Lautstärke [[volume]] abspielen",
+        "es": "Reproducir URL [[url]] con volumen [[volume]]",
+        "fr": "Lire l'URL [[url]] au volume [[volume]]",
+        "it": "Riproduci URL [[url]] al volume [[volume]]",
+        "no": "Spill av URL [[url]] ved volum [[volume]]",
+        "sv": "Spela URL [[url]] vid volym [[volume]]",
+        "pl": "Odtwórz URL [[url]] przy głośności [[volume]]",
+        "ru": "Воспроизвести URL [[url]] с громкостью [[volume]]",
+        "ko": "볼륨 [[volume]]으로 URL [[url]] 재생",
+        "ar": "تشغيل الرابط [[url]] بمستوى الصوت [[volume]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+        },
+        {
+            "name": "url",
+            "type": "text",
+            "required": true,
+            "title": {
+                "en": "URL",
+                "nl": "URL",
+                "da": "URL",
+                "de": "URL",
+                "es": "URL",
+                "fr": "URL",
+                "it": "URL",
+                "no": "URL",
+                "sv": "URL",
+                "pl": "URL",
+                "ru": "URL",
+                "ko": "URL",
+                "ar": "الرابط"
+            }
+        },
+        {
+            "type": "range",
+            "name": "volume",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "label": "%",
+            "labelDecimals": 0,
+            "value": 50,
+            "title": {
+                "en": "Volume",
+                "nl": "Volume",
+                "de": "Lautstärke",
+                "fr": "Volume",
+                "it": "Volume",
+                "sv": "Volym",
+                "no": "Volum",
+                "es": "Volumen",
+                "da": "Lydstyrke",
+                "ru": "Громкость",
+                "pl": "Głośność",
+                "ko": "볼륨",
+                "ar": "مستوى الصوت"
+            }
+        }
+    ]
+}

@@ -6,6 +6,7 @@ export default class HomePodMiniDriver extends HomePodBaseDriver {
     }
 
     async onInit(): Promise<void> {
+        await super.onInit();
         this.log('HomePod Mini Driver has been initialized.');
     }
 }

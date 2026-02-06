@@ -74,12 +74,12 @@ export default class AppleTVDriver extends Driver<AppleApp> {
     async #registerLaunchUrl(): Promise<void> {
         const launchUrl = this.homey.flow.getActionCard('appletv_launch_url');
 
-        type AutocompleteArguments = {
+        type RunArguments = {
             readonly device: AppleTVDevice;
             readonly url: string;
         }
 
-        launchUrl.registerRunListener(async ({device, url}: AutocompleteArguments) => {
+        launchUrl.registerRunListener(async ({device, url}: RunArguments) => {
             await device.companionLink.protocol.launchUrl(url);
         });
     }
@@ -87,12 +87,12 @@ export default class AppleTVDriver extends Driver<AppleApp> {
     async #registerRemote(): Promise<void> {
         const remote = this.homey.flow.getActionCard('appletv_remote');
 
-        type AutocompleteArguments = {
+        type RunArguments = {
             readonly device: AppleTVDevice;
             readonly command: string;
         }
 
-        remote.registerRunListener(async ({device, command}: AutocompleteArguments) => {
+        remote.registerRunListener(async ({device, command}: RunArguments) => {
             switch (command) {
                 case 'up':
                     await device.airplay.remote.up();

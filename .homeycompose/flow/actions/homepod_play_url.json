@@ -1,0 +1,60 @@
+{
+    "id": "homepod_play_url",
+    "title": {
+        "en": "Play URL",
+        "nl": "Speel URL",
+        "da": "Afspil URL",
+        "de": "URL abspielen",
+        "es": "Reproducir URL",
+        "fr": "Lire l'URL",
+        "it": "Riproduci URL",
+        "no": "Spill av URL",
+        "sv": "Spela URL",
+        "pl": "Odtwórz URL",
+        "ru": "Воспроизвести URL",
+        "ko": "URL 재생",
+        "ar": "تشغيل الرابط"
+    },
+    "titleFormatted": {
+        "en": "Play URL [[url]]",
+        "nl": "Speel URL [[url]]",
+        "da": "Afspil URL [[url]]",
+        "de": "URL abspielen [[url]]",
+        "es": "Reproducir URL [[url]]",
+        "fr": "Lire l'URL [[url]]",
+        "it": "Riproduci URL [[url]]",
+        "no": "Spill av URL [[url]]",
+        "sv": "Spela URL [[url]]",
+        "pl": "Odtwórz URL [[url]]",
+        "ru": "Воспроизвести URL [[url]]",
+        "ko": "URL 재생 [[url]]",
+        "ar": "تشغيل الرابط [[url]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+        },
+        {
+            "name": "url",
+            "type": "text",
+            "required": true,
+            "title": {
+                "en": "URL",
+                "nl": "URL",
+                "da": "URL",
+                "de": "URL",
+                "es": "URL",
+                "fr": "URL",
+                "it": "URL",
+                "no": "URL",
+                "sv": "URL",
+                "pl": "URL",
+                "ru": "URL",
+                "ko": "URL",
+                "ar": "الرابط"
+            }
+        }
+    ]
+}
