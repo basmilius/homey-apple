@@ -223,5 +223,8 @@
   },
   "1.2.4": {
     "en": "Updated apple-protocols SDK."
+  },
+  "1.2.5": {
+    "en": "Smaller app size."
   }
 }
