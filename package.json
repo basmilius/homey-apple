@@ -5,14 +5,14 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.6.2",
-        "@basmilius/apple-audio-source": "^0.6.2",
-        "@basmilius/apple-common": "^0.6.2",
-        "@basmilius/apple-companion-link": "^0.6.2",
-        "@basmilius/apple-devices": "^0.6.2",
-        "@basmilius/apple-encoding": "^0.6.2",
-        "@basmilius/apple-encryption": "^0.6.2",
-        "@basmilius/apple-raop": "^0.6.2",
+        "@basmilius/apple-airplay": "^0.6.3",
+        "@basmilius/apple-audio-source": "^0.6.3",
+        "@basmilius/apple-common": "^0.6.3",
+        "@basmilius/apple-companion-link": "^0.6.3",
+        "@basmilius/apple-devices": "^0.6.3",
+        "@basmilius/apple-encoding": "^0.6.3",
+        "@basmilius/apple-encryption": "^0.6.3",
+        "@basmilius/apple-raop": "^0.6.3",
         "@basmilius/homey-common": "^1.17.1"
     },
     "devDependencies": {
