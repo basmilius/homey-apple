@@ -226,5 +226,8 @@
   },
   "1.2.5": {
     "en": "Smaller app size."
+  },
+  "1.3.0": {
+    "en": "Experimental: HomePod and HomePod Mini now support audio streaming. This is still highly experimental, it uses a lot of memory for example. Use it with caution."
   }
 }
