@@ -6,7 +6,7 @@ import AppleTVPairing from './pairing';
 
 export default class AppleTVDriver extends Driver<AppleApp> {
     async onInit(): Promise<void> {
-        await this.#registerActions();
+        this.#registerActions();
         this.log('Apple TV Driver has been initialized.');
     }
 
@@ -34,14 +34,14 @@ export default class AppleTVDriver extends Driver<AppleApp> {
         });
     }
 
-    async #registerActions(): Promise<void> {
-        await this.#registerLaunchApp();
-        await this.#registerLaunchUrl();
-        await this.#registerRemote();
-        await this.#registerSwitchAccount();
+    #registerActions(): void {
+        this.#registerLaunchApp();
+        this.#registerLaunchUrl();
+        this.#registerRemote();
+        this.#registerSwitchAccount();
     }
 
-    async #registerLaunchApp(): Promise<void> {
+    #registerLaunchApp(): void {
         const launchApp = this.homey.flow.getActionCard('appletv_launch_app');
 
         type AutocompleteArguments = {
@@ -71,7 +71,7 @@ export default class AppleTVDriver extends Driver<AppleApp> {
         });
     }
 
-    async #registerLaunchUrl(): Promise<void> {
+    #registerLaunchUrl(): void {
         const launchUrl = this.homey.flow.getActionCard('appletv_launch_url');
 
         type RunArguments = {
@@ -84,7 +84,7 @@ export default class AppleTVDriver extends Driver<AppleApp> {
         });
     }
 
-    async #registerRemote(): Promise<void> {
+    #registerRemote(): void {
         const remote = this.homey.flow.getActionCard('appletv_remote');
 
         type RunArguments = {
@@ -97,51 +97,67 @@ export default class AppleTVDriver extends Driver<AppleApp> {
                 case 'up':
                     await device.airplay.remote.up();
                     break;
+
                 case 'down':
                     await device.airplay.remote.down();
                     break;
+
                 case 'left':
                     await device.airplay.remote.left();
                     break;
+
                 case 'right':
                     await device.airplay.remote.right();
                     break;
+
                 case 'select':
                     await device.airplay.remote.select();
                     break;
+
                 case 'menu':
                     await device.airplay.remote.menu();
                     break;
+
                 case 'home':
                     await device.airplay.remote.home();
                     break;
+
                 case 'play':
                     await device.airplay.remote.play();
                     break;
+
                 case 'pause':
                     await device.airplay.remote.pause();
                     break;
+
                 case 'playPause':
                     await device.airplay.remote.playPause();
                     break;
+
                 case 'next':
                     await device.airplay.remote.next();
                     break;
+
                 case 'previous':
                     await device.airplay.remote.previous();
                     break;
+
                 case 'volumeUp':
                     await device.airplay.remote.volumeUp();
                     break;
+
                 case 'volumeDown':
                     await device.airplay.remote.volumeDown();
                     break;
+
                 case 'mute':
                     await device.airplay.remote.mute();
                     break;
+
                 case 'wake':
                     await device.airplay.remote.wake();
                     break;
+
                 case 'suspend':
                     await device.airplay.remote.suspend();
                     break;
@@ -149,7 +165,7 @@ export default class AppleTVDriver extends Driver<AppleApp> {
         });
     }
 
-    async #registerSwitchAccount(): Promise<void> {
+    #registerSwitchAccount(): void {
         const switchAccount = this.homey.flow.getActionCard('appletv_switch_account');
 
         type AutocompleteArguments = {

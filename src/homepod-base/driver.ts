@@ -1,8 +1,8 @@
 import { Driver } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
-import HomePodBasePairing from './pairing';
 import type Homey from 'homey';
 import type HomePodBaseDevice from './device';
+import HomePodBasePairing from './pairing';
 
 export default abstract class HomePodBaseDriver extends Driver<AppleApp> {
     abstract get modelFilter(): RegExp;

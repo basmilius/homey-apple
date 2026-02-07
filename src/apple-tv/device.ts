@@ -3,7 +3,7 @@ import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type Discovery, type Discovery
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import { waitFor } from '../utils';
+import { getAccessoryCredentialsFromDevice, waitFor } from '../utils';
 import type AppleTVDriver from './driver';
 
 const CAPABILITIES = [
@@ -100,12 +100,19 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async #connect(): Promise<void> {
         try {
+            const credentials = getAccessoryCredentialsFromDevice(this);
+
+            if (!credentials) {
+                await this.setUnavailable('Cannot find credentials, please re-pair the device.');
+                return;
+            }
+
             this.log('Connecting to Apple TV (AirPlay)...');
-            await this.#airplay.createInstance(this.discoveryResultAirPlay);
+            this.#airplay.createInstance(credentials, this.discoveryResultAirPlay);
             await this.#airplay.connect();
 
             this.log('Connecting to Apple TV (Companion Link)...');
-            await this.#companionLink.createInstance(this.discoveryResultCompanionLink);
+            this.#companionLink.createInstance(credentials, this.discoveryResultCompanionLink);
             await this.#companionLink.connect();
         } catch (err) {
             this.error('Error received', err);

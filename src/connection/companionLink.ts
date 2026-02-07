@@ -27,6 +27,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     readonly #device: AppleTVDevice;
+    #credentials!: AccessoryCredentials;
     #protocol!: CompanionLinkDevice;
     #reconnectInterval?: NodeJS.Timeout;
 
@@ -36,9 +37,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async connect(): Promise<void> {
-        const credentials = await this.#credentials();
-
-        await this.#protocol.setCredentials(credentials);
+        await this.#protocol.setCredentials(this.#credentials);
 
         try {
             await this.#protocol.connect();
@@ -49,8 +48,10 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
-    async createInstance(result: DiscoveryResult): Promise<void> {
-        this.#protocol = new CompanionLinkDevice(result);
+    createInstance(credentials: AccessoryCredentials, discoveryResult: DiscoveryResult): void {
+        this.#credentials = credentials;
+
+        this.#protocol = new CompanionLinkDevice(discoveryResult);
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
         this.#protocol.on('power', (state: AttentionState) => this.#onPower(state));
@@ -92,23 +93,11 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
-    async #credentials(): Promise<AccessoryCredentials> {
-        const credentials = this.#device.getStoreValue('credentials');
-
-        return {
-            accessoryIdentifier: credentials.accessoryIdentifier,
-            accessoryLongTermPublicKey: Buffer.from(credentials.accessoryLongTermPublicKey, 'hex'),
-            pairingId: Buffer.from(credentials.pairingId, 'hex'),
-            publicKey: Buffer.from(credentials.publicKey, 'hex'),
-            secretKey: Buffer.from(credentials.secretKey, 'hex')
-        };
-    }
-
-    async #onConnected(): Promise<void> {
+    #onConnected(): void {
         this.emit('connected');
     }
 
-    async #onDisconnected(unexpected: boolean): Promise<void> {
+    #onDisconnected(unexpected: boolean): void {
         this.emit('disconnected', unexpected);
     }
 

@@ -5,7 +5,7 @@ import { RaopClient } from '@basmilius/apple-raop';
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import { waitFor } from '../utils';
+import { getAccessoryCredentialsFromDevice, waitFor } from '../utils';
 import type HomePodBaseDriver from './driver';
 
 const CAPABILITIES = [
@@ -78,7 +78,9 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async #connect(): Promise<void> {
         try {
-            await this.#airplay.createInstance(this.discoveryResult);
+            const credentials = getAccessoryCredentialsFromDevice(this);
+
+            this.#airplay.createInstance(credentials, this.discoveryResult);
             await this.#airplay.connect();
         } catch (err) {
             this.error('Error received', err);

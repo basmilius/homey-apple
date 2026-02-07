@@ -22,7 +22,5 @@ export default class AppleApp extends App<AppleApp> {
         this.#timingServer.listen();
 
         this.log('Apple TV & HomePod has been initialized');
-
-        this.homey.discovery.getStrategy('companion-link').on('result', result => console.log('[discovery]', '[debug]', result.id, result));
     }
 }

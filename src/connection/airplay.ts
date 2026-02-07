@@ -26,18 +26,18 @@ export default class extends EventEmitter<EventMap> {
     }
 
     readonly #device!: AppleTVDevice | HomePodBaseDevice<any>;
+    #credentials: AccessoryCredentials | null = null;
     #protocol!: AirPlayDevice;
 
     constructor(device: AppleTVDevice | HomePodBaseDevice<any>) {
         super();
+
         this.#device = device;
     }
 
     async connect(): Promise<void> {
-        const credentials = await this.#credentials();
-
-        if (credentials) {
-            await this.#protocol.setCredentials(credentials);
+        if (this.#credentials) {
+            await this.#protocol.setCredentials(this.#credentials);
         }
 
         if (this.#device.app.useTimingServer) {
@@ -53,12 +53,14 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
-    async createInstance(discoveryResult: DiscoveryResult): Promise<void> {
-        this.#protocol = new AirPlayDevice(discoveryResult);
-        this.#protocol.on('connected', () => this.#onConnected());
-        this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
+    createInstance(credentials: AccessoryCredentials | null, discoveryResult: DiscoveryResult): void {
+        this.#credentials = credentials;
 
-        await this.#device.airplayLogic.setProtocol(this.#protocol);
+        this.#protocol = new AirPlayDevice(discoveryResult);
+        this.#protocol.on('connected', this.#onConnected.bind(this));
+        this.#protocol.on('disconnected', this.#onDisconnected.bind(this));
+
+        this.#device.airplayLogic.setProtocol(this.#protocol);
     }
 
     async disconnect(): Promise<void> {
@@ -73,27 +75,11 @@ export default class extends EventEmitter<EventMap> {
         await this.connect();
     }
 
-    async #credentials(): Promise<AccessoryCredentials | null> {
-        const credentials = this.#device.getStoreValue('credentials');
-
-        if (!credentials) {
-            return null;
-        }
-
-        return {
-            accessoryIdentifier: credentials.accessoryIdentifier,
-            accessoryLongTermPublicKey: Buffer.from(credentials.accessoryLongTermPublicKey, 'hex'),
-            pairingId: Buffer.from(credentials.pairingId, 'hex'),
-            publicKey: Buffer.from(credentials.publicKey, 'hex'),
-            secretKey: Buffer.from(credentials.secretKey, 'hex')
-        };
-    }
-
-    async #onConnected(): Promise<void> {
+    #onConnected(): void {
         this.emit('connected');
     }
 
-    async #onDisconnected(unexpected: boolean): Promise<void> {
+    #onDisconnected(unexpected: boolean): void {
         this.emit('disconnected', unexpected);
     }
 }

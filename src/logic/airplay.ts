@@ -61,18 +61,19 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
     }
 
-    async setProtocol(protocol: AirPlayDevice): Promise<void> {
+    setProtocol(protocol: AirPlayDevice): void {
         this.#protocol = protocol;
 
-        this.#protocol.state.on('setArtwork', async (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
-        this.#protocol.state.on('updateContentItemArtwork', async (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message.contentItems[0]));
-        this.#protocol.state.on('setNowPlayingClient', async (message: Proto.SetNowPlayingClientMessage) => await this.#onSetNowPlayingClient(message));
-        this.#protocol.state.on('setState', async (message: Proto.SetStateMessage) => await this.#onSetState(message));
-        this.#protocol.state.on('updateContentItem', async (message: Proto.UpdateContentItemMessage) => await this.#onUpdateContentItem(message));
+        // this.#protocol.state.on('setArtwork', (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
+        // this.#protocol.state.on('updateContentItemArtwork', (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message.contentItems[0]));
+
+        this.#protocol.state.on('setNowPlayingClient', this.#onSetNowPlayingClient.bind(this));
+        this.#protocol.state.on('setState', this.#onSetState.bind(this));
+        this.#protocol.state.on('updateContentItem', this.#onUpdateContentItem.bind(this));
         this.#protocol.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
 
-    async #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): Promise<void> {
+    #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): void {
         this.log(this.deviceName, `Now playing client updated to ${message.client?.bundleIdentifier}.`);
     }
 
