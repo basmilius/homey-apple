@@ -54,19 +54,22 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     get services(): Record<string, Discovery> {
-        return {
-            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay'),
-            [COMPANION_LINK_SERVICE]: this.discovery.getStrategy('companion-link')
-        };
+        return this.#services;
     }
 
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #companionLink!: CompanionLinkConnection;
     #connectedOnce = false;
+    #services!: Record<string, Discovery>;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
+
+        this.#services = {
+            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay'),
+            [COMPANION_LINK_SERVICE]: this.discovery.getStrategy('companion-link')
+        };
 
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
@@ -80,8 +83,8 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#companionLink.on('disconnected', (unexpected) => this.#onCompanionLinkDisconnected(unexpected));
 
         await this.removeOldCapabilities(CAPABILITIES);
-        await this.#registerCapabilities();
-        await this.#registerMaintenance();
+        this.#registerCapabilities();
+        this.#registerMaintenance();
 
         await super.onInit();
 
@@ -115,9 +118,9 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         await this.#companionLink.disconnect();
     }
 
-    async #registerCapabilities(): Promise<void> {
-        await this.#registerOnOff();
-        await this.#registerRemote();
+    #registerCapabilities(): void {
+        this.#registerOnOff();
+        this.#registerRemote();
 
         this.registerCapabilityListener('speaker_next', async () => {
             await this.#airplay.protocol.sendCommand(Proto.Command.NextInContext);
@@ -152,7 +155,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         });
     }
 
-    async #registerMaintenance(): Promise<void> {
+    #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
             try {
                 await this.#disconnect();
@@ -164,7 +167,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         });
     }
 
-    async #registerOnOff(): Promise<void> {
+    #registerOnOff(): void {
         this.registerCapabilityListener('onoff', async (value: boolean) => {
             if (value) {
                 await this.#airplay.remote.wake();
@@ -174,7 +177,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         });
     }
 
-    async #registerRemote(): Promise<void> {
+    #registerRemote(): void {
         const keys = CAPABILITIES.filter(k => k.startsWith('remote_'));
 
         this.registerMultipleCapabilityListener(keys, async values => {

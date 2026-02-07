@@ -38,17 +38,20 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     }
 
     get services(): Record<string, Discovery> {
-        return {
-            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay')
-        };
+        return this.#services;
     }
 
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #connectedOnce = false;
+    #services!: Record<string, Discovery>;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
+
+        this.#services = {
+            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay')
+        };
 
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
@@ -58,8 +61,8 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         this.#airplay.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
 
         await this.removeOldCapabilities(CAPABILITIES);
-        await this.#registerCapabilities();
-        await this.#registerMaintenance();
+        this.#registerCapabilities();
+        this.#registerMaintenance();
 
         await super.onInit();
 
@@ -104,7 +107,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         await this.#airplay.reconnect(this.discoveryResult);
     }
 
-    async #registerCapabilities(): Promise<void> {
+    #registerCapabilities(): void {
         this.registerCapabilityListener('speaker_next', async () => {
             await this.#airplay.protocol.sendCommand(Proto.Command.NextInContext);
         });
@@ -138,7 +141,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         });
     }
 
-    async #registerMaintenance(): Promise<void> {
+    #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
             await this.#disconnect();
             await this.#airplayLogic.clearNowPlaying();
