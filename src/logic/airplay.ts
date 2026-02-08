@@ -14,7 +14,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     readonly #device: Device<AppleApp, any>;
 
     #artwork!: Homey.Image;
-    #artworkEmpty!: Homey.Image;
     #artworkIdentifier?: string;
     #artworkRequestingIdentifier?: string;
     #protocol: AirPlayDevice;
@@ -31,15 +30,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async initialize(): Promise<void> {
         this.#artwork = await this.#device.homey.images.createImage();
-        this.#artworkEmpty = await this.#device.homey.images.createImage();
-        await this.#device.setAlbumArtImage(this.#artworkEmpty);
+        await this.#device.setAlbumArtImage(this.#artwork);
         await this.clearNowPlaying();
     }
 
     async uninitialize(): Promise<void> {
         this.#protocol.state.removeAllListeners();
         await this.#artwork.unregister();
-        await this.#artworkEmpty.unregister();
     }
 
     async clearNowPlaying(): Promise<void> {
@@ -73,8 +70,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#protocol.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
 
-    #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): void {
+    async #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): Promise<void> {
         this.log(this.deviceName, `Now playing client updated to ${message.client?.bundleIdentifier}.`);
+
+        if (!message.client?.bundleIdentifier) {
+            await this.clearNowPlaying();
+        }
     }
 
     async #onSetState(message: Proto.SetStateMessage): Promise<void> {
@@ -156,13 +157,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async #updateArtwork(url: string | null): Promise<void> {
         try {
             if (url) {
-                await this.#device.setAlbumArtImage(this.#artwork);
-
                 this.#artwork.setUrl(url.replace('.heic', '.jpg'));
-                await this.#artwork.update();
             } else {
-                await this.#device.setAlbumArtImage(this.#artworkEmpty);
+                // @ts-ignore: The type definition of Homey.Image.setUrl() is incorrect.
+                this.#artwork.setUrl(null);
             }
+
+            await this.#artwork.update();
         } catch (err) {
             this.log(this.deviceName, 'Failed to update album artwork', err);
         }
@@ -191,31 +192,36 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         try {
             if (client) {
-                if (client.isCommandSupported(Proto.Command.NextTrack)) {
+                const hasSpeakerNext = device.hasCapability('speaker_next');
+                const hasSpeakerPrev = device.hasCapability('speaker_prev');
+                const isNextSupported = client.isCommandSupported(Proto.Command.NextTrack);
+                const isPrevSupported = client.isCommandSupported(Proto.Command.PreviousTrack);
+
+                if (isNextSupported && !hasSpeakerNext) {
                     await device.addCapability('speaker_next');
-                } else {
+                } else if (!isNextSupported && hasSpeakerNext) {
                     await device.removeCapability('speaker_next');
                 }
 
-                if (client.isCommandSupported(Proto.Command.PreviousTrack)) {
+                if (isPrevSupported && !hasSpeakerPrev) {
                     await device.addCapability('speaker_prev');
-                } else {
+                } else if (!isPrevSupported && hasSpeakerPrev) {
                     await device.removeCapability('speaker_prev');
                 }
             }
 
-            await device.setCapabilityValue('speaker_playing', client.playbackState === Proto.PlaybackState_Enum.Playing);
+            await device.setCapabilityValue('speaker_playing', client?.playbackState === Proto.PlaybackState_Enum.Playing);
             await device.setCapabilityValue('speaker_album', item.metadata.albumName);
-            await device.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client.displayName || '-');
+            await device.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client?.displayName || '-');
             await device.setCapabilityValue('speaker_track', item.metadata.title);
             await device.setCapabilityValue('speaker_duration', item.metadata.duration);
             await device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
 
-            const nowPlayingAppBundleIdentifier = client.playbackState === Proto.PlaybackState_Enum.Playing
+            const nowPlayingAppBundleIdentifier = client?.playbackState === Proto.PlaybackState_Enum.Playing
                 ? client.bundleIdentifier
                 : null;
 
-            const nowPlayingAppDisplayName = client.playbackState === Proto.PlaybackState_Enum.Playing
+            const nowPlayingAppDisplayName = client?.playbackState === Proto.PlaybackState_Enum.Playing
                 ? client.displayName
                 : null;
 
