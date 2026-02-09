@@ -31,6 +31,18 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async initialize(): Promise<void> {
         this.#artwork = await this.#device.homey.images.createImage();
         await this.#device.setAlbumArtImage(this.#artwork);
+        
+        // Set the artwork URL capability once - the URL never changes, only the image content
+        if (this.#device.hasCapability('artwork_url')) {
+            // @ts-expect-error: The file property exists on Homey.Image but may not be in the type definition
+            const artworkFile = this.#artwork.file;
+            if (artworkFile) {
+                const artworkUrl = `url(\${window.location.origin}/app/com.basmilius.apple${artworkFile})`;
+                await this.#device.setCapabilityValue('artwork_url', artworkUrl);
+                this.log(this.deviceName, 'Artwork URL set:', artworkUrl);
+            }
+        }
+        
         await this.clearNowPlaying();
     }
 
@@ -51,10 +63,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#device.setCapabilityValue('speaker_duration', -1);
             await this.#device.setCapabilityValue('speaker_position', -1);
             await this.#device.setCapabilityValue('speaker_playing', false);
-            
-            if (this.#device.hasCapability('artwork_url')) {
-                await this.#device.setCapabilityValue('artwork_url', '');
-            }
 
             this.log(this.deviceName, 'Now playing info cleared.');
         } catch (err) {
@@ -168,7 +176,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             }
 
             await this.#artwork.update();
-            await this.#updateArtworkUrlCapability();
+            await this.#updateArtworkUrlWithCacheBuster();
         } catch (err) {
             this.log(this.deviceName, 'Failed to update album artwork', err);
         }
@@ -182,28 +190,27 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             pt.pipe(stream);
         });
         await this.#artwork.update();
-        await this.#updateArtworkUrlCapability();
+        await this.#updateArtworkUrlWithCacheBuster();
     }
 
-    async #updateArtworkUrlCapability(): Promise<void> {
+    async #updateArtworkUrlWithCacheBuster(): Promise<void> {
         try {
             if (!this.#device.hasCapability('artwork_url')) {
                 return;
             }
 
-            // @ts-ignore: The file property exists on Homey.Image but may not be in the type definition
+            // @ts-expect-error: The file property exists on Homey.Image but may not be in the type definition
             const artworkFile = this.#artwork.file;
             
             if (artworkFile) {
-                const artworkUrl = `url(\${window.location.origin}/app/com.basmilius.apple${artworkFile})`;
+                // Add cache buster to force reload of the image
+                const cacheBuster = Date.now();
+                const artworkUrl = `url(\${window.location.origin}/app/com.basmilius.apple${artworkFile}?v=${cacheBuster})`;
                 await this.#device.setCapabilityValue('artwork_url', artworkUrl);
-                this.log(this.deviceName, 'Artwork URL updated:', artworkUrl);
-            } else {
-                await this.#device.setCapabilityValue('artwork_url', '');
-                this.log(this.deviceName, 'Artwork URL cleared (no file).');
+                this.log(this.deviceName, 'Artwork URL updated with cache buster:', cacheBuster);
             }
         } catch (err) {
-            this.log(this.deviceName, 'Failed to update artwork URL capability', err);
+            this.log(this.deviceName, 'Failed to update artwork URL', err);
         }
     }
 
