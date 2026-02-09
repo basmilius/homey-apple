@@ -15,6 +15,7 @@ const CAPABILITIES = [
     'speaker_position',
     'speaker_prev',
     'speaker_track',
+    'artwork_url',
     'onoff',
     'power',
     'volume_down',
