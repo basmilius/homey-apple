@@ -33,14 +33,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         await this.#device.setAlbumArtImage(this.#artwork);
         
         // Set the artwork URL capability once - the URL never changes, only the image content
-        // The URL is a template string with ${window.location.origin} to be evaluated client-side
         if (this.#device.hasCapability('artwork_url')) {
             // @ts-expect-error: The file property exists on Homey.Image but may not be in the type definition
             const artworkFile = this.#artwork.file;
             if (artworkFile) {
-                // Output format: url(${window.location.origin}/app/com.basmilius.apple/path?v=timestamp)
-                // The ${window.location.origin} part is intentionally left as a template for client-side evaluation
-                const artworkUrl = `url(\${window.location.origin}/app/com.basmilius.apple${artworkFile})`;
+                // Output format: /app/com.basmilius.apple/path
+                const artworkUrl = `/app/com.basmilius.apple${artworkFile}`;
                 await this.#device.setCapabilityValue('artwork_url', artworkUrl);
                 this.log(this.deviceName, 'Artwork URL set:', artworkUrl);
             }
@@ -207,9 +205,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             
             if (artworkFile) {
                 // Add cache buster to force reload of the image
-                // The ${window.location.origin} part is intentionally left as a template for client-side evaluation
                 const cacheBuster = Date.now();
-                const artworkUrl = `url(\${window.location.origin}/app/com.basmilius.apple${artworkFile}?v=${cacheBuster})`;
+                const artworkUrl = `/app/com.basmilius.apple${artworkFile}?v=${cacheBuster}`;
                 await this.#device.setCapabilityValue('artwork_url', artworkUrl);
                 this.log(this.deviceName, 'Artwork URL updated with cache buster:', cacheBuster);
             }
