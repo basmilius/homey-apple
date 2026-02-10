@@ -13,12 +13,12 @@
         "@basmilius/apple-encoding": "^0.6.6",
         "@basmilius/apple-encryption": "^0.6.6",
         "@basmilius/apple-raop": "^0.6.6",
-        "@basmilius/homey-common": "^1.17.1"
+        "@basmilius/homey-common": "^1.18.0"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-        "@types/node": "^25.2.1",
+        "@types/node": "^25.2.2",
         "typescript": "^5.9.3"
     }
 }
