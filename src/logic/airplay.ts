@@ -180,6 +180,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async #updateNowPlaying(): Promise<void> {
+        // note: Do not update now playing info if the device is turned off.
+        if (this.#device.hasCapability('onoff') && this.#device.getCapabilityValue('onoff') === false) {
+            return;
+        }
+
         const client = this.#protocol.state.nowPlayingClient;
         const device = this.#device;
         const item = client?.playbackQueue?.contentItems?.[0] ?? null;
