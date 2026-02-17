@@ -64,7 +64,7 @@ export default class extends EventEmitter<EventMap> {
     }
 
     async disconnect(): Promise<void> {
-        await this.#protocol.disconnect();
+        await this.#protocol?.disconnect();
     }
 
     async reconnect(discoveryResult: DiscoveryResult): Promise<void> {
