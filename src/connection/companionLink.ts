@@ -13,8 +13,10 @@ export type AttentionState =
 type EventMap = {
     connected: [];
     disconnected: [boolean];
+    failed: [];
 };
 
+const MAX_CONNECT_ATTEMPTS = 3;
 const RECONNECT_INTERVAL = 5 * 60 * 1000;
 
 export default class extends EventEmitter<EventMap> {
@@ -29,6 +31,7 @@ export default class extends EventEmitter<EventMap> {
     readonly #device: AppleTVDevice;
     #credentials!: AccessoryCredentials;
     #protocol!: CompanionLinkDevice;
+    #connectAttempts = 0;
     #reconnectInterval?: NodeJS.Timeout;
 
     constructor(device: AppleTVDevice) {
@@ -94,11 +97,18 @@ export default class extends EventEmitter<EventMap> {
     }
 
     #onConnected(): void {
+        this.#connectAttempts = 0;
         this.emit('connected');
     }
 
     #onDisconnected(unexpected: boolean): void {
-        this.emit('disconnected', unexpected);
+        this.#connectAttempts++;
+
+        if (this.#connectAttempts >= MAX_CONNECT_ATTEMPTS) {
+            this.emit('failed');
+        } else {
+            this.emit('disconnected', unexpected);
+        }
     }
 
     async #onPower(state: AttentionState): Promise<void> {

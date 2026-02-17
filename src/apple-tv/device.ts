@@ -77,10 +77,11 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#airplay = new AirPlayConnection(this);
         this.#companionLink = new CompanionLinkConnection(this);
 
-        this.#airplay.on('connected', () => this.#onAirPlayConnected());
-        this.#airplay.on('disconnected', (unexpected) => this.#onAirPlayDisconnected(unexpected));
-        this.#companionLink.on('connected', () => this.#onCompanionLinkConnected());
-        this.#companionLink.on('disconnected', (unexpected) => this.#onCompanionLinkDisconnected(unexpected));
+        this.#airplay.on('connected', this.#onAirPlayConnected.bind(this));
+        this.#airplay.on('disconnected', this.#onAirPlayDisconnected.bind(this));
+        this.#companionLink.on('connected', this.#onCompanionLinkConnected.bind(this));
+        this.#companionLink.on('disconnected', this.#onCompanionLinkDisconnected.bind(this));
+        this.#companionLink.on('failed', this.#onCompanionLinkFailed.bind(this));
 
         await this.removeOldCapabilities(CAPABILITIES);
         this.#registerCapabilities();
@@ -241,6 +242,12 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         await this.findService(COMPANION_LINK_SERVICE);
         await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+    }
+
+    async #onCompanionLinkFailed(): Promise<void> {
+        this.log('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
+        await this.setUnavailable('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
+        await this.appDriver.triggerCompanionLinkFailed(this);
     }
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {

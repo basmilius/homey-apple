@@ -25,6 +25,11 @@ export default class AppleTVDriver extends Driver<AppleApp> {
         await pairing.start();
     }
 
+    async triggerCompanionLinkFailed(device: AppleTVDevice): Promise<void> {
+        const triggerCard = this.homey.flow.getDeviceTriggerCard('appletv_companion_link_failed');
+        await triggerCard.trigger(device);
+    }
+
     async triggerNowPlayingAppChanges(device: AppleTVDevice, bundleIdentifier: string, displayName: string): Promise<void> {
         const triggerCard = this.homey.flow.getDeviceTriggerCard('appletv_now_playing_app_changes');
 
