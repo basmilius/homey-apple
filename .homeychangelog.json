@@ -250,5 +250,8 @@
   },
   "1.3.7": {
     "en": "Prevent updating now playing info when the device is turned off."
+  },
+  "1.4.0": {
+    "en": "This update introduces a new flow card that is fired when the app fails to connect to the companion link protocol. A restart of the app is then probably needed."
   }
 }
