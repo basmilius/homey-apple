@@ -253,7 +253,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         await this.#device.setCapabilityValue('now_playing_app', displayName);
 
         if (this.#device instanceof AppleTVDevice) {
-            await this.#device.appDriver.triggerNowPlayingAppChanges(this.#device, bundleIdentifier ?? '-', displayName ?? '-');
+            await this.app.appleTvFlow.triggerNowPlayingAppChanges(this.#device, bundleIdentifier ?? '-', displayName ?? '-');
         }
     }
 }

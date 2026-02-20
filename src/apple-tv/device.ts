@@ -247,7 +247,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     async #onCompanionLinkFailed(): Promise<void> {
         this.log('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
         await this.setUnavailable('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
-        await this.appDriver.triggerCompanionLinkFailed(this);
+        await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
     }
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
