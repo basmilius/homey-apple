@@ -65,12 +65,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.log(this.deviceName, 'Updating artwork URL...');
-
         // @ts-expect-error The type definition for Homey.Image.cloudUrl does not exist, but the property is there.
         const cloudUrl = this.#artwork.cloudUrl;
-
-        this.log(this.deviceName, 'Artwork file:', cloudUrl, this.#artwork);
 
         if (!cloudUrl) {
             return;
