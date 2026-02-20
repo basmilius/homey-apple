@@ -253,5 +253,8 @@
   },
   "1.4.0": {
     "en": "This update introduces a new flow card that is fired when the app fails to connect to the companion link protocol. A restart of the app is then probably needed."
+  },
+  "1.4.1": {
+    "en": "Update apple-protocols SDK."
   }
 }
