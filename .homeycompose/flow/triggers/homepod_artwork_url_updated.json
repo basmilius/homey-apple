@@ -1,0 +1,80 @@
+{
+    "id": "homepod_artwork_url_updated",
+    "title": {
+        "en": "Artwork URL updated",
+        "nl": "Albumhoes URL bijgewerkt",
+        "da": "Kunstværk URL opdateret",
+        "de": "Artwork-URL aktualisiert",
+        "es": "URL de ilustración actualizada",
+        "fr": "URL de l'illustration mise à jour",
+        "it": "URL dell'artwork aggiornato",
+        "no": "Kunstverk URL oppdatert",
+        "sv": "Konstverk URL uppdaterad",
+        "pl": "URL grafiki zaktualizowany",
+        "ru": "URL обложки обновлён",
+        "ko": "아트워크 URL이 업데이트됨",
+        "ar": "تم تحديث رابط الصورة الفنية"
+    },
+    "titleFormatted": {
+        "en": "Artwork URL updated",
+        "nl": "Albumhoes URL bijgewerkt",
+        "da": "Kunstværk URL opdateret",
+        "de": "Artwork-URL aktualisiert",
+        "es": "URL de ilustración actualizada",
+        "fr": "URL de l'illustration mise à jour",
+        "it": "URL dell'artwork aggiornato",
+        "no": "Kunstverk URL oppdatert",
+        "sv": "Konstverk URL uppdaterad",
+        "pl": "URL grafiki zaktualizowany",
+        "ru": "URL обложки обновлён",
+        "ko": "아트워크 URL이 업데이트됨",
+        "ar": "تم تحديث رابط الصورة الفنية"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+        }
+    ],
+    "tokens": [
+        {
+            "name": "localUrl",
+            "type": "string",
+            "title": {
+                "en": "Local URL",
+                "nl": "Lokale URL",
+                "da": "Lokal URL",
+                "de": "Lokale URL",
+                "es": "URL local",
+                "fr": "URL locale",
+                "it": "URL locale",
+                "no": "Lokal URL",
+                "sv": "Lokal URL",
+                "pl": "Lokalny URL",
+                "ru": "Локальный URL",
+                "ko": "로컬 URL",
+                "ar": "الرابط المحلي"
+            }
+        },
+        {
+            "name": "cloudUrl",
+            "type": "string",
+            "title": {
+                "en": "Cloud URL",
+                "nl": "Cloud URL",
+                "da": "Cloud URL",
+                "de": "Cloud-URL",
+                "es": "URL de la nube",
+                "fr": "URL du cloud",
+                "it": "URL cloud",
+                "no": "Sky-URL",
+                "sv": "Moln-URL",
+                "pl": "URL chmury",
+                "ru": "URL в облаке",
+                "ko": "클라우드 URL",
+                "ar": "رابط السحابة"
+            }
+        }
+    ]
+}

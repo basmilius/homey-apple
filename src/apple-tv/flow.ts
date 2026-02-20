@@ -15,6 +15,15 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         await triggerCard.trigger(device);
     }
 
+    async triggerArtworkUrlUpdated(device: AppleTVDevice, localUrl: string, cloudUrl: string): Promise<void> {
+        const triggerCard = this.flow.getDeviceTriggerCard('appletv_artwork_url_updated');
+
+        await triggerCard.trigger(device, {
+            localUrl,
+            cloudUrl
+        });
+    }
+
     async triggerNowPlayingAppChanges(device: AppleTVDevice, bundleIdentifier: string, displayName: string): Promise<void> {
         const triggerCard = this.flow.getDeviceTriggerCard('appletv_now_playing_app_changes');
 
