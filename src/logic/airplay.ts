@@ -31,7 +31,9 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async initialize(): Promise<void> {
         this.#artwork = await this.#device.homey.images.createImage();
         await this.#device.setAlbumArtImage(this.#artwork);
+
         await this.clearNowPlaying();
+        await this.updateArtworkUrl();
     }
 
     async uninitialize(): Promise<void> {
@@ -56,6 +58,28 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         } catch (err) {
             this.log(this.deviceName, 'Failed to clear now playing info', err);
         }
+    }
+
+    async updateArtworkUrl(): Promise<void> {
+        if (!this.#device.hasCapability('artwork_url')) {
+            return;
+        }
+
+        this.log(this.deviceName, 'Updating artwork URL...');
+
+        // @ts-expect-error The type definition for Homey.Image.cloudUrl does not exist, but the property is there.
+        const cloudUrl = this.#artwork.cloudUrl;
+
+        this.log(this.deviceName, 'Artwork file:', cloudUrl, this.#artwork);
+
+        if (!cloudUrl) {
+            return;
+        }
+
+        const cacheBuster = new Date().getTime();
+        const artworkUrl = `${cloudUrl}?v=${cacheBuster}`;
+        await this.#device.setCapabilityValue('artwork_url', artworkUrl);
+        this.log(this.deviceName, 'Artwork URL updated.', artworkUrl);
     }
 
     setProtocol(protocol: AirPlayDevice): void {
@@ -164,6 +188,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             }
 
             await this.#artwork.update();
+            await this.updateArtworkUrl();
         } catch (err) {
             this.log(this.deviceName, 'Failed to update album artwork', err);
         }
@@ -177,6 +202,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             pt.pipe(stream);
         });
         await this.#artwork.update();
+        await this.updateArtworkUrl();
     }
 
     async #updateNowPlaying(): Promise<void> {

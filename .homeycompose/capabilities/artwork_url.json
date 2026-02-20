@@ -1,0 +1,22 @@
+{
+    "type": "string",
+    "title": {
+        "en": "Artwork URL",
+        "nl": "Albumhoes URL",
+        "da": "Kunstværk URL",
+        "de": "Artwork-URL",
+        "es": "URL de la ilustración",
+        "fr": "URL de l'illustration",
+        "it": "URL dell'artwork",
+        "no": "Kunstverk URL",
+        "sv": "Konstverk URL",
+        "pl": "URL grafiki",
+        "ru": "URL обложки",
+        "ko": "아트워크 URL",
+        "ar": "رابط الصورة الفنية"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": null,
+    "icon": "assets/capabilities/artwork.svg"
+}
