@@ -7,6 +7,15 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         this.#registerPlayUrlAtVolume();
     }
 
+    async triggerArtworkUrlUpdated(device: HomePodBaseDevice<HomePodBaseDriver>, localUrl: string, cloudUrl: string): Promise<void> {
+        const triggerCard = this.flow.getDeviceTriggerCard('homepod_artwork_url_updated');
+
+        await triggerCard.trigger(device, {
+            localUrl,
+            cloudUrl
+        });
+    }
+
     #registerPlayUrl(): void {
         const playUrl = this.homey.flow.getActionCard('homepod_play_url');
 

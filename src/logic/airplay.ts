@@ -5,6 +5,7 @@ import { debounce, type Device, Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import Homey from 'homey';
 import AppleTVDevice from '../apple-tv/device';
+import HomePodBaseDevice from '../homepod-base/device';
 
 export default class AirPlayLogic extends Shortcuts<AppleApp> {
     get deviceName(): string {
@@ -76,6 +77,16 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         const artworkUrl = `${cloudUrl}?v=${cacheBuster}`;
         await this.#device.setCapabilityValue('artwork_url', artworkUrl);
         this.log(this.deviceName, 'Artwork URL updated.', artworkUrl);
+
+        // @ts-expect-error The type definition for Homey.Image.localUrl does not exist, but the property is there.
+        const localUrl = this.#artwork.localUrl;
+        const localUrlWithCacheBuster = localUrl ? `${localUrl}?v=${cacheBuster}` : '';
+
+        if (this.#device instanceof AppleTVDevice) {
+            await this.app.appleTvFlow.triggerArtworkUrlUpdated(this.#device, localUrlWithCacheBuster, artworkUrl);
+        } else if (this.#device instanceof HomePodBaseDevice) {
+            await this.app.homePodFlow.triggerArtworkUrlUpdated(this.#device, localUrlWithCacheBuster, artworkUrl);
+        }
     }
 
     setProtocol(protocol: AirPlayDevice): void {
