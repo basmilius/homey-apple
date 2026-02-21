@@ -262,5 +262,8 @@
   },
   "1.4.3": {
     "en": "This update fixes the launch app and switch user flow actions. The underlying companion link heartbeat loop was causing some issues."
+  },
+  "1.5.0": {
+    "en": "This update introduces a new artwork url changes trigger and fixes the companion link heartbeat loop, because the loop blocked the rest of the traffic."
   }
 }
