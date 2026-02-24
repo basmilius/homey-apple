@@ -265,5 +265,8 @@
   },
   "1.5.0": {
     "en": "This update introduces a new artwork url changes trigger and fixes the companion link heartbeat loop, because the loop blocked the rest of the traffic."
+  },
+  "1.5.1": {
+    "en": "Prevent spamming the 'Companion link failed' trigger. It now runs only once per device."
   }
 }
