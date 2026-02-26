@@ -1,4 +1,7 @@
 {
+  "1.6.0": {
+    "en": "This update introduces a new Media Playback widget that works with Apple TV, HomePod, and HomePod Mini. Add it to your Homey dashboard to see what's playing and control playback."
+  },
   "1.0.0": {
     "en": "First version!"
   },

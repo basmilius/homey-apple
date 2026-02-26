@@ -1,6 +1,6 @@
 {
   "id": "com.basmilius.apple",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "compatibility": ">=12.9.0",
   "sdk": 3,
   "brandColor": "#147efb",
@@ -194,5 +194,17 @@
         "username": "basmilius"
       }
     }
-  }
+  },
+  "api": [
+    {
+      "method": "GET",
+      "path": "/widget/media-playback/state",
+      "fn": "widgetGetState"
+    },
+    {
+      "method": "POST",
+      "path": "/widget/media-playback/action",
+      "fn": "widgetPostAction"
+    }
+  ]
 }

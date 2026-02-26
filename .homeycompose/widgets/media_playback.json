@@ -1,0 +1,53 @@
+{
+    "name": {
+        "en": "Media Playback",
+        "nl": "Media Afspelen",
+        "da": "Medieafspilning",
+        "de": "Medienwiedergabe",
+        "es": "Reproducción de medios",
+        "fr": "Lecture de média",
+        "it": "Riproduzione multimediale",
+        "no": "Medieavspilling",
+        "sv": "Medieuppspelning",
+        "pl": "Odtwarzanie multimediów",
+        "ru": "Воспроизведение медиа",
+        "ko": "미디어 재생",
+        "ar": "تشغيل الوسائط"
+    },
+    "settings": [
+        {
+            "id": "device",
+            "type": "autocomplete",
+            "label": {
+                "en": "Device",
+                "nl": "Apparaat",
+                "da": "Enhed",
+                "de": "Gerät",
+                "es": "Dispositivo",
+                "fr": "Appareil",
+                "it": "Dispositivo",
+                "no": "Enhet",
+                "sv": "Enhet",
+                "pl": "Urządzenie",
+                "ru": "Устройство",
+                "ko": "기기",
+                "ar": "الجهاز"
+            },
+            "placeholder": {
+                "en": "Select a device...",
+                "nl": "Selecteer een apparaat...",
+                "da": "Vælg en enhed...",
+                "de": "Gerät auswählen...",
+                "es": "Seleccionar un dispositivo...",
+                "fr": "Sélectionner un appareil...",
+                "it": "Seleziona un dispositivo...",
+                "no": "Velg en enhet...",
+                "sv": "Välj en enhet...",
+                "pl": "Wybierz urządzenie...",
+                "ru": "Выберите устройство...",
+                "ko": "기기를 선택하세요...",
+                "ar": "اختر جهازاً..."
+            }
+        }
+    ]
+}

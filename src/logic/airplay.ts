@@ -55,6 +55,15 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#device.setCapabilityValue('speaker_position', -1);
             await this.#device.setCapabilityValue('speaker_playing', false);
 
+            this.realtime('now_playing_changed', {
+                deviceId: this.#device.id,
+                playing: false,
+                track: '',
+                artist: '',
+                album: '',
+                artworkUrl: null
+            });
+
             this.log(this.deviceName, 'Now playing info cleared.');
         } catch (err) {
             this.log(this.deviceName, 'Failed to clear now playing info', err);
@@ -77,6 +86,15 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         const artworkUrl = `${cloudUrl}?v=${cacheBuster}`;
         await this.#device.setCapabilityValue('artwork_url', artworkUrl);
         this.log(this.deviceName, 'Artwork URL updated.', artworkUrl);
+
+        this.realtime('now_playing_changed', {
+            deviceId: this.#device.id,
+            playing: this.#device.getCapabilityValue('speaker_playing') ?? false,
+            track: this.#device.getCapabilityValue('speaker_track') ?? '',
+            artist: this.#device.getCapabilityValue('speaker_artist') ?? '',
+            album: this.#device.getCapabilityValue('speaker_album') ?? '',
+            artworkUrl
+        });
 
         // @ts-expect-error The type definition for Homey.Image.localUrl does not exist, but the property is there.
         const localUrl = this.#artwork.localUrl;
@@ -254,6 +272,15 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await device.setCapabilityValue('speaker_track', item.metadata.title);
             await device.setCapabilityValue('speaker_duration', item.metadata.duration);
             await device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
+
+            this.realtime('now_playing_changed', {
+                deviceId: device.id,
+                playing: client?.playbackState === Proto.PlaybackState_Enum.Playing,
+                track: item.metadata.title ?? '',
+                artist: item.metadata.trackArtistName || client?.displayName || '-',
+                album: item.metadata.albumName ?? '',
+                artworkUrl: device.getCapabilityValue('artwork_url') ?? null
+            });
 
             const nowPlayingAppBundleIdentifier = client?.playbackState === Proto.PlaybackState_Enum.Playing
                 ? client.bundleIdentifier

@@ -8,5 +8,10 @@
             "off": "Av",
             "on": "På"
         }
+    },
+    "widget": {
+        "media_playback": {
+            "no_device": "Ingen enhet vald"
+        }
     }
 }

@@ -8,5 +8,10 @@
             "off": "Spento",
             "on": "Acceso"
         }
+    },
+    "widget": {
+        "media_playback": {
+            "no_device": "Nessun dispositivo selezionato"
+        }
     }
 }

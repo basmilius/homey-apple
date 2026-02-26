@@ -8,5 +8,10 @@
             "off": "꺼짐",
             "on": "켜짐"
         }
+    },
+    "widget": {
+        "media_playback": {
+            "no_device": "선택된 기기 없음"
+        }
     }
 }

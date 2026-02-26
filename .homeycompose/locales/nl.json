@@ -8,5 +8,10 @@
             "off": "Uit",
             "on": "Aan"
         }
+    },
+    "widget": {
+        "media_playback": {
+            "no_device": "Geen apparaat geselecteerd"
+        }
     }
 }

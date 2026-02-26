@@ -8,5 +8,10 @@
             "off": "Wyłączony",
             "on": "Włączony"
         }
+    },
+    "widget": {
+        "media_playback": {
+            "no_device": "Nie wybrano urządzenia"
+        }
     }
 }

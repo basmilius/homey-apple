@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: transparent;
+            color: var(--homey-text-color, #ffffff);
+            overflow: hidden;
+        }
+
+        .widget {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .media-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .artwork-container {
+            flex-shrink: 0;
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .artwork-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .artwork-container img.loaded {
+            display: block;
+        }
+
+        .artwork-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.4;
+        }
+
+        .artwork-placeholder svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .track-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .track-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 1;
+        }
+
+        .artist-name {
+            font-size: 12px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.7;
+        }
+
+        .album-name {
+            font-size: 11px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.5;
+        }
+
+        .track-name.empty,
+        .artist-name.empty,
+        .album-name.empty {
+            opacity: 0.3;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--homey-text-color, #ffffff);
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s ease;
+            opacity: 0.85;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+        }
+
+        .control-btn:active {
+            opacity: 0.5;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.25;
+            cursor: default;
+        }
+
+        .control-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .control-btn.play-pause svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .no-device {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            gap: 8px;
+            opacity: 0.4;
+            text-align: center;
+        }
+
+        .no-device svg {
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+        }
+
+        .no-device p {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="no-device" class="no-device" style="display:none;">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+        </svg>
+        <p id="no-device-text">No device selected</p>
+    </div>
+
+    <div id="player" class="widget" style="display:none;">
+        <div class="media-row">
+            <div class="artwork-container">
+                <img id="artwork" alt="" />
+                <div class="artwork-placeholder" id="artwork-placeholder">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="track-info">
+                <div class="track-name empty" id="track-name">—</div>
+                <div class="artist-name empty" id="artist-name">—</div>
+                <div class="album-name empty" id="album-name">—</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="btn-prev" title="Previous">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
+                </svg>
+            </button>
+            <button class="control-btn play-pause" id="btn-play-pause" title="Play/Pause">
+                <svg id="icon-play" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <svg id="icon-pause" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btn-next" title="Next">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function onHomeyReady(Homey) {
+            const noDevice = document.getElementById('no-device');
+            const noDeviceText = document.getElementById('no-device-text');
+            const player = document.getElementById('player');
+            const artwork = document.getElementById('artwork');
+            const artworkPlaceholder = document.getElementById('artwork-placeholder');
+            const trackName = document.getElementById('track-name');
+            const artistName = document.getElementById('artist-name');
+            const albumName = document.getElementById('album-name');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnPlayPause = document.getElementById('btn-play-pause');
+            const btnNext = document.getElementById('btn-next');
+            const iconPlay = document.getElementById('icon-play');
+            const iconPause = document.getElementById('icon-pause');
+
+            let currentDeviceId = null;
+            let isPlaying = false;
+
+            function updateArtwork(url) {
+                if (url) {
+                    artwork.src = url;
+                    artwork.onload = function () {
+                        artwork.classList.add('loaded');
+                        artworkPlaceholder.style.display = 'none';
+                    };
+                    artwork.onerror = function () {
+                        artwork.classList.remove('loaded');
+                        artworkPlaceholder.style.display = 'flex';
+                    };
+                } else {
+                    artwork.classList.remove('loaded');
+                    artwork.src = '';
+                    artworkPlaceholder.style.display = 'flex';
+                }
+            }
+
+            function updateState(state) {
+                if (!state) {
+                    updateArtwork(null);
+                    setTrackInfo('', '', '');
+                    setPlaying(false);
+                    return;
+                }
+
+                updateArtwork(state.artworkUrl || null);
+                setTrackInfo(state.track || '', state.artist || '', state.album || '');
+                setPlaying(!!state.playing);
+            }
+
+            function setTrackInfo(track, artist, album) {
+                if (track) {
+                    trackName.textContent = track;
+                    trackName.classList.remove('empty');
+                } else {
+                    trackName.textContent = '—';
+                    trackName.classList.add('empty');
+                }
+
+                if (artist) {
+                    artistName.textContent = artist;
+                    artistName.classList.remove('empty');
+                } else {
+                    artistName.textContent = '—';
+                    artistName.classList.add('empty');
+                }
+
+                if (album) {
+                    albumName.textContent = album;
+                    albumName.classList.remove('empty');
+                } else {
+                    albumName.textContent = '—';
+                    albumName.classList.add('empty');
+                }
+            }
+
+            function setPlaying(playing) {
+                isPlaying = playing;
+                if (playing) {
+                    iconPlay.style.display = 'none';
+                    iconPause.style.display = 'block';
+                } else {
+                    iconPlay.style.display = 'block';
+                    iconPause.style.display = 'none';
+                }
+            }
+
+            function showPlayer(show) {
+                if (show) {
+                    player.style.display = 'flex';
+                    noDevice.style.display = 'none';
+                } else {
+                    player.style.display = 'none';
+                    noDevice.style.display = 'flex';
+                }
+            }
+
+            async function loadState() {
+                if (!currentDeviceId) {
+                    return;
+                }
+
+                try {
+                    const state = await Homey.api('GET', '/widget/media-playback/state?deviceId=' + encodeURIComponent(currentDeviceId));
+                    updateState(state);
+                } catch (err) {
+                    updateState(null);
+                }
+            }
+
+            async function sendAction(action) {
+                if (!currentDeviceId) {
+                    return;
+                }
+
+                try {
+                    await Homey.api('POST', '/widget/media-playback/action', {
+                        deviceId: currentDeviceId,
+                        action: action
+                    });
+                } catch (err) {
+                    // ignore
+                }
+            }
+
+            btnPrev.addEventListener('click', function () {
+                Homey.hapticFeedback();
+                sendAction('prev');
+            });
+
+            btnPlayPause.addEventListener('click', function () {
+                Homey.hapticFeedback();
+                sendAction('play_pause');
+            });
+
+            btnNext.addEventListener('click', function () {
+                Homey.hapticFeedback();
+                sendAction('next');
+            });
+
+            Homey.on('now_playing_changed', function (data) {
+                if (data && data.deviceId === currentDeviceId) {
+                    updateState(data);
+                }
+            });
+
+            const settings = Homey.getSettings();
+            const device = settings && settings.device;
+
+            if (device && device.id) {
+                currentDeviceId = device.id;
+                showPlayer(true);
+                loadState().then(function () {
+                    Homey.ready();
+                }).catch(function () {
+                    Homey.ready();
+                });
+            } else {
+                noDeviceText.textContent = Homey.__('widget.media_playback.no_device');
+                showPlayer(false);
+                Homey.ready();
+            }
+        }
+    </script>
+</body>
+</html>

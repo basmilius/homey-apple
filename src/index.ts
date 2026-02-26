@@ -39,6 +39,38 @@ export default class AppleApp extends App<AppleApp> {
         this.#homePodFlow = new HomePodFlow(this);
         this.#homePodFlow.register();
 
+        this.#registerMediaPlaybackWidget();
+
         this.log('Apple TV & HomePod has been initialized');
+    }
+
+    #registerMediaPlaybackWidget(): void {
+        const widget = this.homey.dashboards.getWidget('media_playback');
+
+        widget.registerSettingAutocompleteListener('device', async (query: string) => {
+            const drivers = await this.getDrivers();
+            const results: { id: string; name: string; description: string }[] = [];
+            const lang = this.homey.i18n.getLanguage();
+
+            for (const driver of drivers) {
+                const devices = await this.getDevices(driver.id);
+
+                if (!devices) {
+                    continue;
+                }
+
+                for (const device of devices) {
+                    results.push({
+                        id: device.id,
+                        name: device.name,
+                        description: driver.manifest.name?.[lang] ?? driver.manifest.name?.en ?? driver.id
+                    });
+                }
+            }
+
+            return results
+                .filter(d => query.trim() === '' || d.name.toLowerCase().includes(query.toLowerCase()))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        });
     }
 }
