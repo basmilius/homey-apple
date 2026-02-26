@@ -6,7 +6,10 @@ import type { AppleTVDevice, HomePodBaseDevice } from '../types';
 type EventMap = {
     connected: [];
     disconnected: [boolean];
+    failed: [];
 };
+
+const MAX_CONNECT_ATTEMPTS = 3;
 
 export default class extends EventEmitter<EventMap> {
     get isConnected(): boolean {
@@ -28,6 +31,7 @@ export default class extends EventEmitter<EventMap> {
     readonly #device!: AppleTVDevice | HomePodBaseDevice<any>;
     #credentials: AccessoryCredentials | null = null;
     #protocol!: AirPlayDevice;
+    #connectAttempts = 0;
 
     constructor(device: AppleTVDevice | HomePodBaseDevice<any>) {
         super();
@@ -67,7 +71,7 @@ export default class extends EventEmitter<EventMap> {
         await this.#protocol?.disconnect();
     }
 
-    async reconnect(discoveryResult: DiscoveryResult): Promise<void> {
+    async reconnect(discoveryResult?: DiscoveryResult): Promise<void> {
         if (discoveryResult) {
             this.#protocol.discoveryResult = discoveryResult;
         }
@@ -76,10 +80,17 @@ export default class extends EventEmitter<EventMap> {
     }
 
     #onConnected(): void {
+        this.#connectAttempts = 0;
         this.emit('connected');
     }
 
     #onDisconnected(unexpected: boolean): void {
-        this.emit('disconnected', unexpected);
+        this.#connectAttempts++;
+
+        if (this.#connectAttempts >= MAX_CONNECT_ATTEMPTS) {
+            this.emit('failed');
+        } else {
+            this.emit('disconnected', unexpected);
+        }
     }
 }

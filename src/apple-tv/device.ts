@@ -60,6 +60,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
+    #airplayFailed = false;
     #companionLink!: CompanionLinkConnection;
     #companionLinkFailed = false;
     #connectedOnce = false;
@@ -81,6 +82,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         this.#airplay.on('connected', this.#onAirPlayConnected.bind(this));
         this.#airplay.on('disconnected', this.#onAirPlayDisconnected.bind(this));
+        this.#airplay.on('failed', this.#onAirPlayFailed.bind(this));
         this.#companionLink.on('connected', this.#onCompanionLinkConnected.bind(this));
         this.#companionLink.on('disconnected', this.#onCompanionLinkDisconnected.bind(this));
         this.#companionLink.on('failed', this.#onCompanionLinkFailed.bind(this));
@@ -226,6 +228,17 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         await this.findService(AIRPLAY_SERVICE);
         await this.#airplay.reconnect(this.discoveryResultAirPlay);
+    }
+
+    async #onAirPlayFailed(): Promise<void> {
+        if (this.#airplayFailed) {
+            return;
+        }
+
+        this.#airplayFailed = true;
+
+        this.log('Failed to connect to Apple TV using AirPlay, this is probably caused by a port change. Please restart the app.');
+        await this.setUnavailable('Failed to connect to Apple TV using AirPlay, this is probably caused by a port change. Please restart the app.');
     }
 
     async #onCompanionLinkConnected(): Promise<void> {

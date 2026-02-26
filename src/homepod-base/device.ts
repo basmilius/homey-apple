@@ -44,6 +44,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
+    #airplayFailed = false;
     #connectedOnce = false;
     #services!: Record<string, Discovery>;
 
@@ -60,6 +61,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         this.#airplay = new AirPlayConnection(this);
         this.#airplay.on('connected', () => this.#onConnected());
         this.#airplay.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
+        this.#airplay.on('failed', () => this.#onAirPlayFailed());
 
         await this.removeOldCapabilities(CAPABILITIES);
         this.#registerCapabilities();
@@ -108,6 +110,17 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         await this.findService(AIRPLAY_SERVICE);
         await this.#airplay.reconnect(this.discoveryResult);
+    }
+
+    async #onAirPlayFailed(): Promise<void> {
+        if (this.#airplayFailed) {
+            return;
+        }
+
+        this.#airplayFailed = true;
+
+        this.log('Failed to connect to HomePod using AirPlay, this is probably caused by a port change. Please restart the app.');
+        await this.setUnavailable('Failed to connect to HomePod using AirPlay, this is probably caused by a port change. Please restart the app.');
     }
 
     #registerCapabilities(): void {
