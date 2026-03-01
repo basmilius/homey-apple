@@ -10,7 +10,7 @@ export default class HomePodBasePairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Homey.DiscoveryResultMDNSSD | undefined;
-    #protocol: AirPlay.Protocol;
+    #protocol!: AirPlay.Protocol;
 
     constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[]) {
         super();

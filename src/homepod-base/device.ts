@@ -1,12 +1,13 @@
 import { Proto } from '@basmilius/apple-airplay';
 import { Url as UrlAudioSource } from '@basmilius/apple-audio-source';
-import { AIRPLAY_SERVICE, type Discovery, type DiscoveryResult } from '@basmilius/apple-common';
+import { AIRPLAY_SERVICE, type DiscoveryResult } from '@basmilius/apple-common';
 import { RaopClient } from '@basmilius/apple-raop';
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
 import { getAccessoryCredentialsFromDevice, waitFor } from '../utils';
 import type HomePodBaseDriver from './driver';
+import type Homey from 'homey';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -38,14 +39,14 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         return this.discoveryResults[AIRPLAY_SERVICE];
     }
 
-    get services(): Record<string, Discovery> {
+    get services(): Record<string, Homey.DiscoveryStrategy> {
         return this.#services;
     }
 
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #connectedOnce = false;
-    #services!: Record<string, Discovery>;
+    #services!: Record<string, Homey.DiscoveryStrategy>;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');

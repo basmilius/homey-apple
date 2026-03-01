@@ -1,10 +1,11 @@
 import { Proto } from '@basmilius/apple-airplay';
-import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type Discovery, type DiscoveryResult } from '@basmilius/apple-common';
+import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type DiscoveryResult } from '@basmilius/apple-common';
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
 import { getAccessoryCredentialsFromDevice, waitFor } from '../utils';
 import type AppleTVDriver from './driver';
+import type Homey from 'homey';
 
 const CAPABILITIES = [
     'speaker_album',
@@ -54,7 +55,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         return this.discoveryResults[COMPANION_LINK_SERVICE];
     }
 
-    get services(): Record<string, Discovery> {
+    get services(): Record<string, Homey.DiscoveryStrategy> {
         return this.#services;
     }
 
@@ -63,7 +64,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #companionLink!: CompanionLinkConnection;
     #companionLinkFailed = false;
     #connectedOnce = false;
-    #services!: Record<string, Discovery>;
+    #services!: Record<string, Homey.DiscoveryStrategy>;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');

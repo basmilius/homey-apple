@@ -5,20 +5,20 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.7.2",
-        "@basmilius/apple-audio-source": "^0.7.2",
-        "@basmilius/apple-common": "^0.7.2",
-        "@basmilius/apple-companion-link": "^0.7.2",
-        "@basmilius/apple-devices": "^0.7.2",
-        "@basmilius/apple-encoding": "^0.7.2",
-        "@basmilius/apple-encryption": "^0.7.2",
-        "@basmilius/apple-raop": "^0.7.2",
+        "@basmilius/apple-airplay": "^0.8.1",
+        "@basmilius/apple-audio-source": "^0.8.1",
+        "@basmilius/apple-common": "^0.8.1",
+        "@basmilius/apple-companion-link": "^0.8.1",
+        "@basmilius/apple-devices": "^0.8.1",
+        "@basmilius/apple-encoding": "^0.8.1",
+        "@basmilius/apple-encryption": "^0.8.1",
+        "@basmilius/apple-raop": "^0.8.1",
         "@basmilius/homey-common": "^1.18.1"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-        "@types/node": "^25.3.0",
+        "@types/node": "^25.3.3",
         "typescript": "^5.9.3"
     }
 }

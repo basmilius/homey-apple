@@ -7,8 +7,10 @@ export default function (result: Homey.DiscoveryResultMDNSSD): DiscoveryResult {
         name: result.name,
         address: result.address,
         service: {
-            port: result.port,
+            port: Number(result.port),
+            protocol: 'tcp',
+            type: '_'
         },
-        txt: result.txt,
-    }
+        txt: result.txt as Record<string, string>
+    } as unknown as DiscoveryResult;
 }

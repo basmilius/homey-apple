@@ -17,7 +17,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
     #artworkRequestingIdentifier?: string;
-    #protocol: AirPlayDevice;
+    #protocol!: AirPlayDevice;
 
     readonly #updateNowPlayingApp: (bundleIdentifier: string | null, displayName: string | null) => Promise<void>;
 
@@ -150,13 +150,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         this.log(this.deviceName, 'Artwork identifier changed.', identifier);
 
-        if (!item.metadata.artworkAvailable) {
+        if (!item.metadata?.artworkAvailable) {
             this.log(this.deviceName, 'Artwork not available.');
             await this.#updateArtwork(null);
             return;
         }
 
-        if (item.metadata.artworkURL) {
+        if (item.metadata?.artworkURL) {
             this.log(this.deviceName, 'Artwork available as URL.');
             this.#artworkIdentifier = identifier;
             await this.#updateArtwork(item.metadata.artworkURL);
@@ -201,7 +201,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
     }
 
-    async #updateArtworkBuffer(buffer: Buffer): Promise<void> {
+    async #updateArtworkBuffer(buffer: Uint8Array<ArrayBufferLike> | Buffer): Promise<void> {
         await this.#device.setAlbumArtImage(this.#artwork);
         this.#artwork.setStream((stream: any) => {
             const pt = new PassThrough();
@@ -249,11 +249,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             }
 
             await device.setCapabilityValue('speaker_playing', client?.playbackState === Proto.PlaybackState_Enum.Playing);
-            await device.setCapabilityValue('speaker_album', item.metadata.albumName);
-            await device.setCapabilityValue('speaker_artist', item.metadata.trackArtistName || client?.displayName || '-');
-            await device.setCapabilityValue('speaker_track', item.metadata.title);
-            await device.setCapabilityValue('speaker_duration', item.metadata.duration);
-            await device.setCapabilityValue('speaker_position', item.metadata.elapsedTime);
+            await device.setCapabilityValue('speaker_album', item.metadata?.albumName);
+            await device.setCapabilityValue('speaker_artist', item.metadata?.trackArtistName || client?.displayName || '-');
+            await device.setCapabilityValue('speaker_track', item.metadata?.title);
+            await device.setCapabilityValue('speaker_duration', item.metadata?.duration);
+            await device.setCapabilityValue('speaker_position', item.metadata?.elapsedTime);
 
             const nowPlayingAppBundleIdentifier = client?.playbackState === Proto.PlaybackState_Enum.Playing
                 ? client.bundleIdentifier
@@ -264,7 +264,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 : null;
 
             await this.#updateNowPlayingApp(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
-            await this.#setArtwork(item.metadata.artworkIdentifier || item.metadata.contentIdentifier || item.identifier, item);
+            await this.#setArtwork(item.metadata?.artworkIdentifier || item.metadata?.contentIdentifier || item.identifier, item);
         } catch (err) {
             this.log(this.deviceName, 'Failed to update now playing info', err);
         }

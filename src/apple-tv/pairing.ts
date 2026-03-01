@@ -13,7 +13,7 @@ export default class AppleTVPairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Device | undefined;
-    #protocol: AirPlay.Protocol;
+    #protocol!: AirPlay.Protocol;
     #m1: any;
     #m2: any;
     #m3: any;
