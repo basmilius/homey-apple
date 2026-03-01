@@ -271,5 +271,8 @@
   },
   "1.5.2": {
     "en": "Update apple-protocols SDK."
+  },
+  "1.5.3": {
+    "en": "Publish without map files."
   }
 }
