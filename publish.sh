@@ -1,7 +1,9 @@
 echo "Remove map files..."
-rm -rf node_modules/**/*.js.map
-rm -rf node_modules/**/*.mjs.map
+find ./node_modules -name "*.js.map" -type f -delete
+find ./node_modules -name "*.mjs.map" -type f -delete
+
+sleep 1
 
 homey app publish
 
-bun install
+bun install -f
