@@ -1,3 +1,3 @@
-from src.apple_tv.driver import AppleTVDriver
+from app.src.apple_tv.driver import AppleTVDriver
 
 homey_export = AppleTVDriver

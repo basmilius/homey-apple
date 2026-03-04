@@ -1,3 +1,3 @@
-from src.homepod_mini.driver import HomePodMiniDriver
+from app.src.homepod_mini.driver import HomePodMiniDriver
 
 homey_export = HomePodMiniDriver

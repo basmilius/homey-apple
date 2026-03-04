@@ -1,3 +1,3 @@
-from src.homepod.device import HomePodDevice
+from app.src.homepod.device import HomePodDevice
 
 homey_export = HomePodDevice
