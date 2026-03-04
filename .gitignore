@@ -5,3 +5,8 @@
 
 !./.idea/.name
 !./.idea/icon.svg
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
