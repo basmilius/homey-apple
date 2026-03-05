@@ -274,5 +274,8 @@
   },
   "1.5.3": {
     "en": "Publish without map files."
+  },
+  "1.6.0": {
+    "en": "This version marks the first of many test releases for migrating to Python and use the pyatv project. A lot is and will be broken, but the code experience works."
   }
 }
