@@ -1,8 +1,13 @@
 {
   "id": "com.basmilius.apple",
   "version": "1.5.3",
-  "compatibility": ">=12.9.0",
+  "compatibility": ">=12.11.1",
   "sdk": 3,
+  "runtime": "python",
+  "pythonPackages": [
+    "pyatv"
+  ],
+  "pythonVersion": "3.14",
   "brandColor": "#147efb",
   "platforms": [
     "local"

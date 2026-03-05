@@ -1,15 +1,16 @@
+
 from __future__ import annotations
 
 import asyncio
+import inspect
 import io
+import time
 from typing import TYPE_CHECKING, Any
 
-import pyatv
 import pyatv.interface as pyatv_interface
 from pyatv.const import DeviceState
 
 if TYPE_CHECKING:
-    from homey.app import App
     from homey.device import Device
     from homey.image import Image
 
@@ -61,6 +62,23 @@ class AirPlayLogic:
         self._atv: pyatv_interface.AppleTV | None = None
         self._push_listener: _PushListener | None = None
 
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    async def _call_maybe_async(self, obj: Any, method_name: str, *args: Any, **kwargs: Any) -> None:
+        """Call obj.method_name(*args) and await the result only if it's awaitable."""
+        method = getattr(obj, method_name, None)
+        if not callable(method):
+            return
+        result = method(*args, **kwargs)
+        if inspect.isawaitable(result):
+            await result
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+
     async def initialize(self) -> None:
         """Register artwork image with Homey and clear now-playing state."""
         self._artwork = await self._device.homey.images.create_image()
@@ -88,19 +106,21 @@ class AirPlayLogic:
 
     async def _start_push_updater(self) -> None:
         try:
-            await self._atv.push_updater.start()
+            self._atv.push_updater.start()
         except Exception as err:
             self._device.error('Failed to start push updater:', err)
+
+    # ------------------------------------------------------------------
+    # Now-playing state
+    # ------------------------------------------------------------------
 
     async def clear_now_playing(self) -> None:
         """Reset all now-playing capabilities to their default/empty values."""
         try:
             self._artwork_hash = None
 
-            if self._artwork is not None:
-                self._artwork.local_url = None
-                self._artwork.cloud_url = None
-                await self._artwork.update() if hasattr(self._artwork, 'update') else None
+            await self._call_maybe_async(self._artwork, 'set_url', None)
+            await self._call_maybe_async(self._artwork, 'update')
 
             await self._update_now_playing_app(None, None)
 
@@ -124,23 +144,23 @@ class AirPlayLogic:
             return
 
         cloud_url = getattr(self._artwork, 'cloud_url', None)
-        if not cloud_url:
+        local_url = getattr(self._artwork, 'local_url', None)
+
+        base_url = cloud_url or local_url
+        if not base_url:
             return
 
-        import time
         cache_buster = int(time.time() * 1000)
-        artwork_url = f'{cloud_url}?v={cache_buster}'
+        artwork_url = f'{base_url}?v={cache_buster}'
         await self._device.set_capability_value('artwork_url', artwork_url)
         self._device.log(self.device_name, 'Artwork URL updated.', artwork_url)
 
-        local_url = getattr(self._artwork, 'local_url', None)
+        cloud_url_with_cache = f'{cloud_url}?v={cache_buster}' if cloud_url else ''
         local_url_with_cache = f'{local_url}?v={cache_buster}' if local_url else ''
 
-        await self._trigger_artwork_url_updated(local_url_with_cache, artwork_url)
+        await self._trigger_artwork_url_updated(local_url_with_cache, cloud_url_with_cache)
 
-    async def _trigger_artwork_url_updated(
-        self, local_url: str, cloud_url: str
-    ) -> None:
+    async def _trigger_artwork_url_updated(self, local_url: str, cloud_url: str) -> None:
         from ..apple_tv.device import AppleTVDevice
         from ..homepod_base.device import HomePodBaseDevice
 
@@ -173,7 +193,6 @@ class AirPlayLogic:
 
     async def _update_now_playing(self, playing: pyatv_interface.Playing) -> None:
         """Update Homey capabilities from a Playing object."""
-        # Do not update if the device is turned off
         if (
             self._device.has_capability('onoff')
             and self._device.get_capability_value('onoff') is False
@@ -183,12 +202,7 @@ class AirPlayLogic:
         device_state = playing.device_state
         is_playing = device_state == DeviceState.Playing
 
-        self._device.log(
-            self.device_name,
-            'Now playing update',
-            playing.title,
-            device_state,
-        )
+        self._device.log(self.device_name, 'Now playing update', playing.title, device_state)
 
         try:
             await self._device.set_capability_value('speaker_playing', is_playing)
@@ -203,27 +217,20 @@ class AirPlayLogic:
                 await self._device.set_capability_value('speaker_track', playing.title)
 
             if playing.total_time is not None:
-                await self._device.set_capability_value(
-                    'speaker_duration', playing.total_time
-                )
+                await self._device.set_capability_value('speaker_duration', playing.total_time)
 
             if playing.position is not None:
-                await self._device.set_capability_value(
-                    'speaker_position', playing.position
-                )
+                await self._device.set_capability_value('speaker_position', playing.position)
 
-            # Update artwork
             artwork_hash = playing.hash
             if artwork_hash != self._artwork_hash:
                 await self._fetch_artwork(artwork_hash)
 
-            # Update now-playing app info
             if is_playing:
-                app = getattr(playing, 'app', None) if hasattr(playing, 'app') else None
-
+                app = None
                 if self._atv is not None:
                     try:
-                        app = await self._atv.metadata.app()
+                        app = self._atv.metadata.app
                     except Exception:
                         app = None
 
@@ -247,14 +254,19 @@ class AirPlayLogic:
 
         try:
             artwork_info = await self._atv.metadata.artwork()
-            if artwork_info is None or artwork_info.bytes is None:
+
+            if artwork_info is None:
                 await self._update_artwork_data(None)
                 return
 
-            self._artwork_hash = artwork_hash
+            if artwork_info.bytes is None:
+                await self._update_artwork_data(None)
+                return
+
             await self._update_artwork_data(artwork_info.bytes)
+            self._artwork_hash = artwork_hash
         except Exception as err:
-            self._device.log(self.device_name, 'Failed to fetch artwork:', err)
+            import traceback
 
     async def _update_artwork_data(self, data: bytes | None) -> None:
         """Push raw artwork bytes (or None) into the Homey Image."""
@@ -263,15 +275,16 @@ class AirPlayLogic:
 
         try:
             if data:
-                await self._artwork.set_stream(
-                    lambda stream: _write_bytes_to_stream(stream, data)
-                )
-            else:
-                self._artwork.local_url = None
+                async def write_to_stream(stream: Any) -> None:
+                    stream.write(data)
+
+                await self._call_maybe_async(self._artwork, 'set_stream', write_to_stream)
+
+            await self._call_maybe_async(self._artwork, 'update')
 
             await self.update_artwork_url()
         except Exception as err:
-            self._device.log(self.device_name, 'Failed to update artwork:', err)
+            import traceback
 
     async def _update_now_playing_app(
         self,
@@ -298,12 +311,3 @@ class AirPlayLogic:
                 bundle_identifier or '-',
                 display_name or '-',
             )
-
-
-def _write_bytes_to_stream(stream: Any, data: bytes) -> None:
-    """Write bytes to a stream-like object."""
-    buf = io.BytesIO(data)
-    try:
-        stream.write(buf.read())
-    except Exception:
-        pass

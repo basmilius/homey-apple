@@ -79,6 +79,7 @@ class AppleTVDevice(DiscoverableDevice):
         self._companion_link: CompanionLinkConnection = None  # type: ignore[assignment]
         self._companion_link_failed = False
         self._connected_once = False
+        self._last_volume_before_mute: float | None = None
 
     async def on_init(self) -> None:
         await self.set_unavailable('Connecting...')
@@ -208,23 +209,101 @@ class AppleTVDevice(DiscoverableDevice):
         self.register_capability_listener('onoff', self._on_onoff)
 
     def _register_remote(self) -> None:
-        remote_keys = [cap for cap in CAPABILITIES if cap.startswith('remote_')]
-        self.register_multiple_capability_listener(
-            remote_keys, self._on_remote, debounce_timeout=0
-        )
+        # Register each remote button individually to avoid incorrect/mixed payloads.
+        self.register_capability_listener('remote_up', self._on_remote_up)
+        self.register_capability_listener('remote_down', self._on_remote_down)
+        self.register_capability_listener('remote_left', self._on_remote_left)
+        self.register_capability_listener('remote_right', self._on_remote_right)
+        self.register_capability_listener('remote_select', self._on_remote_select)
+        self.register_capability_listener('remote_home', self._on_remote_home)
+        self.register_capability_listener('remote_back', self._on_remote_back)
+        self.register_capability_listener('remote_playpause', self._on_remote_playpause)
+
+    # ------------------------------------------------------------------
+    # Remote button listeners (per-capability)
+    # ------------------------------------------------------------------
+
+    async def _get_remote_control(self):
+        atv = self._companion_link.atv
+        if atv is None:
+            return None
+        return atv.remote_control
+
+    async def _on_remote_up(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.up()
+
+    async def _on_remote_down(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.down()
+
+    async def _on_remote_left(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.left()
+
+    async def _on_remote_right(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.right()
+
+    async def _on_remote_select(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.select()
+
+    async def _on_remote_home(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.home()
+
+    async def _on_remote_back(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.menu()
+
+    async def _on_remote_playpause(self, value: bool, **_: Any) -> None:
+        if not value:
+            return
+        rc = await self._get_remote_control()
+        if rc:
+            await rc.play_pause()
 
     # ------------------------------------------------------------------
     # Capability listeners
     # ------------------------------------------------------------------
 
     async def _on_onoff(self, value: bool, **_: Any) -> None:
-        atv = self._airplay.atv
+        # Prefer Companion Link for power management (reliable sleep/wake).
+        atv = self._companion_link.atv if self._companion_link is not None else None
+        if atv is None:
+            # Fallback to AirPlay connection (best effort).
+            atv = self._airplay.atv
+
         if atv is None:
             return
+
         if value:
             await atv.power.turn_on()
         else:
             await atv.power.turn_off()
+            await self._airplay_logic.clear_now_playing()
 
     async def _on_speaker_next(self, _: Any, **__: Any) -> None:
         atv = self._airplay.atv
@@ -253,40 +332,49 @@ class AppleTVDevice(DiscoverableDevice):
     async def _on_volume_up(self, _: Any, **__: Any) -> None:
         atv = self._airplay.atv
         if atv:
-            await atv.remote_control.volume_up()
+            await atv.audio.volume_up()
 
     async def _on_volume_down(self, _: Any, **__: Any) -> None:
         atv = self._airplay.atv
         if atv:
-            await atv.remote_control.volume_down()
+            await atv.audio.volume_down()
 
     async def _on_volume_mute(self, _: Any, **__: Any) -> None:
-        # pyatv does not have a dedicated mute command; volume_down is a best effort.
-        atv = self._airplay.atv
-        if atv:
-            await atv.remote_control.volume_down()
-
-    async def _on_remote(self, values: dict, **_: Any) -> None:
         atv = self._airplay.atv
         if atv is None:
             return
-        rc = atv.remote_control
-        if values.get('remote_up'):
-            await rc.up()
-        if values.get('remote_down'):
-            await rc.down()
-        if values.get('remote_left'):
-            await rc.left()
-        if values.get('remote_right'):
-            await rc.right()
-        if values.get('remote_select'):
-            await rc.select()
-        if values.get('remote_home'):
-            await rc.home()
-        if values.get('remote_back'):
-            await rc.menu()
-        if values.get('remote_playpause'):
-            await rc.play_pause()
+
+        audio = getattr(atv, "audio", None)
+        if audio is None:
+            return
+
+        # Prefer a proper toggle via absolute volume if supported.
+        try:
+            if getattr(audio, "is_available", False) and getattr(audio, "is_volume_absolute", False):
+                current = float(getattr(audio, "volume", 0.0) or 0.0)
+
+                if current > 0.0:
+                    self._last_volume_before_mute = current
+                    await audio.set_volume(0.0)
+                else:
+                    restore = self._last_volume_before_mute
+                    if restore is None or restore <= 0.0:
+                        restore = 20.0  # sensible default if we don't know previous volume
+                    await audio.set_volume(float(restore))
+                return
+        except Exception as err:
+            self.error("Mute toggle via absolute volume failed, falling back:", err)
+
+        # Fallback: no absolute volume => best effort "mute-ish" by stepping down a bit.
+        try:
+            for _i in range(10):
+                await audio.volume_down()
+        except Exception:
+            pass
+
+    async def _on_remote(self, values: dict, **_: Any) -> None:
+        # Kept for backward compatibility, but should no longer be used.
+        self.log("Deprecated _on_remote called with:", values)
 
     async def _on_restart(self, _: Any, **__: Any) -> None:
         try:

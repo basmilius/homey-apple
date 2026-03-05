@@ -97,6 +97,7 @@ class AirPlayConnection:
         """Create a pyatv AppleTV config and connect via AirPlay."""
         loop = asyncio.get_event_loop()
         config = _build_config(
+            identifier=self._device.get_data().get('id'),
             address=address,
             name=self._device.get_name(),
             protocol=Protocol.AirPlay,
@@ -176,6 +177,7 @@ class CompanionLinkConnection:
         """Create a pyatv AppleTV config and connect via Companion Link."""
         loop = asyncio.get_event_loop()
         config = _build_config(
+            identifier=self._device.get_data().get('id'),
             address=address,
             name=self._device.get_name(),
             protocol=Protocol.Companion,
@@ -191,6 +193,14 @@ class CompanionLinkConnection:
 
             power_listener = _PowerListener(self)
             self._atv.power.listener = power_listener
+
+            # Fetch and publish initial power state (no event is emitted on connect).
+            try:
+                initial_state = self._atv.power.power_state
+                await self._on_power(initial_state)
+            except Exception as err:
+                self._device.error('Failed to fetch initial power state:', err)
+
         except Exception as err:
             self._device.error('Failed to connect via Companion Link:', err)
             await self._device.set_unavailable(
@@ -267,6 +277,7 @@ class CompanionLinkConnection:
 
 
 def _build_config(
+    identifier: str,
     address: str,
     name: str,
     protocol: Protocol,
@@ -280,7 +291,7 @@ def _build_config(
         name=name,
     )
     service = ManualService(
-        identifier=None,
+        identifier=identifier,
         protocol=protocol,
         port=port,
         properties=txt_properties,
