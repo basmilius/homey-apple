@@ -46,6 +46,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #connectedOnce = false;
+    #isReconnecting = false;
     #services!: Record<string, Homey.DiscoveryStrategy>;
 
     async onInit(): Promise<void> {
@@ -99,16 +100,22 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     }
 
     async #onDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
+        if (!unexpected || this.#isReconnecting) {
             return;
         }
 
-        this.log('Disconnected from HomePod, reconnecting...');
-        await this.setUnavailable('Disconnected from HomePod, reconnecting...');
-        await waitFor(1000);
+        this.#isReconnecting = true;
 
-        await this.findService(AIRPLAY_SERVICE);
-        await this.#airplay.reconnect(this.discoveryResult);
+        try {
+            this.log('Disconnected from HomePod, reconnecting...');
+            await this.setUnavailable('Disconnected from HomePod, reconnecting...');
+            await waitFor(1000);
+
+            await this.findService(AIRPLAY_SERVICE);
+            await this.#airplay.reconnect(this.discoveryResult);
+        } finally {
+            this.#isReconnecting = false;
+        }
     }
 
     #registerCapabilities(): void {
@@ -147,9 +154,13 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
-            await this.#disconnect();
-            await this.#airplayLogic.clearNowPlaying();
-            await this.#connect();
+            try {
+                await this.#disconnect();
+                await this.#airplayLogic.clearNowPlaying();
+                await this.#connect();
+            } catch (err) {
+                this.error(err);
+            }
         });
     }
 
@@ -177,20 +188,23 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         const audioSource = await UrlAudioSource.fromUrl(url);
 
         // Let the actual playback happen in the background.
-        new Promise<void>(async resolve => {
-            await client.stream(audioSource, {
-                metadata: {
-                    title: 'Olympics',
-                    artist: 'RAOP Test',
-                    album: 'Test Album',
-                    duration: 5
-                },
-                volume
-            });
+        new Promise<void>(async (resolve, reject) => {
+            try {
+                await client.stream(audioSource, {
+                    metadata: {
+                        title: 'Olympics',
+                        artist: 'RAOP Test',
+                        album: 'Test Album',
+                        duration: 5
+                    },
+                    volume
+                });
 
-            await client.close();
-
-            resolve();
-        });
+                await client.close();
+                resolve();
+            } catch (err) {
+                reject(err);
+            }
+        }).catch(err => this.error('playUrl failed:', err));
     }
 }

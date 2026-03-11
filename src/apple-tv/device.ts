@@ -64,6 +64,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #companionLink!: CompanionLinkConnection;
     #companionLinkFailed = false;
     #connectedOnce = false;
+    #isReconnecting = false;
     #services!: Record<string, Homey.DiscoveryStrategy>;
 
     async onInit(): Promise<void> {
@@ -217,16 +218,22 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async #onAirPlayDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
+        if (!unexpected || this.#isReconnecting) {
             return;
         }
 
-        this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
-        await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
-        await waitFor(1000);
+        this.#isReconnecting = true;
 
-        await this.findService(AIRPLAY_SERVICE);
-        await this.#airplay.reconnect(this.discoveryResultAirPlay);
+        try {
+            this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
+            await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
+            await waitFor(1000);
+
+            await this.findService(AIRPLAY_SERVICE);
+            await this.#airplay.reconnect(this.discoveryResultAirPlay);
+        } finally {
+            this.#isReconnecting = false;
+        }
     }
 
     async #onCompanionLinkConnected(): Promise<void> {
@@ -235,16 +242,22 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async #onCompanionLinkDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
+        if (!unexpected || this.#isReconnecting) {
             return;
         }
 
-        this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
-        await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
-        await waitFor(1000);
+        this.#isReconnecting = true;
 
-        await this.findService(COMPANION_LINK_SERVICE);
-        await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+        try {
+            this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
+            await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
+            await waitFor(1000);
+
+            await this.findService(COMPANION_LINK_SERVICE);
+            await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+        } finally {
+            this.#isReconnecting = false;
+        }
     }
 
     async #onCompanionLinkFailed(): Promise<void> {

@@ -90,6 +90,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     setProtocol(protocol: AirPlayDevice): void {
+        this.#protocol?.state.removeAllListeners();
         this.#protocol = protocol;
 
         // this.#protocol.state.on('setArtwork', (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
