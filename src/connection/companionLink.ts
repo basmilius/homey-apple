@@ -54,6 +54,7 @@ export default class extends EventEmitter<EventMap> {
 
     createInstance(credentials: AccessoryCredentials, discoveryResult: DiscoveryResult): void {
         this.#credentials = credentials;
+        this.#connectAttempts = 0;
 
         this.#protocol = new CompanionLinkDevice(discoveryResult);
         this.#protocol.on('connected', () => this.#onConnected());

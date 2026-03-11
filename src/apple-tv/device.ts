@@ -62,7 +62,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #companionLink!: CompanionLinkConnection;
-    #companionLinkFailed = false;
     #connectedOnce = false;
     #isReconnecting = false;
     #services!: Record<string, Homey.DiscoveryStrategy>;
@@ -261,15 +260,36 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async #onCompanionLinkFailed(): Promise<void> {
-        if (this.#companionLinkFailed) {
+        if (this.#isReconnecting) {
             return;
         }
 
-        this.#companionLinkFailed = true;
+        this.log('Companion Link connection failed (possible port change), attempting full reconnect with fresh discovery...');
+        await this.setUnavailable('Companion Link connection lost, reconnecting...');
 
-        this.log('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
-        await this.setUnavailable('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
-        await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
+        this.#isReconnecting = true;
+
+        try {
+            await this.#companionLink.disconnect();
+            await waitFor(1000);
+
+            const credentials = getAccessoryCredentialsFromDevice(this);
+
+            if (!credentials) {
+                await this.setUnavailable('Cannot find credentials, please re-pair the device.');
+                return;
+            }
+
+            await this.findService(COMPANION_LINK_SERVICE);
+            this.#companionLink.createInstance(credentials, this.discoveryResultCompanionLink);
+            await this.#companionLink.connect();
+        } catch (err) {
+            this.error('Failed to recover from Companion Link failure:', err);
+            await this.setUnavailable('Failed to reconnect to Apple TV using Companion Link. Please restart the app.');
+            await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
+        } finally {
+            this.#isReconnecting = false;
+        }
     }
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
