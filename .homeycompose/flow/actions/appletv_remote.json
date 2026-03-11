@@ -360,6 +360,114 @@
                         "ko": "수면",
                         "ar": "نوم"
                     }
+                },
+                {
+                    "id": "screensaver",
+                    "label": {
+                        "en": "Screensaver",
+                        "nl": "Schermbeveiliging",
+                        "da": "Pauseskærm",
+                        "de": "Bildschirmschoner",
+                        "es": "Salvapantallas",
+                        "fr": "Économiseur d'écran",
+                        "it": "Salvaschermo",
+                        "no": "Skjermsparer",
+                        "sv": "Skärmsläckare",
+                        "pl": "Wygaszacz ekranu",
+                        "ru": "Заставка",
+                        "ko": "화면 보호기",
+                        "ar": "شاشة التوقف"
+                    }
+                },
+                {
+                    "id": "homeHold",
+                    "label": {
+                        "en": "Home (hold)",
+                        "nl": "Home (vasthouden)",
+                        "da": "Hjem (hold)",
+                        "de": "Home (halten)",
+                        "es": "Inicio (mantener)",
+                        "fr": "Accueil (maintenir)",
+                        "it": "Home (tieni premuto)",
+                        "no": "Hjem (hold inne)",
+                        "sv": "Hem (håll in)",
+                        "pl": "Dom (przytrzymaj)",
+                        "ru": "Дом (удержание)",
+                        "ko": "홈 (길게 누르기)",
+                        "ar": "الصفحة الرئيسية (اضغط مطولاً)"
+                    }
+                },
+                {
+                    "id": "doubleTapSelect",
+                    "label": {
+                        "en": "Select (double tap)",
+                        "nl": "Selecteer (dubbeltik)",
+                        "da": "Vælg (dobbelttryk)",
+                        "de": "Auswählen (Doppeltippen)",
+                        "es": "Seleccionar (doble toque)",
+                        "fr": "Sélectionner (double appui)",
+                        "it": "Seleziona (doppio tocco)",
+                        "no": "Velg (dobbelttrykk)",
+                        "sv": "Välj (dubbelknacka)",
+                        "pl": "Wybierz (podwójne stuknięcie)",
+                        "ru": "Выбрать (двойное касание)",
+                        "ko": "선택 (두 번 탭)",
+                        "ar": "اختر (نقرة مزدوجة)"
+                    }
+                },
+                {
+                    "id": "channelUp",
+                    "label": {
+                        "en": "Channel Up",
+                        "nl": "Kanaal omhoog",
+                        "da": "Kanal op",
+                        "de": "Kanal hoch",
+                        "es": "Canal arriba",
+                        "fr": "Chaîne suivante",
+                        "it": "Canale su",
+                        "no": "Kanal opp",
+                        "sv": "Kanal upp",
+                        "pl": "Kanał w górę",
+                        "ru": "Канал вверх",
+                        "ko": "채널 올리기",
+                        "ar": "القناة التالية"
+                    }
+                },
+                {
+                    "id": "channelDown",
+                    "label": {
+                        "en": "Channel Down",
+                        "nl": "Kanaal omlaag",
+                        "da": "Kanal ned",
+                        "de": "Kanal runter",
+                        "es": "Canal abajo",
+                        "fr": "Chaîne précédente",
+                        "it": "Canale giù",
+                        "no": "Kanal ned",
+                        "sv": "Kanal ner",
+                        "pl": "Kanał w dół",
+                        "ru": "Канал вниз",
+                        "ko": "채널 내리기",
+                        "ar": "القناة السابقة"
+                    }
+                },
+                {
+                    "id": "siri",
+                    "label": {
+                        "en": "Siri",
+                        "nl": "Siri",
+                        "da": "Siri",
+                        "de": "Siri",
+                        "es": "Siri",
+                        "fr": "Siri",
+                        "it": "Siri",
+                        "no": "Siri",
+                        "sv": "Siri",
+                        "pl": "Siri",
+                        "ru": "Siri",
+                        "ko": "Siri",
+                        "ar": "Siri"
+                    }
                 }
             ]
         }

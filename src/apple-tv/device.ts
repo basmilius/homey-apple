@@ -31,6 +31,8 @@ const CAPABILITIES = [
     'remote_back',
     'remote_playpause',
     'now_playing_app',
+    'media_type',
+    'volume_set',
     'button.restart'
 ];
 
@@ -163,6 +165,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         this.registerCapabilityListener('volume_mute', async () => {
             await this.#airplay.remote.mute();
+        });
+
+        this.registerCapabilityListener('volume_set', async (volume: number) => {
+            await this.#airplay.protocol.volume.set(volume);
         });
     }
 

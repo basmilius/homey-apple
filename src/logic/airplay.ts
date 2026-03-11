@@ -265,10 +265,35 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 : null;
 
             await this.#updateNowPlayingApp(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
+            await this.#updateMediaType(item.metadata?.mediaType, item.metadata?.mediaSubType);
             await this.#setArtwork(item.metadata?.artworkIdentifier || item.metadata?.contentIdentifier || item.identifier, item);
         } catch (err) {
             this.log(this.deviceName, 'Failed to update now playing info', err);
         }
+    }
+
+    async #updateMediaType(mediaType?: Proto.ContentItemMetadata_MediaType, mediaSubType?: Proto.ContentItemMetadata_MediaSubType): Promise<void> {
+        if (!this.#device.hasCapability('media_type')) {
+            return;
+        }
+
+        let value = 'unknown';
+
+        if (mediaType === Proto.ContentItemMetadata_MediaType.Video) {
+            value = 'video';
+        } else if (mediaType === Proto.ContentItemMetadata_MediaType.Audio) {
+            if (mediaSubType === Proto.ContentItemMetadata_MediaSubType.Podcast) {
+                value = 'podcast';
+            } else if (mediaSubType === Proto.ContentItemMetadata_MediaSubType.AudioBook) {
+                value = 'audiobook';
+            } else if (mediaSubType === Proto.ContentItemMetadata_MediaSubType.Music) {
+                value = 'music';
+            } else {
+                value = 'audio';
+            }
+        }
+
+        await this.#device.setCapabilityValue('media_type', value);
     }
 
     async #updateNowPlayingAppImpl(bundleIdentifier: string | null, displayName: string | null): Promise<void> {

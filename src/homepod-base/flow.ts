@@ -1,3 +1,4 @@
+import { Proto } from '@basmilius/apple-airplay';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, HomePodBaseDevice, HomePodBaseDriver } from '../types';
 
@@ -5,6 +6,9 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
     register(): void {
         this.#registerPlayUrl();
         this.#registerPlayUrlAtVolume();
+        this.#registerSeekToPosition();
+        this.#registerSkipForward();
+        this.#registerSkipBackward();
     }
 
     async triggerArtworkUrlUpdated(device: HomePodBaseDevice<HomePodBaseDriver>, localUrl: string, cloudUrl: string): Promise<void> {
@@ -26,6 +30,45 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
 
         playUrl.registerRunListener(async ({device, url}: RunArguments) => {
             await device.playUrl(url);
+        });
+    }
+
+    #registerSeekToPosition(): void {
+        const card = this.homey.flow.getActionCard('homepod_set_position');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly position: number;
+        };
+
+        card.registerRunListener(async ({device, position}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.SeekToPlaybackPosition, {playbackPosition: position} as unknown as Proto.CommandOptions);
+        });
+    }
+
+    #registerSkipForward(): void {
+        const card = this.homey.flow.getActionCard('homepod_skip_forward');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.SkipForward, {skipInterval: seconds} as unknown as Proto.CommandOptions);
+        });
+    }
+
+    #registerSkipBackward(): void {
+        const card = this.homey.flow.getActionCard('homepod_skip_backward');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.SkipBackward, {skipInterval: seconds} as unknown as Proto.CommandOptions);
         });
     }
 

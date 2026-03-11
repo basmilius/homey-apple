@@ -1,0 +1,21 @@
+{
+    "type": "string",
+    "title": {
+        "en": "Media Type",
+        "nl": "Mediatype",
+        "da": "Medietype",
+        "de": "Medientyp",
+        "es": "Tipo de medio",
+        "fr": "Type de média",
+        "it": "Tipo di media",
+        "no": "Medietype",
+        "sv": "Mediatyp",
+        "pl": "Typ mediów",
+        "ru": "Тип медиа",
+        "ko": "미디어 유형",
+        "ar": "نوع الوسائط"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": null
+}

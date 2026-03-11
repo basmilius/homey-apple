@@ -1,3 +1,4 @@
+import { Proto } from '@basmilius/apple-airplay';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, AppleTVDevice } from '../types';
 import type Homey from 'homey';
@@ -7,6 +8,11 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         this.#registerLaunchApp();
         this.#registerLaunchUrl();
         this.#registerRemote();
+        this.#registerSeekToPosition();
+        this.#registerSkipForward();
+        this.#registerSkipBackward();
+        this.#registerSetRepeat();
+        this.#registerSetShuffle();
         this.#registerSwitchAccount();
     }
 
@@ -161,7 +167,104 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                 case 'suspend':
                     await device.airplay.remote.suspend();
                     break;
+
+                case 'screensaver':
+                    await device.companionLink.protocol.pressButton('Screensaver');
+                    break;
+
+                case 'homeHold':
+                    await device.companionLink.protocol.pressButton('Home', 'Hold', 1000);
+                    break;
+
+                case 'doubleTapSelect':
+                    await device.companionLink.protocol.pressButton('Select', 'DoubleTap');
+                    break;
+
+                case 'channelUp':
+                    await device.companionLink.protocol.pressButton('ChannelIncrement');
+                    break;
+
+                case 'channelDown':
+                    await device.companionLink.protocol.pressButton('ChannelDecrement');
+                    break;
+
+                case 'siri':
+                    await device.companionLink.protocol.pressButton('Siri');
+                    break;
             }
+        });
+    }
+
+    #registerSeekToPosition(): void {
+        const card = this.flow.getActionCard('appletv_set_position');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly position: number;
+        };
+
+        card.registerRunListener(async ({device, position}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.SeekToPlaybackPosition, {playbackPosition: position} as unknown as Proto.CommandOptions);
+        });
+    }
+
+    #registerSkipForward(): void {
+        const card = this.flow.getActionCard('appletv_skip_forward');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.SkipForward, {skipInterval: seconds} as unknown as Proto.CommandOptions);
+        });
+    }
+
+    #registerSkipBackward(): void {
+        const card = this.flow.getActionCard('appletv_skip_backward');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.SkipBackward, {skipInterval: seconds} as unknown as Proto.CommandOptions);
+        });
+    }
+
+    #registerSetRepeat(): void {
+        const card = this.flow.getActionCard('appletv_set_repeat');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly mode: string;
+        };
+
+        card.registerRunListener(async ({device, mode}: RunArguments) => {
+            const repeatModeMap: Record<string, Proto.RepeatMode_Enum> = {
+                off: Proto.RepeatMode_Enum.Off,
+                one: Proto.RepeatMode_Enum.One,
+                all: Proto.RepeatMode_Enum.All,
+            };
+
+            await device.airplay.protocol.sendCommand(Proto.Command.ChangeRepeatMode, {repeatMode: repeatModeMap[mode]} as unknown as Proto.CommandOptions);
+        });
+    }
+
+    #registerSetShuffle(): void {
+        const card = this.flow.getActionCard('appletv_set_shuffle');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly shuffle: string;
+        };
+
+        card.registerRunListener(async ({device, shuffle}: RunArguments) => {
+            await device.airplay.protocol.sendCommand(Proto.Command.ChangeShuffleMode, {
+                shuffleMode: shuffle === 'true' ? Proto.ShuffleMode_Enum.Songs : Proto.ShuffleMode_Enum.Off,
+            } as unknown as Proto.CommandOptions);
         });
     }
 
