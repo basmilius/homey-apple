@@ -33,6 +33,7 @@ export default class extends EventEmitter<EventMap> {
     #protocol!: CompanionLinkDevice;
     #connectAttempts = 0;
     #reconnectInterval?: NodeJS.Timeout;
+    #isScheduledReconnecting = false;
 
     constructor(device: AppleTVDevice) {
         super();
@@ -78,6 +79,8 @@ export default class extends EventEmitter<EventMap> {
 
         this.#reconnectInterval = setInterval(async () => {
             this.#device.log('Scheduled reconnection interval reached, restarting Companion Link connection...');
+            this.#isScheduledReconnecting = true;
+            this.#connectAttempts = 0;
 
             try {
                 await this.#protocol.disconnect();
@@ -85,6 +88,8 @@ export default class extends EventEmitter<EventMap> {
                 await this.reconnect(this.#device.discoveryResultCompanionLink);
             } catch (err) {
                 this.#device.error('Failed to restart Companion Link connection:', err);
+            } finally {
+                this.#isScheduledReconnecting = false;
             }
         }, RECONNECT_INTERVAL);
     }
@@ -102,6 +107,10 @@ export default class extends EventEmitter<EventMap> {
     }
 
     #onDisconnected(unexpected: boolean): void {
+        if (this.#isScheduledReconnecting) {
+            return;
+        }
+
         this.#connectAttempts++;
 
         if (this.#connectAttempts >= MAX_CONNECT_ATTEMPTS) {

@@ -38,7 +38,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async uninitialize(): Promise<void> {
-        this.#protocol.state.removeAllListeners();
+        this.#protocol?.state.removeAllListeners();
         await this.#artwork.unregister();
     }
 

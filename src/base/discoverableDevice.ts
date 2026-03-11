@@ -31,7 +31,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
         let result: Homey.DiscoveryResultMDNSSD | undefined;
         let retries = 0;
-        const maxRetries = 3;
+        const maxRetries = 10;
 
         while (retries < maxRetries) {
             const results = discovery.getDiscoveryResults();
@@ -51,7 +51,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
             retries++;
 
-            await waitFor(500);
+            await waitFor(1000);
         }
 
         if (!result) {
