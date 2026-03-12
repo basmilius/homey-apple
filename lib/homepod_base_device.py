@@ -220,7 +220,7 @@ class HomePodBaseDevice(DiscoverableDevice):
             raise RuntimeError('Not connected.')
 
         if volume is not None:
-            await self._atv.audio.set_volume(volume * 100)
+            await self._atv.audio.set_volume(volume)  # flow card provides 0–100, pyatv expects 0–100
 
         # Stream in the background so the flow action returns immediately
         asyncio.create_task(self._stream_url(url))
