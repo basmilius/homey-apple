@@ -283,5 +283,8 @@
   },
   "1.6.2": {
     "en": "Fix device discovery outside dev sandbox."
+  },
+  "1.6.3": {
+    "en": "Added fallback to app name when artist is None."
   }
 }
