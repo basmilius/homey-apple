@@ -29,6 +29,11 @@ class DiscoverableDevice(Device):
         return self.get_data().get('id', '')
 
     @property
+    def _expected_name(self) -> str:
+        """Device name derived from the mDNS hostname (strip ``.local``, replace ``-`` with `` ``)."""
+        return self.discovery_id.removesuffix('.local').replace('-', ' ')
+
+    @property
     @abstractmethod
     def services(self) -> list[str]:
         """Logical service names this device needs (e.g. ``['airplay', 'companion-link']``)."""
@@ -51,20 +56,26 @@ class DiscoverableDevice(Device):
             )
             if results:
                 return results[0][4][0]
-        except (socket.gaierror, OSError) as err:
-            self.error(f'Failed to resolve {hostname}:', err)
+        except (socket.gaierror, OSError):
+            pass
 
         return None
+
+    def _match_scan_result(self, config: pyatv.interface.BaseConfig) -> bool:
+        """Check if a pyatv scan result matches this device by name."""
+        if not config.name:
+            return False
+        return config.name.lower() == self._expected_name.lower()
 
     async def scan(self) -> pyatv.interface.BaseConfig | None:
         """
         Scan for this device on the local network using pyatv, retrying
         up to :data:`MAX_SCAN_RETRIES` times.
 
-        The device data stores an mDNS hostname (e.g. ``Woonkamer-TV.local``),
-        which is resolved to an IP address first.  The resolved IP is then
-        passed to ``pyatv.scan(hosts=[ip])`` so that pyatv can discover all
-        available protocols and their current ports.
+        First attempts to resolve the mDNS hostname to an IP and scan that
+        host directly.  If hostname resolution fails (e.g. in a sandboxed
+        runtime without mDNS support), falls back to a broad network scan
+        and matches by device name.
 
         Returns the first matching config, or *None* if not found.
         """
@@ -72,24 +83,32 @@ class DiscoverableDevice(Device):
         hostname = self.discovery_id
 
         for attempt in range(MAX_SCAN_RETRIES):
+            # Fast path: resolve hostname to IP and scan directly.
             ip = await self._resolve_host()
-            if ip is None:
-                if attempt < MAX_SCAN_RETRIES - 1:
-                    await asyncio.sleep(SCAN_RETRY_INTERVAL_S)
-                continue
-
-            results = await pyatv.scan(
-                loop,
-                timeout=SCAN_TIMEOUT_S,
-                hosts=[ip],
-            )
-            if results:
-                self._scan_config = results[0]
-                self.log(
-                    f'Found {hostname} at '
-                    f'{self._scan_config.address} (attempt {attempt + 1})'
+            if ip is not None:
+                results = await pyatv.scan(
+                    loop,
+                    timeout=SCAN_TIMEOUT_S,
+                    hosts=[ip],
                 )
-                return self._scan_config
+                if results:
+                    self._scan_config = results[0]
+                    self.log(
+                        f'Found {hostname} at '
+                        f'{self._scan_config.address} (attempt {attempt + 1})'
+                    )
+                    return self._scan_config
+
+            # Slow path: broad scan, match by name.
+            results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
+            for config in results:
+                if self._match_scan_result(config):
+                    self._scan_config = config
+                    self.log(
+                        f'Found {hostname} at '
+                        f'{config.address} via broad scan (attempt {attempt + 1})'
+                    )
+                    return self._scan_config
 
             if attempt < MAX_SCAN_RETRIES - 1:
                 await asyncio.sleep(SCAN_RETRY_INTERVAL_S)
