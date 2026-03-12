@@ -1,106 +1,101 @@
 from __future__ import annotations
 
+import asyncio
+import socket
+from abc import abstractmethod
 from typing import Any
 
+import pyatv
 from homey.device import Device
-from homey.discovery_result_mdns_sd import DiscoveryResultMDNSSD
 
-from ..utils.wait_for import wait_for
-
-AIRPLAY_SERVICE = 'airplay'
-COMPANION_LINK_SERVICE = 'companion-link'
+MAX_SCAN_RETRIES = 10
+SCAN_RETRY_INTERVAL_S = 1.0
+SCAN_TIMEOUT_S = 3
 
 
 class DiscoverableDevice(Device):
     """
-    A Homey device that tracks mDNS-SD discovery results for one or more
-    named services (e.g. ``airplay`` and ``companion-link``).
+    A Homey device that discovers itself on the local network via
+    ``pyatv.scan()``.
 
-    Subclasses receive the discovery result via
-    :meth:`on_discovery_available` (called by the Homey SDK for the primary
-    service) and may also call :meth:`find_service` to look up additional
-    services from ``self.homey.discovery``.
+    Subclasses declare which services they need (via :attr:`services`) and
+    receive a single pyatv ``BaseConfig`` containing all available protocols
+    once scanning is complete.
     """
 
     @property
     def discovery_id(self) -> str:
+        """The mDNS hostname stored in device data during pairing (e.g. ``Woonkamer-TV.local``)."""
         return self.get_data().get('id', '')
 
     @property
-    def discovery_results(self) -> dict[str, DiscoveryResultMDNSSD]:
-        return self._discovery_results
+    @abstractmethod
+    def services(self) -> list[str]:
+        """Logical service names this device needs (e.g. ``['airplay', 'companion-link']``)."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._discovery_results: dict[str, DiscoveryResultMDNSSD] = {}
+        self._scan_config: pyatv.interface.BaseConfig | None = None
 
-    async def find_service(
-        self, service: str, update: bool = True
-    ) -> DiscoveryResultMDNSSD | None:
-        """
-        Look up the given discovery service by ID, retrying a few times.
+    async def _resolve_host(self) -> str | None:
+        """Resolve the mDNS hostname to an IPv4 address."""
+        loop = asyncio.get_running_loop()
+        hostname = self.discovery_id
 
-        :param service: The discovery strategy ID (e.g. ``"companion-link"``).
-        :param update: When *True*, call :meth:`on_service_updated`; otherwise
-                       call :meth:`on_service_found`.
-        :returns: The :class:`DiscoveryResultMDNSSD`, or *None* on failure.
-        """
         try:
-            strategy = self.homey.discovery.get_strategy(service)
-        except Exception:
-            self.error(f'Discovery strategy {service!r} not found')
-            return None
-
-        result: DiscoveryResultMDNSSD | None = None
-        max_retries = 3
-
-        for _ in range(max_retries):
-            results = strategy.get_discovery_results()
-            result = results.get(self.discovery_id)  # type: ignore[assignment]
-            if result is not None:
-                break
-            await wait_for(500)
-
-        if result is None:
-            raise RuntimeError(
-                f'Cannot find {self.discovery_id!r} ({service}) on network.'
+            results = await loop.getaddrinfo(
+                hostname,
+                None,
+                family=socket.AF_INET,
+                type=socket.SOCK_STREAM,
             )
+            if results:
+                return results[0][4][0]
+        except (socket.gaierror, OSError) as err:
+            self.error(f'Failed to resolve {hostname}:', err)
 
-        self._discovery_results[service] = result
+        return None
 
-        self.log(
-            f'Found {self.discovery_id} on {service} at {result.address}:{result.port}'
-        )
+    async def scan(self) -> pyatv.interface.BaseConfig | None:
+        """
+        Scan for this device on the local network using pyatv, retrying
+        up to :data:`MAX_SCAN_RETRIES` times.
 
-        if update:
-            await self.on_service_updated(service, result)
-        else:
-            await self.on_service_found(service, result)
+        The device data stores an mDNS hostname (e.g. ``Woonkamer-TV.local``),
+        which is resolved to an IP address first.  The resolved IP is then
+        passed to ``pyatv.scan(hosts=[ip])`` so that pyatv can discover all
+        available protocols and their current ports.
 
-        return result
+        Returns the first matching config, or *None* if not found.
+        """
+        loop = asyncio.get_running_loop()
+        hostname = self.discovery_id
 
-    async def on_service_found(
-        self, service: str, discovery_result: DiscoveryResultMDNSSD
-    ) -> None:
-        self.log(
-            '[discovery]',
-            f'Found {self.discovery_id} on {service} at {discovery_result.address}:{discovery_result.port}',
-        )
+        for attempt in range(MAX_SCAN_RETRIES):
+            ip = await self._resolve_host()
+            if ip is None:
+                if attempt < MAX_SCAN_RETRIES - 1:
+                    await asyncio.sleep(SCAN_RETRY_INTERVAL_S)
+                continue
 
-    async def on_service_updated(
-        self, service: str, discovery_result: DiscoveryResultMDNSSD
-    ) -> None:
-        self.log(
-            '[discovery]',
-            f'Updated {self.discovery_id}, now on {service} at {discovery_result.address}:{discovery_result.port}',
-        )
+            results = await pyatv.scan(
+                loop,
+                timeout=SCAN_TIMEOUT_S,
+                hosts=[ip],
+            )
+            if results:
+                self._scan_config = results[0]
+                self.log(
+                    f'Found {hostname} at '
+                    f'{self._scan_config.address} (attempt {attempt + 1})'
+                )
+                return self._scan_config
 
-    async def on_discovery_result(self, discovery_result: DiscoveryResultMDNSSD) -> bool:
-        """Match discovery results by comparing the device data ID."""
-        own_id = self.get_data().get('id')
-        if isinstance(discovery_result.id, str) and isinstance(own_id, str):
-            return discovery_result.id == own_id
-        return False
+            if attempt < MAX_SCAN_RETRIES - 1:
+                await asyncio.sleep(SCAN_RETRY_INTERVAL_S)
+
+        self.error(f'Cannot find {hostname} on network after {MAX_SCAN_RETRIES} attempts.')
+        return None
 
     async def remove_old_capabilities(self, current_capabilities: list[str]) -> None:
         """Remove any capabilities on the device that are not in *current_capabilities*."""

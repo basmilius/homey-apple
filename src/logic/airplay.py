@@ -1,14 +1,12 @@
-
 from __future__ import annotations
 
 import asyncio
 import inspect
-import io
 import time
 from typing import TYPE_CHECKING, Any
 
 import pyatv.interface as pyatv_interface
-from pyatv.const import DeviceState
+from pyatv.const import DeviceState, PowerState
 
 if TYPE_CHECKING:
     from homey.device import Device
@@ -19,33 +17,12 @@ if TYPE_CHECKING:
 _DEBOUNCE_DELAY_S = 1.0
 
 
-class _PushListener(pyatv_interface.PushListener):
-    """Receives push-updates (now-playing state) from pyatv."""
-
-    def __init__(self, logic: AirPlayLogic) -> None:
-        self._logic = logic
-
-    def playstatus_update(
-        self,
-        updater: pyatv_interface.PushUpdater,
-        playing: pyatv_interface.Playing,
-    ) -> None:
-        asyncio.ensure_future(self._logic._on_playing_update(playing))
-
-    def playstatus_error(
-        self,
-        updater: pyatv_interface.PushUpdater,
-        exception: Exception,
-    ) -> None:
-        self._logic._device.error('Push update error:', exception)
-
-
-class AirPlayLogic:
+class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
     """
-    Handles now-playing info and artwork updates for a device connected via
-    pyatv AirPlay (or RAOP).
+    Receives push updates (now-playing state and power state) from pyatv and
+    syncs them to Homey capabilities.
 
-    This class is shared between Apple TV and HomePod devices.
+    Shared between Apple TV and HomePod devices.
     """
 
     @property
@@ -60,24 +37,20 @@ class AirPlayLogic:
         self._debounce_task: asyncio.Task | None = None
         self._pending_playing: pyatv_interface.Playing | None = None
         self._atv: pyatv_interface.AppleTV | None = None
-        self._push_listener: _PushListener | None = None
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    async def _call_maybe_async(self, obj: Any, method_name: str, *args: Any, **kwargs: Any) -> None:
-        """Call obj.method_name(*args) and await the result only if it's awaitable."""
-        method = getattr(obj, method_name, None)
-        if not callable(method):
-            return
-        result = method(*args, **kwargs)
-        if inspect.isawaitable(result):
-            await result
 
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
+
+    async def _call_image_method(self, method_name: str, *args: Any) -> None:
+        """Call a method on the artwork image, awaiting if it returns a coroutine."""
+        if self._artwork is None:
+            return
+        method = getattr(self._artwork, method_name, None)
+        if callable(method):
+            result = method(*args)
+            if inspect.isawaitable(result):
+                await result
 
     async def initialize(self) -> None:
         """Register artwork image with Homey and clear now-playing state."""
@@ -88,27 +61,64 @@ class AirPlayLogic:
 
     async def uninitialize(self) -> None:
         """Stop push updates and clean up the artwork image."""
-        if self._atv is not None:
-            try:
-                self._atv.push_updater.stop()
-            except Exception:
-                pass
+        self.stop()
         if self._artwork is not None:
             await self._device.homey.images.unregister_image(self._artwork)
             self._artwork = None
 
     def set_atv(self, atv: pyatv_interface.AppleTV) -> None:
-        """Attach pyatv interface and start push updates."""
+        """Attach pyatv interface and register as push + power listener."""
         self._atv = atv
-        self._push_listener = _PushListener(self)
-        atv.push_updater.listener = self._push_listener
-        asyncio.ensure_future(self._start_push_updater())
 
-    async def _start_push_updater(self) -> None:
+        atv.push_updater.listener = self
+        atv.push_updater.start(initial_delay=0)
+
+        # Power listener is only available on devices with Companion protocol.
         try:
-            self._atv.push_updater.start()
-        except Exception as err:
-            self._device.error('Failed to start push updater:', err)
+            atv.power.listener = self
+        except Exception:
+            pass
+
+    def stop(self) -> None:
+        """Stop push updates (called on disconnect / uninit)."""
+        if self._atv is not None:
+            try:
+                self._atv.push_updater.stop()
+            except Exception:
+                pass
+            try:
+                self._atv.power.listener = None
+            except Exception:
+                pass
+
+    # ------------------------------------------------------------------
+    # PushListener implementation
+    # ------------------------------------------------------------------
+
+    def playstatus_update(
+        self,
+        updater: pyatv_interface.PushUpdater,
+        playing: pyatv_interface.Playing,
+    ) -> None:
+        asyncio.create_task(self._on_playing_update(playing))
+
+    def playstatus_error(
+        self,
+        updater: pyatv_interface.PushUpdater,
+        exception: Exception,
+    ) -> None:
+        self._device.error('Push update error:', exception)
+
+    # ------------------------------------------------------------------
+    # PowerListener implementation
+    # ------------------------------------------------------------------
+
+    def powerstate_update(
+        self,
+        old_state: PowerState,
+        new_state: PowerState,
+    ) -> None:
+        asyncio.create_task(self._handle_power_state(new_state))
 
     # ------------------------------------------------------------------
     # Now-playing state
@@ -119,8 +129,8 @@ class AirPlayLogic:
         try:
             self._artwork_hash = None
 
-            await self._call_maybe_async(self._artwork, 'set_url', None)
-            await self._call_maybe_async(self._artwork, 'update')
+            await self._call_image_method('set_url', '')
+            await self._call_image_method('update')
 
             await self._update_now_playing_app(None, None)
 
@@ -173,6 +183,36 @@ class AirPlayLogic:
                 self._device, local_url, cloud_url
             )
 
+    # ------------------------------------------------------------------
+    # Power state
+    # ------------------------------------------------------------------
+
+    async def _handle_power_state(self, new_state: PowerState) -> None:
+        """Handle power state change events."""
+        self._device.log('Power state changed:', new_state)
+
+        is_on = new_state == PowerState.On
+
+        try:
+            await self._device.set_capability_value('onoff', is_on)
+
+            if self._device.has_capability('power'):
+                await self._device.set_capability_value(
+                    'power',
+                    self._device.homey.i18n.translate(
+                        'capability.power.on' if is_on else 'capability.power.off'
+                    ),
+                )
+        except Exception as err:
+            self._device.error('Failed to set power state:', err)
+
+        if not is_on:
+            await self.clear_now_playing()
+
+    # ------------------------------------------------------------------
+    # Debounced now-playing updates
+    # ------------------------------------------------------------------
+
     async def _on_playing_update(self, playing: pyatv_interface.Playing) -> None:
         """Debounced handler for push-update playback state changes."""
         self._pending_playing = playing
@@ -180,7 +220,7 @@ class AirPlayLogic:
         if self._debounce_task is not None:
             self._debounce_task.cancel()
 
-        self._debounce_task = asyncio.ensure_future(self._debounced_update())
+        self._debounce_task = asyncio.create_task(self._debounced_update())
 
     async def _debounced_update(self) -> None:
         try:
@@ -222,10 +262,18 @@ class AirPlayLogic:
             if playing.position is not None:
                 await self._device.set_capability_value('speaker_position', playing.position)
 
+            # Update volume_set capability from push updates.
+            if self._device.has_capability('volume_set'):
+                volume = getattr(playing, 'volume', None)
+                if volume is not None:
+                    await self._device.set_capability_value('volume_set', volume / 100.0)
+
+            # Artwork
             artwork_hash = playing.hash
             if artwork_hash != self._artwork_hash:
                 await self._fetch_artwork(artwork_hash)
 
+            # Now-playing app
             if is_playing:
                 app = None
                 if self._atv is not None:
@@ -236,7 +284,7 @@ class AirPlayLogic:
 
                 if app is not None:
                     await self._update_now_playing_app(
-                        getattr(app, 'bundle_identifier', None),
+                        getattr(app, 'identifier', None),
                         getattr(app, 'name', None),
                     )
                 else:
@@ -255,18 +303,14 @@ class AirPlayLogic:
         try:
             artwork_info = await self._atv.metadata.artwork()
 
-            if artwork_info is None:
-                await self._update_artwork_data(None)
-                return
-
-            if artwork_info.bytes is None:
+            if artwork_info is None or artwork_info.bytes is None:
                 await self._update_artwork_data(None)
                 return
 
             await self._update_artwork_data(artwork_info.bytes)
             self._artwork_hash = artwork_hash
         except Exception as err:
-            import traceback
+            self._device.error(self.device_name, 'Failed to fetch artwork:', err)
 
     async def _update_artwork_data(self, data: bytes | None) -> None:
         """Push raw artwork bytes (or None) into the Homey Image."""
@@ -278,13 +322,12 @@ class AirPlayLogic:
                 async def write_to_stream(stream: Any) -> None:
                     stream.write(data)
 
-                await self._call_maybe_async(self._artwork, 'set_stream', write_to_stream)
+                await self._call_image_method('set_stream', write_to_stream)
 
-            await self._call_maybe_async(self._artwork, 'update')
-
+            await self._call_image_method('update')
             await self.update_artwork_url()
         except Exception as err:
-            import traceback
+            self._device.error(self.device_name, 'Failed to update artwork data:', err)
 
     async def _update_now_playing_app(
         self,

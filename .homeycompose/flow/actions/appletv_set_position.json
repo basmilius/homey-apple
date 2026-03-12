@@ -1,0 +1,61 @@
+{
+    "id": "appletv_set_position",
+    "title": {
+        "en": "Seek to position",
+        "nl": "Ga naar positie",
+        "da": "Søg til position",
+        "de": "Zu Position springen",
+        "es": "Ir a posición",
+        "fr": "Aller à la position",
+        "it": "Vai alla posizione",
+        "no": "Søk til posisjon",
+        "sv": "Gå till position",
+        "pl": "Przejdź do pozycji",
+        "ru": "Перейти к позиции",
+        "ko": "위치로 이동",
+        "ar": "الانتقال إلى الموضع"
+    },
+    "titleFormatted": {
+        "en": "Seek to [[position]] seconds",
+        "nl": "Ga naar [[position]] seconden",
+        "da": "Søg til [[position]] sekunder",
+        "de": "Zu [[position]] Sekunden springen",
+        "es": "Ir a [[position]] segundos",
+        "fr": "Aller à [[position]] secondes",
+        "it": "Vai a [[position]] secondi",
+        "no": "Søk til [[position]] sekunder",
+        "sv": "Gå till [[position]] sekunder",
+        "pl": "Przejdź do [[position]] sekund",
+        "ru": "Перейти к [[position]] секундам",
+        "ko": "[[position]]초로 이동",
+        "ar": "الانتقال إلى [[position]] ثانية"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "name": "position",
+            "type": "number",
+            "min": 0,
+            "step": 1,
+            "title": {
+                "en": "Position (seconds)",
+                "nl": "Positie (seconden)",
+                "da": "Position (sekunder)",
+                "de": "Position (Sekunden)",
+                "es": "Posición (segundos)",
+                "fr": "Position (secondes)",
+                "it": "Posizione (secondi)",
+                "no": "Posisjon (sekunder)",
+                "sv": "Position (sekunder)",
+                "pl": "Pozycja (sekundy)",
+                "ru": "Позиция (секунды)",
+                "ko": "위치 (초)",
+                "ar": "الموضع (ثانية)"
+            }
+        }
+    ]
+}

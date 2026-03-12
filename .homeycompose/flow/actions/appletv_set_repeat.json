@@ -1,0 +1,115 @@
+{
+    "id": "appletv_set_repeat",
+    "title": {
+        "en": "Set repeat mode",
+        "nl": "Herhaalstand instellen",
+        "da": "Indstil gentagelsestilstand",
+        "de": "Wiederholungsmodus festlegen",
+        "es": "Establecer modo repetición",
+        "fr": "Définir le mode de répétition",
+        "it": "Imposta modalità ripetizione",
+        "no": "Angi gjentakelsesmodus",
+        "sv": "Ange upprepningsläge",
+        "pl": "Ustaw tryb powtarzania",
+        "ru": "Установить режим повтора",
+        "ko": "반복 모드 설정",
+        "ar": "تعيين وضع التكرار"
+    },
+    "titleFormatted": {
+        "en": "Set repeat to [[mode]]",
+        "nl": "Stel herhaling in op [[mode]]",
+        "da": "Sæt gentagelse til [[mode]]",
+        "de": "Wiederholung auf [[mode]] setzen",
+        "es": "Repetición en [[mode]]",
+        "fr": "Répétition sur [[mode]]",
+        "it": "Imposta ripetizione su [[mode]]",
+        "no": "Sett gjentakelse til [[mode]]",
+        "sv": "Ange upprepning till [[mode]]",
+        "pl": "Ustaw powtarzanie na [[mode]]",
+        "ru": "Установить повтор: [[mode]]",
+        "ko": "반복을 [[mode]]로 설정",
+        "ar": "تعيين التكرار على [[mode]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "dropdown",
+            "name": "mode",
+            "title": {
+                "en": "Mode",
+                "nl": "Modus",
+                "da": "Tilstand",
+                "de": "Modus",
+                "es": "Modo",
+                "fr": "Mode",
+                "it": "Modalità",
+                "no": "Modus",
+                "sv": "Läge",
+                "pl": "Tryb",
+                "ru": "Режим",
+                "ko": "모드",
+                "ar": "الوضع"
+            },
+            "values": [
+                {
+                    "id": "off",
+                    "label": {
+                        "en": "Off",
+                        "nl": "Uit",
+                        "da": "Fra",
+                        "de": "Aus",
+                        "es": "Desactivado",
+                        "fr": "Désactivé",
+                        "it": "Disattivato",
+                        "no": "Av",
+                        "sv": "Av",
+                        "pl": "Wyłączone",
+                        "ru": "Выкл",
+                        "ko": "끄기",
+                        "ar": "إيقاف"
+                    }
+                },
+                {
+                    "id": "one",
+                    "label": {
+                        "en": "Repeat One",
+                        "nl": "Één herhalen",
+                        "da": "Gentag én",
+                        "de": "Einen wiederholen",
+                        "es": "Repetir uno",
+                        "fr": "Répéter un",
+                        "it": "Ripeti uno",
+                        "no": "Gjenta én",
+                        "sv": "Upprepa en",
+                        "pl": "Powtórz jeden",
+                        "ru": "Повторить одну",
+                        "ko": "한 곡 반복",
+                        "ar": "تكرار واحد"
+                    }
+                },
+                {
+                    "id": "all",
+                    "label": {
+                        "en": "Repeat All",
+                        "nl": "Alles herhalen",
+                        "da": "Gentag alle",
+                        "de": "Alle wiederholen",
+                        "es": "Repetir todo",
+                        "fr": "Répéter tout",
+                        "it": "Ripeti tutto",
+                        "no": "Gjenta alle",
+                        "sv": "Upprepa alla",
+                        "pl": "Powtórz wszystkie",
+                        "ru": "Повторить всё",
+                        "ko": "전체 반복",
+                        "ar": "تكرار الكل"
+                    }
+                }
+            ]
+        }
+    ]
+}

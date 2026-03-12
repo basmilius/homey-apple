@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import binascii
 from typing import Any
 
 
@@ -32,9 +31,9 @@ def get_credentials_from_device(device: Any) -> str | None:
             atv_id_str = old_credentials['accessoryIdentifier']
             client_id = old_credentials['pairingId']
 
-            # atv_id was stored as a plain string (e.g. "AA:BB:CC:DD:EE:FF");
-            # encode it to bytes and then hex-encode for pyatv compatibility.
-            atv_id = binascii.hexlify(atv_id_str.encode('utf-8')).decode('utf-8')
+            # atv_id was stored as a hex string, possibly with colon separators
+            # (e.g. "AA:BB:CC:DD:EE:FF"). Normalize to a plain lowercase hex string.
+            atv_id = atv_id_str.lower().replace(':', '')
 
             return f'{ltpk}:{ltsk}:{atv_id}:{client_id}'
         except (KeyError, TypeError):

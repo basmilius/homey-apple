@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ..app import AppleApp
     from .device import HomePodBaseDevice
-    from .driver import HomePodBaseDriver
 
 
 class HomePodFlow:
@@ -17,6 +16,9 @@ class HomePodFlow:
     def register(self) -> None:
         self._register_play_url()
         self._register_play_url_at_volume()
+        self._register_set_position()
+        self._register_skip_forward()
+        self._register_skip_backward()
 
     async def trigger_artwork_url_updated(
         self,
@@ -24,11 +26,16 @@ class HomePodFlow:
         local_url: str,
         cloud_url: str,
     ) -> None:
-        card = self._app.homey.flow.get_device_trigger_card(
-            'homepod_artwork_url_updated'
-        )
-        await card.trigger(device, {'localUrl': local_url, 'cloudUrl': cloud_url})
+        try:
+            card = self._app.homey.flow.get_device_trigger_card(
+                'homepod_artwork_url_updated'
+            )
+            await card.trigger(device, {'localUrl': local_url, 'cloudUrl': cloud_url})
+        except Exception as err:
+            self._app.log(device.get_name(), 'Failed to trigger artwork url updated card.', err)
 
+    # ------------------------------------------------------------------
+    # Action card registrations
     # ------------------------------------------------------------------
 
     def _register_play_url(self) -> None:
@@ -49,5 +56,38 @@ class HomePodFlow:
             url: str = args['url']
             volume: float = args['volume']
             await device.play_url(url, volume)
+
+        card.register_run_listener(run)
+
+    def _register_set_position(self) -> None:
+        card = self._app.homey.flow.get_action_card('homepod_set_position')
+
+        async def run(args: dict[str, Any]) -> None:
+            device: HomePodBaseDevice = args['device']
+            atv = device.atv
+            if atv is not None:
+                await atv.remote_control.set_position(int(args['position']))
+
+        card.register_run_listener(run)
+
+    def _register_skip_forward(self) -> None:
+        card = self._app.homey.flow.get_action_card('homepod_skip_forward')
+
+        async def run(args: dict[str, Any]) -> None:
+            device: HomePodBaseDevice = args['device']
+            atv = device.atv
+            if atv is not None:
+                await atv.remote_control.skip_forward(int(args['seconds']))
+
+        card.register_run_listener(run)
+
+    def _register_skip_backward(self) -> None:
+        card = self._app.homey.flow.get_action_card('homepod_skip_backward')
+
+        async def run(args: dict[str, Any]) -> None:
+            device: HomePodBaseDevice = args['device']
+            atv = device.atv
+            if atv is not None:
+                await atv.remote_control.skip_backward(int(args['seconds']))
 
         card.register_run_listener(run)

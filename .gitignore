@@ -1,5 +1,6 @@
 /env.json
 /node_modules/
+/.claude/
 /.homeybuild/
 /.idea/
 
@@ -8,5 +9,6 @@
 
 # Python
 __pycache__/
+python_packages/
 *.pyc
 *.pyo
