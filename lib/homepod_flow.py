@@ -62,6 +62,8 @@ class HomePodFlow:
 
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
+            if device._atv is None:
+                return
             await device._atv.remote_control.set_position(int(args['position']))
 
         card.register_run_listener(run)
@@ -71,6 +73,8 @@ class HomePodFlow:
 
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
+            if device._atv is None:
+                return
             await device._atv.remote_control.skip_forward(int(args['seconds']))
 
         card.register_run_listener(run)
@@ -80,6 +84,8 @@ class HomePodFlow:
 
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
+            if device._atv is None:
+                return
             await device._atv.remote_control.skip_backward(int(args['seconds']))
 
         card.register_run_listener(run)

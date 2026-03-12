@@ -73,10 +73,14 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             await device._atv.apps.launch_app(args['app']['id'])
 
         async def autocomplete_app(query: str, args: dict):
             device = args['device']
+            if device._atv is None:
+                return []
             apps = await device._atv.apps.app_list()
             results = [
                 {'id': a.identifier, 'name': a.name, 'description': a.identifier}
@@ -93,6 +97,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             # Companion Link supports URL launching
             await device._atv.apps.launch_app(args['url'])
 
@@ -127,6 +133,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             command = args['command']
             rc = device._atv.remote_control
             pwr = device._atv.power
@@ -148,6 +156,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             await device._atv.remote_control.set_position(int(args['position']))
 
         card.register_run_listener(run)
@@ -157,6 +167,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             await device._atv.remote_control.skip_forward(int(args['seconds']))
 
         card.register_run_listener(run)
@@ -166,6 +178,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             await device._atv.remote_control.skip_backward(int(args['seconds']))
 
         card.register_run_listener(run)
@@ -181,6 +195,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             repeat_state = _REPEAT_MAP.get(args['mode'], RepeatState.Off)
             await device._atv.remote_control.set_repeat(repeat_state)
 
@@ -191,6 +207,8 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             shuffle = args['shuffle'] == 'true' or args['shuffle'] is True
             state = ShuffleState.Songs if shuffle else ShuffleState.Off
             await device._atv.remote_control.set_shuffle(state)
@@ -202,10 +220,14 @@ class AppleTVFlow:
 
         async def run(args: dict) -> None:
             device = args['device']
+            if device._atv is None:
+                return
             await device._atv.user_accounts.switch_account(args['account']['id'])
 
         async def autocomplete_account(query: str, args: dict):
             device = args['device']
+            if device._atv is None:
+                return []
             accounts = await device._atv.user_accounts.account_list()
             results = [
                 {'id': a.account_id, 'name': a.name}
