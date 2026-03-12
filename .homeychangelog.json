@@ -277,5 +277,8 @@
   },
   "1.6.0": {
     "en": "This version marks the first of many test releases for migrating to Python and use the pyatv project. A lot is and will be broken, but the code experience works."
+  },
+  "1.6.1": {
+    "en": "Attempt publish fix."
   }
 }
