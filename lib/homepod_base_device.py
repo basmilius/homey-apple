@@ -32,7 +32,6 @@ CAPABILITIES = [
     'speaker_stop',
     'speaker_track',
     'artwork_url',
-    'media_type',
     'volume_down',
     'volume_set',
     'volume_up',

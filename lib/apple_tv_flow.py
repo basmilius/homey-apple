@@ -9,7 +9,7 @@ from pyatv.const import RepeatState, ShuffleState
 
 if TYPE_CHECKING:
     import homey
-    from drivers.apple_tv.device import AppleTVDevice
+    from drivers.apple_tv.device import AppleTVDevice  # type: ignore[import]
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class AppleTVFlow:
     # Triggers
     # ------------------------------------------------------------------
 
-    async def trigger_companion_link_failed(self, device: AppleTVDevice) -> None:
+    async def trigger_companion_link_failed(self, device) -> None:
         try:
             card = self._app.homey.flow.get_device_trigger_card('appletv_companion_link_failed')
             await card.trigger(device)
@@ -42,7 +42,7 @@ class AppleTVFlow:
 
     async def trigger_artwork_url_updated(
         self,
-        device: AppleTVDevice,
+        device,
         local_url: str,
         cloud_url: str,
     ) -> None:
@@ -54,7 +54,7 @@ class AppleTVFlow:
 
     async def trigger_now_playing_app_changes(
         self,
-        device: AppleTVDevice,
+        device,
         bundle_id: str,
         display_name: str,
     ) -> None:
@@ -72,11 +72,11 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_launch_app')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             await device._atv.apps.launch_app(args['app']['id'])
 
         async def autocomplete_app(query: str, args: dict):
-            device: AppleTVDevice = args['device']
+            device = args['device']
             apps = await device._atv.apps.app_list()
             results = [
                 {'id': a.identifier, 'name': a.name, 'description': a.identifier}
@@ -92,7 +92,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_launch_url')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             # Companion Link supports URL launching
             await device._atv.apps.launch_app(args['url'])
 
@@ -126,7 +126,7 @@ class AppleTVFlow:
         }
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             command = args['command']
             rc = device._atv.remote_control
             pwr = device._atv.power
@@ -147,7 +147,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_set_position')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             await device._atv.remote_control.set_position(int(args['position']))
 
         card.register_run_listener(run)
@@ -156,7 +156,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_skip_forward')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             await device._atv.remote_control.skip_forward(int(args['seconds']))
 
         card.register_run_listener(run)
@@ -165,7 +165,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_skip_backward')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             await device._atv.remote_control.skip_backward(int(args['seconds']))
 
         card.register_run_listener(run)
@@ -180,7 +180,7 @@ class AppleTVFlow:
         }
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             repeat_state = _REPEAT_MAP.get(args['mode'], RepeatState.Off)
             await device._atv.remote_control.set_repeat(repeat_state)
 
@@ -190,7 +190,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_set_shuffle')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             shuffle = args['shuffle'] == 'true' or args['shuffle'] is True
             state = ShuffleState.Songs if shuffle else ShuffleState.Off
             await device._atv.remote_control.set_shuffle(state)
@@ -201,11 +201,11 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_switch_account')
 
         async def run(args: dict) -> None:
-            device: AppleTVDevice = args['device']
+            device = args['device']
             await device._atv.user_accounts.switch_account(args['account']['id'])
 
         async def autocomplete_account(query: str, args: dict):
-            device: AppleTVDevice = args['device']
+            device = args['device']
             accounts = await device._atv.user_accounts.account_list()
             results = [
                 {'id': a.account_id, 'name': a.name}

@@ -1,2 +1,5 @@
+# pyatv: Apple AirPlay / Companion Link / RAOP protocol library
 pyatv>=0.15.0
 zeroconf>=0.132.0
+# NOTE: The 'homey' module is provided by the Homey runtime environment.
+# Do NOT add it here — it is not available on PyPI.

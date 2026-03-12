@@ -50,6 +50,7 @@ CAPABILITIES = [
     'media_type',
     'volume_set',
     'button.restart',
+    'button.repair',
 ]
 
 
@@ -222,6 +223,7 @@ class AppleTVDevice(DiscoverableDevice):
             delay=0,
         )
         self.register_capability_listener('button.restart', self._on_restart)
+        self.register_capability_listener('button.repair', self._on_repair)
 
     async def _on_onoff(self, value: bool, *_) -> None:
         if value:
@@ -281,6 +283,11 @@ class AppleTVDevice(DiscoverableDevice):
             await self._connect()
         except Exception as err:
             self.error(err)
+
+    async def _on_repair(self, *_) -> None:
+        await self.set_unavailable(
+            'Please re-pair this device: go to Devices → Apple TV → Settings → Re-pair.'
+        )
 
     # ------------------------------------------------------------------
     # Flow trigger hooks

@@ -1,6 +1,6 @@
 import homey
 
-from drivers.apple_tv.flow import AppleTVFlow
+from lib.apple_tv_flow import AppleTVFlow
 from lib.homepod_flow import HomePodFlow
 
 

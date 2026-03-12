@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import homey
 
-from drivers.apple_tv.pairing import AppleTVPairing
+from lib.apple_tv_pairing import AppleTVPairing
 
 
 class AppleTVDriver(homey.Driver):
