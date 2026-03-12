@@ -286,5 +286,8 @@
   },
   "1.6.3": {
     "en": "Added fallback to app name when artist is None."
+  },
+  "1.6.4": {
+    "en": "More stability fixes, artwork local and cloud url capabilities and more remote controls."
   }
 }
