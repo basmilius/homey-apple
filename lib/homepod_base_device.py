@@ -58,7 +58,12 @@ class HomePodBaseDevice(DiscoverableDevice):
 
         self._airplay_logic = AirPlayLogic(self)
 
-        await self.remove_old_capabilities(CAPABILITIES)
+        for cap in list(self.get_capabilities()):
+            if cap not in CAPABILITIES:
+                try:
+                    await self.remove_capability(cap)
+                except Exception:
+                    pass
         self._register_capabilities()
 
         await super().on_init()

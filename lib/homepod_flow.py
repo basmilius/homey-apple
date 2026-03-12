@@ -44,6 +44,8 @@ class HomePodFlow:
 
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
+            if device._atv is None:
+                return
             await device.play_url(args['url'])
 
         card.register_run_listener(run)
@@ -53,6 +55,8 @@ class HomePodFlow:
 
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
+            if device._atv is None:
+                return
             await device.play_url(args['url'], args['volume'])
 
         card.register_run_listener(run)
