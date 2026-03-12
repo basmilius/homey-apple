@@ -8,7 +8,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from pyatv.const import DeviceState, MediaType, PowerState
-from pyatv.interface import Playing, PushListener
+from pyatv.interface import Playing, PowerListener, PushListener
 
 if TYPE_CHECKING:
     import homey
@@ -26,7 +26,7 @@ _MEDIA_TYPE_MAP: dict[MediaType, str] = {
 }
 
 
-class AirPlayLogic(PushListener):
+class AirPlayLogic(PushListener, PowerListener):
     """Receives push updates from pyatv and updates Homey capabilities."""
 
     def __init__(self, device: homey.Device) -> None:
@@ -41,12 +41,17 @@ class AirPlayLogic(PushListener):
         self._atv = atv
         self._atv.push_updater.listener = self
         self._atv.push_updater.start(initial_delay=0)
+        self._atv.power.listener = self
 
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
         if self._atv is not None:
             try:
                 self._atv.push_updater.stop()
+            except Exception:
+                pass
+            try:
+                self._atv.power.listener = None
             except Exception:
                 pass
 
