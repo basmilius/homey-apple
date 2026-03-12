@@ -177,6 +177,7 @@ class AppleTVDevice(DiscoverableDevice):
             self.log('Disconnected from Apple TV, reconnecting...')
             await self.set_unavailable('Disconnected from Apple TV, reconnecting...')
             await asyncio.sleep(RECONNECT_DELAY)
+            await self._disconnect()
 
             await self.find_service(AIRPLAY_SERVICE)
             await self._connect()

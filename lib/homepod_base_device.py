@@ -147,6 +147,7 @@ class HomePodBaseDevice(DiscoverableDevice):
             self.log('Disconnected from HomePod, reconnecting...')
             await self.set_unavailable('Disconnected from HomePod, reconnecting...')
             await asyncio.sleep(RECONNECT_DELAY)
+            await self._disconnect()
 
             await self.find_service(AIRPLAY_SERVICE)
             await self._connect()
