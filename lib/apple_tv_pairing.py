@@ -92,7 +92,7 @@ class AppleTVPairing:
             credentials = self._pairing.service.credentials
             self._selected_device._credentials = credentials
             logger.info(f'Successfully paired with Apple TV: {self._selected_device.name}')
-            await self._session.show_view('add_device')
+            await self._session.show_view('add_my_device')
         else:
             logger.error('Pairing did not complete successfully — wrong PIN?')
 
@@ -134,7 +134,7 @@ class AppleTVPairing:
             await self._session.show_view('list_devices')
             return
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         self._pairing = await pyatv.pair(self._selected_device, Protocol.AirPlay, loop)
         await self._pairing.begin()
         # The PIN will be entered by the user; _on_pincode will finish the pairing.
@@ -144,6 +144,6 @@ class AppleTVPairing:
     # ------------------------------------------------------------------
 
     async def _load_devices(self) -> None:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         results = await pyatv.scan(loop, timeout=5)
         self._devices = results

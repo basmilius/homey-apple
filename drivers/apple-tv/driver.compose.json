@@ -40,6 +40,8 @@
         "remote_back",
         "remote_playpause",
         "now_playing_app",
+        "media_type",
+        "volume_set",
         "button.restart",
         "button.repair"
     ],

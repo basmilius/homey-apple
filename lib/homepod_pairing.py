@@ -100,7 +100,7 @@ class HomePodBasePairing:
             await self._session.show_view('list_devices')
             return
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         pairing = await pyatv.pair(self._selected_device, Protocol.AirPlay, loop)
 
         try:
@@ -124,6 +124,6 @@ class HomePodBasePairing:
     # ------------------------------------------------------------------
 
     async def _load_devices(self) -> None:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         results = await pyatv.scan(loop, timeout=5)
         self._devices = results

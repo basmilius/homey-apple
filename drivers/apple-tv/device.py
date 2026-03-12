@@ -123,12 +123,11 @@ class AppleTVDevice(DiscoverableDevice):
 
             credentials = self._get_credentials()
             if credentials:
-                for protocol in (Protocol.AirPlay, Protocol.Companion, Protocol.MRP):
-                    service = config.get_service(protocol)
-                    if service and credentials.get(protocol.name.lower()):
-                        service.credentials = credentials[protocol.name.lower()]
+                service = config.get_service(Protocol.AirPlay)
+                if service:
+                    service.credentials = credentials
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             self._atv = await pyatv.connect(config, loop)
             self._atv.listener = self
             self._airplay_logic.set_protocol(self._atv)
@@ -226,37 +225,55 @@ class AppleTVDevice(DiscoverableDevice):
         self.register_capability_listener('button.repair', self._on_repair)
 
     async def _on_onoff(self, value: bool, *_) -> None:
+        if self._atv is None:
+            return
         if value:
             await self._atv.power.turn_on()
         else:
             await self._atv.power.turn_off()
 
     async def _on_speaker_next(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.remote_control.next()
 
     async def _on_speaker_prev(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.remote_control.previous()
 
     async def _on_speaker_playing(self, play: bool, *_) -> None:
+        if self._atv is None:
+            return
         if play:
             await self._atv.remote_control.play()
         else:
             await self._atv.remote_control.pause()
 
     async def _on_volume_up(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.audio.volume_up()
 
     async def _on_volume_down(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.audio.volume_down()
 
     async def _on_volume_mute(self, *_) -> None:
+        if self._atv is None:
+            return
         # pyatv does not have a dedicated mute; toggle volume to 0
         await self._atv.audio.set_volume(0)
 
     async def _on_volume_set(self, volume: float, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.audio.set_volume(volume * 100)
 
     async def _on_remote(self, values: dict, *_) -> None:
+        if self._atv is None:
+            return
         rc = self._atv.remote_control
         if values.get('remote_up'):
             await rc.up()
@@ -314,7 +331,7 @@ class AppleTVDevice(DiscoverableDevice):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _get_credentials(self) -> dict | None:
-        """Return stored credentials dict keyed by protocol name."""
+    def _get_credentials(self) -> str | None:
+        """Return stored AirPlay credentials string, or None."""
         store = self.get_store()
         return store.get('credentials') if store else None

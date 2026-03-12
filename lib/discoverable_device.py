@@ -47,7 +47,7 @@ class DiscoverableDevice(homey.Device):
 
     async def find_service(self, service: str, update: bool = True) -> None:
         """Scan for this device on the given service, retrying up to MAX_FIND_RETRIES times."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         config: BaseConfig | None = None
 
         for attempt in range(MAX_FIND_RETRIES):

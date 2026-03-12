@@ -100,7 +100,7 @@ class HomePodBaseDevice(DiscoverableDevice):
                 if service:
                     service.credentials = credentials
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             self._atv = await pyatv.connect(config, loop)
             self._atv.listener = self
             self._airplay_logic.set_protocol(self._atv)
@@ -163,27 +163,41 @@ class HomePodBaseDevice(DiscoverableDevice):
         self.register_capability_listener('button.restart', self._on_restart)
 
     async def _on_speaker_next(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.remote_control.next()
 
     async def _on_speaker_prev(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.remote_control.previous()
 
     async def _on_speaker_stop(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.remote_control.stop()
 
     async def _on_speaker_playing(self, play: bool, *_) -> None:
+        if self._atv is None:
+            return
         if play:
             await self._atv.remote_control.play()
         else:
             await self._atv.remote_control.pause()
 
     async def _on_volume_up(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.audio.volume_up()
 
     async def _on_volume_down(self, *_) -> None:
+        if self._atv is None:
+            return
         await self._atv.audio.volume_down()
 
     async def _on_volume_set(self, volume: float, *_) -> None:
+        if self._atv is None:
+            return
         # Homey uses 0.0–1.0; pyatv uses 0–100
         await self._atv.audio.set_volume(volume * 100)
 
