@@ -26,6 +26,8 @@
         "speaker_prev",
         "speaker_track",
         "artwork_url",
+        "artwork_url_local",
+        "artwork_url_cloud",
         "onoff",
         "power",
         "volume_down",

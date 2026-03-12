@@ -27,6 +27,8 @@
         "speaker_stop",
         "speaker_track",
         "artwork_url",
+        "artwork_url_local",
+        "artwork_url_cloud",
         "volume_down",
         "volume_set",
         "volume_up",

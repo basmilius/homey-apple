@@ -23,6 +23,8 @@ CAPABILITIES = [
     'speaker_stop',
     'speaker_track',
     'artwork_url',
+    'artwork_url_local',
+    'artwork_url_cloud',
     'volume_down',
     'volume_set',
     'volume_up',
@@ -67,7 +69,7 @@ class HomePodBaseDevice(DiscoverableDevice):
         self._airplay_logic = AirPlayLogic(self, app)
         await self._airplay_logic.initialize()
 
-        await self.remove_old_capabilities(CAPABILITIES)
+        await self.sync_capabilities(CAPABILITIES)
         self._register_capabilities()
 
         # Start initial connection via pyatv.scan().

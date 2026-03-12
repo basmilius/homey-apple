@@ -1,0 +1,22 @@
+{
+    "type": "string",
+    "title": {
+        "en": "Artwork URL (cloud)",
+        "nl": "Albumhoes URL (cloud)",
+        "da": "Kunstværk URL (sky)",
+        "de": "Artwork-URL (Cloud)",
+        "es": "URL de la ilustración (nube)",
+        "fr": "URL de l'illustration (cloud)",
+        "it": "URL dell'artwork (cloud)",
+        "no": "Kunstverk URL (sky)",
+        "sv": "Konstverk URL (moln)",
+        "pl": "URL grafiki (chmura)",
+        "ru": "URL обложки (облако)",
+        "ko": "아트워크 URL (클라우드)",
+        "ar": "رابط الصورة الفنية (سحابي)"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": null,
+    "icon": "assets/capabilities/artwork.svg"
+}

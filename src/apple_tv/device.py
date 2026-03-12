@@ -23,6 +23,8 @@ CAPABILITIES = [
     'speaker_prev',
     'speaker_track',
     'artwork_url',
+    'artwork_url_local',
+    'artwork_url_cloud',
     'onoff',
     'power',
     'volume_down',
@@ -81,7 +83,7 @@ class AppleTVDevice(DiscoverableDevice):
         self._airplay_logic = AirPlayLogic(self, app)
         await self._airplay_logic.initialize()
 
-        await self.remove_old_capabilities(CAPABILITIES)
+        await self.sync_capabilities(CAPABILITIES)
         self._register_capabilities()
 
         # Start initial connection via pyatv.scan().

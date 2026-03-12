@@ -126,11 +126,20 @@ class DiscoverableDevice(Device):
         self.error(f'Cannot find {hostname} on network after {MAX_SCAN_RETRIES} attempts.')
         return None
 
-    async def remove_old_capabilities(self, current_capabilities: list[str]) -> None:
-        """Remove any capabilities on the device that are not in *current_capabilities*."""
-        for cap in list(self.get_capabilities()):
-            if cap not in current_capabilities:
+    async def sync_capabilities(self, expected: list[str]) -> None:
+        """Add missing and remove stale capabilities to match *expected*."""
+        current = self.get_capabilities()
+
+        for cap in expected:
+            if cap not in current:
+                try:
+                    await self.add_capability(cap)
+                except Exception as err:
+                    self.error(f'Failed to add capability {cap!r}:', err)
+
+        for cap in current:
+            if cap not in expected:
                 try:
                     await self.remove_capability(cap)
                 except Exception as err:
-                    self.error(f'Failed to remove old capability {cap!r}:', err)
+                    self.error(f'Failed to remove capability {cap!r}:', err)

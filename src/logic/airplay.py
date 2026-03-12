@@ -168,6 +168,12 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         cloud_url_with_cache = f'{cloud_url}?v={cache_buster}' if cloud_url else ''
         local_url_with_cache = f'{local_url}?v={cache_buster}' if local_url else ''
 
+        if self._device.has_capability('artwork_url_local'):
+            await self._device.set_capability_value('artwork_url_local', local_url_with_cache)
+
+        if self._device.has_capability('artwork_url_cloud'):
+            await self._device.set_capability_value('artwork_url_cloud', cloud_url_with_cache)
+
         await self._trigger_artwork_url_updated(local_url_with_cache, cloud_url_with_cache)
 
     async def _trigger_artwork_url_updated(self, local_url: str, cloud_url: str) -> None:
@@ -313,7 +319,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             return
 
         try:
-            artwork_info = await self._atv.metadata.artwork(width=0, height=0)
+            artwork_info = await self._atv.metadata.artwork()
 
             if artwork_info is None or artwork_info.bytes is None:
                 await self._update_artwork_data(None)
