@@ -280,5 +280,8 @@
   },
   "1.6.1": {
     "en": "Attempt publish fix."
+  },
+  "1.6.2": {
+    "en": "Fix device discovery outside dev sandbox."
   }
 }
