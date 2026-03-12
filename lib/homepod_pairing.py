@@ -75,10 +75,16 @@ class HomePodBasePairing:
         if not self._selected_device:
             return None
 
+        credentials = getattr(self._selected_device, '_credentials', None)
+
         return {
             'name': self._selected_device.name,
             'data': {
                 'id': self._selected_device.identifier,
+            },
+            'store': {
+                'id': self._selected_device.identifier,
+                'credentials': credentials,
             },
         }
 

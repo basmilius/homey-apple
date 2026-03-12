@@ -127,11 +127,11 @@ class HomePodBaseDevice(DiscoverableDevice):
 
     def connection_lost(self, exception: Exception | None) -> None:
         self.log(f'Connection lost: {exception}')
-        asyncio.ensure_future(self._on_disconnected(unexpected=True))
+        asyncio.create_task(self._on_disconnected(unexpected=True))
 
     def connection_closed(self) -> None:
         self.log('Connection closed.')
-        asyncio.ensure_future(self._on_disconnected(unexpected=False))
+        asyncio.create_task(self._on_disconnected(unexpected=False))
 
     async def _on_disconnected(self, unexpected: bool) -> None:
         if not unexpected or self._is_reconnecting:
@@ -223,7 +223,7 @@ class HomePodBaseDevice(DiscoverableDevice):
             await self._atv.audio.set_volume(volume * 100)
 
         # Stream in the background so the flow action returns immediately
-        asyncio.ensure_future(self._stream_url(url))
+        asyncio.create_task(self._stream_url(url))
 
     async def _stream_url(self, url: str) -> None:
         try:

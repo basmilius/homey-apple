@@ -157,11 +157,11 @@ class AppleTVDevice(DiscoverableDevice):
 
     def connection_lost(self, exception: Exception | None) -> None:
         self.log(f'Connection lost: {exception}')
-        asyncio.ensure_future(self._on_disconnected(unexpected=True))
+        asyncio.create_task(self._on_disconnected(unexpected=True))
 
     def connection_closed(self) -> None:
         self.log('Connection closed.')
-        asyncio.ensure_future(self._on_disconnected(unexpected=False))
+        asyncio.create_task(self._on_disconnected(unexpected=False))
 
     async def _on_disconnected(self, unexpected: bool) -> None:
         if not unexpected or self._is_reconnecting:
@@ -196,7 +196,7 @@ class AppleTVDevice(DiscoverableDevice):
                 except Exception as err:
                     self.error(f'Scheduled reconnect failed: {err}')
 
-        self._companion_reconnect_task = asyncio.ensure_future(_reconnect_loop())
+        self._companion_reconnect_task = asyncio.create_task(_reconnect_loop())
 
     def _stop_companion_reconnect(self) -> None:
         if self._companion_reconnect_task and not self._companion_reconnect_task.done():

@@ -55,7 +55,7 @@ class AirPlayLogic(PushListener):
     # ------------------------------------------------------------------
 
     def playstatus_update(self, updater: iface.PushUpdater, playing: Playing) -> None:
-        asyncio.ensure_future(self._handle_playstatus(playing))
+        asyncio.create_task(self._handle_playstatus(playing))
 
     def playstatus_error(self, updater: iface.PushUpdater, exception: Exception) -> None:
         self._device.log(f'Push update error: {exception}')
@@ -65,7 +65,7 @@ class AirPlayLogic(PushListener):
         old_state: PowerState,
         new_state: PowerState,
     ) -> None:
-        asyncio.ensure_future(self._handle_powerstate(new_state))
+        asyncio.create_task(self._handle_powerstate(new_state))
 
     # ------------------------------------------------------------------
     # Internal handlers
@@ -83,7 +83,7 @@ class AirPlayLogic(PushListener):
             await self._device.set_capability_value('speaker_playing', False)
             self._device.log('Now playing info cleared.')
         except Exception as err:
-            self._device.log(f'Failed to clear now playing info: {err}')
+            self._device.error(f'Failed to clear now playing info: {err}')
 
     async def _handle_playstatus(self, playing: Playing) -> None:
         device = self._device
@@ -138,7 +138,7 @@ class AirPlayLogic(PushListener):
                 await self._update_artwork(playing.artwork_url)
 
         except Exception as err:
-            device.log(f'Failed to update now playing info: {err}')
+            device.error(f'Failed to update now playing info: {err}')
 
     async def _handle_powerstate(self, new_state: PowerState) -> None:
         device = self._device
@@ -151,7 +151,7 @@ class AirPlayLogic(PushListener):
                 power_label = device.homey.__('capability.power.on' if is_on else 'capability.power.off')
                 await device.set_capability_value('power', power_label)
         except Exception as err:
-            device.log(f'Failed to set power state: {err}')
+            device.error(f'Failed to set power state: {err}')
 
         if not is_on:
             await self.clear_now_playing()
@@ -182,7 +182,7 @@ class AirPlayLogic(PushListener):
             # Fire flow trigger (Apple TV only — checked by device subclass)
             await device.trigger_now_playing_app_changed(bundle_id or '-', display_name or '-')
 
-        self._now_playing_app_task = asyncio.ensure_future(_do_update())
+        self._now_playing_app_task = asyncio.create_task(_do_update())
 
     async def _update_artwork(self, url: str) -> None:
         """Fetch and push album artwork to Homey."""
@@ -214,4 +214,4 @@ class AirPlayLogic(PushListener):
 
                 await device.trigger_artwork_url_updated(image)
         except Exception as err:
-            device.log(f'Failed to update artwork: {err}')
+            device.error(f'Failed to update artwork: {err}')
