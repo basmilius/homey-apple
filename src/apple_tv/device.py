@@ -39,6 +39,7 @@ CAPABILITIES = [
     'remote_playpause',
     'now_playing_app',
     'button.restart',
+    'button.repair',
 ]
 
 
@@ -228,6 +229,7 @@ class AppleTVDevice(DiscoverableDevice):
         self.register_capability_listener('volume_mute', self._on_volume_mute)
         self.register_capability_listener('volume_set', self._on_volume_set)
         self.register_capability_listener('button.restart', self._on_restart)
+        self.register_capability_listener('button.repair', self._on_repair)
 
         self.register_capability_listener('remote_up', self._on_remote_up)
         self.register_capability_listener('remote_down', self._on_remote_down)
@@ -353,6 +355,13 @@ class AppleTVDevice(DiscoverableDevice):
                 await self._connect(config)
         except Exception as err:
             self.error(err)
+
+    async def _on_repair(self, _: Any, **__: Any) -> None:
+        await self._disconnect()
+        await self._airplay_logic.clear_now_playing()
+        await self.set_unavailable(
+            'Device marked for re-pairing. Please remove and re-add this device.'
+        )
 
 
 homey_export = AppleTVDevice

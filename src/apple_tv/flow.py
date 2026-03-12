@@ -144,8 +144,16 @@ class AppleTVFlow:
                 await handler()
                 return
 
-            # Commands that use different interfaces.
-            if command == 'mute':
+            # Commands that use different interfaces or methods.
+            if command == 'stop':
+                await rc.stop()
+            elif command == 'screensaver':
+                await rc.screensaver()
+            elif command == 'topMenu':
+                await rc.top_menu()
+            elif command == 'homeHold':
+                await rc.home_hold()
+            elif command == 'mute':
                 await device._on_volume_mute(None)
             elif command == 'wake':
                 await atv.power.turn_on()

@@ -27,6 +27,7 @@ CAPABILITIES = [
     'volume_set',
     'volume_up',
     'button.restart',
+    'button.repair',
 ]
 
 
@@ -169,6 +170,7 @@ class HomePodBaseDevice(DiscoverableDevice):
         self.register_capability_listener('volume_down', self._on_volume_down)
         self.register_capability_listener('volume_set', self._on_volume_set)
         self.register_capability_listener('button.restart', self._on_restart)
+        self.register_capability_listener('button.repair', self._on_repair)
 
     async def _on_speaker_next(self, _: Any, **__: Any) -> None:
         if self._atv is not None:
@@ -212,6 +214,13 @@ class HomePodBaseDevice(DiscoverableDevice):
                 await self._connect(config)
         except Exception as err:
             self.error(err)
+
+    async def _on_repair(self, _: Any, **__: Any) -> None:
+        await self._disconnect()
+        await self._airplay_logic.clear_now_playing()
+        await self.set_unavailable(
+            'Device marked for re-pairing. Please remove and re-add this device.'
+        )
 
     # ------------------------------------------------------------------
     # URL streaming

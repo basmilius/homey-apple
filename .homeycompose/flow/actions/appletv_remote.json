@@ -308,6 +308,78 @@
                     }
                 },
                 {
+                    "id": "stop",
+                    "label": {
+                        "en": "Stop",
+                        "nl": "Stoppen",
+                        "da": "Stop",
+                        "de": "Stopp",
+                        "es": "Detener",
+                        "fr": "Arrêter",
+                        "it": "Ferma",
+                        "no": "Stopp",
+                        "sv": "Stoppa",
+                        "pl": "Zatrzymaj",
+                        "ru": "Стоп",
+                        "ko": "중지",
+                        "ar": "إيقاف"
+                    }
+                },
+                {
+                    "id": "screensaver",
+                    "label": {
+                        "en": "Screensaver",
+                        "nl": "Schermbeveiliging",
+                        "da": "Pauseskærm",
+                        "de": "Bildschirmschoner",
+                        "es": "Salvapantallas",
+                        "fr": "Économiseur d'écran",
+                        "it": "Salvaschermo",
+                        "no": "Skjermsparer",
+                        "sv": "Skärmsläckare",
+                        "pl": "Wygaszacz ekranu",
+                        "ru": "Заставка",
+                        "ko": "화면 보호기",
+                        "ar": "شاشة التوقف"
+                    }
+                },
+                {
+                    "id": "topMenu",
+                    "label": {
+                        "en": "Top Menu",
+                        "nl": "Hoofdmenu",
+                        "da": "Topmenu",
+                        "de": "Hauptmenü",
+                        "es": "Menú principal",
+                        "fr": "Menu principal",
+                        "it": "Menu principale",
+                        "no": "Toppmeny",
+                        "sv": "Toppmeny",
+                        "pl": "Menu główne",
+                        "ru": "Главное меню",
+                        "ko": "상위 메뉴",
+                        "ar": "القائمة الرئيسية"
+                    }
+                },
+                {
+                    "id": "homeHold",
+                    "label": {
+                        "en": "Home (long press)",
+                        "nl": "Home (lang indrukken)",
+                        "da": "Hjem (langt tryk)",
+                        "de": "Home (langer Druck)",
+                        "es": "Inicio (pulsación larga)",
+                        "fr": "Accueil (appui long)",
+                        "it": "Home (pressione lunga)",
+                        "no": "Hjem (langt trykk)",
+                        "sv": "Hem (långt tryck)",
+                        "pl": "Home (długie naciśnięcie)",
+                        "ru": "Домой (долгое нажатие)",
+                        "ko": "홈 (길게 누르기)",
+                        "ar": "الرئيسية (ضغطة طويلة)"
+                    }
+                },
+                {
                     "id": "mute",
                     "label": {
                         "en": "Mute",

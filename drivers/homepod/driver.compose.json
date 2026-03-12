@@ -30,7 +30,8 @@
         "volume_down",
         "volume_set",
         "volume_up",
-        "button.restart"
+        "button.restart",
+        "button.repair"
     ],
     "capabilitiesOptions": {
         "button.restart": {
@@ -64,6 +65,39 @@
                 "ru": "Перезапустите подключение к HomePod.",
                 "ko": "HomePod에 대한 연결을 다시 시작하세요.",
                 "ar": "أعد تشغيل الاتصال بجهاز HomePod."
+            }
+        },
+        "button.repair": {
+            "maintenanceAction": true,
+            "title": {
+                "en": "Re-pair device",
+                "nl": "Apparaat opnieuw koppelen",
+                "da": "Par enhed igen",
+                "de": "Gerät erneut koppeln",
+                "es": "Re-emparejar dispositivo",
+                "fr": "Ré-appairer l'appareil",
+                "it": "Ri-associa dispositivo",
+                "no": "Par enhet på nytt",
+                "sv": "Parkoppla enhet igen",
+                "pl": "Ponownie sparuj urządzenie",
+                "ru": "Повторно подключить устройство",
+                "ko": "기기 다시 페어링",
+                "ar": "إعادة إقران الجهاز"
+            },
+            "desc": {
+                "en": "Mark the device for re-pairing. Remove and re-add it afterwards.",
+                "nl": "Markeer het apparaat voor opnieuw koppelen. Verwijder en voeg het daarna opnieuw toe.",
+                "da": "Markér enheden til genparring. Fjern og tilføj den bagefter.",
+                "de": "Markiere das Gerät zum erneuten Koppeln. Entferne und füge es danach erneut hinzu.",
+                "es": "Marca el dispositivo para re-emparejarlo. Elimínalo y vuelve a agregarlo.",
+                "fr": "Marquez l'appareil pour le ré-appairage. Supprimez-le et rajoutez-le ensuite.",
+                "it": "Segna il dispositivo per la ri-associazione. Rimuovilo e aggiungilo nuovamente.",
+                "no": "Merk enheten for ny paring. Fjern og legg den til igjen etterpå.",
+                "sv": "Markera enheten för omparkoppling. Ta bort och lägg till den igen efteråt.",
+                "pl": "Oznacz urządzenie do ponownego sparowania. Usuń je i dodaj ponownie.",
+                "ru": "Отметьте устройство для повторного подключения. Удалите и добавьте его заново.",
+                "ko": "기기를 다시 페어링하도록 표시하세요. 이후 제거하고 다시 추가하세요.",
+                "ar": "حدد الجهاز لإعادة الإقران. احذفه ثم أضفه مرة أخرى."
             }
         }
     },

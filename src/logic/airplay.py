@@ -313,10 +313,19 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             return
 
         try:
-            artwork_info = await self._atv.metadata.artwork()
+            artwork_info = await self._atv.metadata.artwork(width=0, height=0)
 
             if artwork_info is None or artwork_info.bytes is None:
                 await self._update_artwork_data(None)
+                return
+
+            # Skip HEIC artwork — Homey cannot display it.
+            mimetype = getattr(artwork_info, 'mimetype', '') or ''
+            if 'heic' in mimetype.lower() or 'heif' in mimetype.lower():
+                self._device.log(
+                    self.device_name,
+                    f'Skipping HEIC artwork (mimetype={mimetype})',
+                )
                 return
 
             await self._update_artwork_data(artwork_info.bytes)
