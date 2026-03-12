@@ -242,16 +242,20 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         device_state = playing.device_state
         is_playing = device_state == DeviceState.Playing
 
-        self._device.log(self.device_name, 'Now playing update', playing.title, device_state)
+        self._device.log(
+            self.device_name, 'Now playing update',
+            f'state={device_state}',
+            f'title={playing.title!r}',
+            f'artist={playing.artist!r}',
+            f'album={playing.album!r}',
+            f'hash={playing.hash!r}',
+        )
 
         try:
             await self._device.set_capability_value('speaker_playing', is_playing)
 
             if playing.album is not None:
                 await self._device.set_capability_value('speaker_album', playing.album)
-
-            if playing.artist is not None:
-                await self._device.set_capability_value('speaker_artist', playing.artist)
 
             if playing.title is not None:
                 await self._device.set_capability_value('speaker_track', playing.title)
@@ -273,7 +277,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             if artwork_hash != self._artwork_hash:
                 await self._fetch_artwork(artwork_hash)
 
-            # Now-playing app
+            # Now-playing app — resolve before artist fallback.
+            app_name: str | None = None
             if is_playing:
                 app = None
                 if self._atv is not None:
@@ -283,14 +288,21 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
                         app = None
 
                 if app is not None:
+                    app_name = getattr(app, 'name', None)
                     await self._update_now_playing_app(
                         getattr(app, 'identifier', None),
-                        getattr(app, 'name', None),
+                        app_name,
                     )
                 else:
                     await self._update_now_playing_app(None, None)
             else:
                 await self._update_now_playing_app(None, None)
+
+            # Artist — fall back to app name when artist is not available
+            # (e.g. video content on Netflix, YouTube, etc.).
+            artist = playing.artist if playing.artist is not None else app_name
+            if artist is not None:
+                await self._device.set_capability_value('speaker_artist', artist)
 
         except Exception as err:
             self._device.log(self.device_name, 'Failed to update now playing info', err)

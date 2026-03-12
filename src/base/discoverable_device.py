@@ -67,6 +67,12 @@ class DiscoverableDevice(Device):
             return False
         return config.name.lower() == self._expected_name.lower()
 
+    async def _scan_by_host(self, ip: str) -> pyatv.interface.BaseConfig | None:
+        """Targeted unicast scan of a specific IP — discovers all protocols."""
+        loop = asyncio.get_running_loop()
+        results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S, hosts=[ip])
+        return results[0] if results else None
+
     async def scan(self) -> pyatv.interface.BaseConfig | None:
         """
         Scan for this device on the local network using pyatv, retrying
@@ -75,7 +81,8 @@ class DiscoverableDevice(Device):
         First attempts to resolve the mDNS hostname to an IP and scan that
         host directly.  If hostname resolution fails (e.g. in a sandboxed
         runtime without mDNS support), falls back to a broad network scan
-        and matches by device name.
+        to find the device by name, then does a targeted follow-up scan on
+        the discovered IP to ensure all protocols are found.
 
         Returns the first matching config, or *None* if not found.
         """
@@ -86,29 +93,32 @@ class DiscoverableDevice(Device):
             # Fast path: resolve hostname to IP and scan directly.
             ip = await self._resolve_host()
             if ip is not None:
-                results = await pyatv.scan(
-                    loop,
-                    timeout=SCAN_TIMEOUT_S,
-                    hosts=[ip],
-                )
-                if results:
-                    self._scan_config = results[0]
-                    self.log(
-                        f'Found {hostname} at '
-                        f'{self._scan_config.address} (attempt {attempt + 1})'
-                    )
-                    return self._scan_config
-
-            # Slow path: broad scan, match by name.
-            results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
-            for config in results:
-                if self._match_scan_result(config):
+                config = await self._scan_by_host(ip)
+                if config is not None:
                     self._scan_config = config
                     self.log(
                         f'Found {hostname} at '
-                        f'{config.address} via broad scan (attempt {attempt + 1})'
+                        f'{config.address} (attempt {attempt + 1})'
                     )
-                    return self._scan_config
+                    return config
+
+            # Slow path: broad scan to find the device IP by name, then do
+            # a targeted scan on that IP for complete protocol discovery.
+            results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
+            for result in results:
+                if self._match_scan_result(result):
+                    self.log(
+                        f'Found {hostname} at {result.address} via broad scan, '
+                        f'performing targeted scan for full protocol discovery...'
+                    )
+                    config = await self._scan_by_host(str(result.address))
+                    if config is not None:
+                        self._scan_config = config
+                        self.log(
+                            f'Found {hostname} at '
+                            f'{config.address} (attempt {attempt + 1})'
+                        )
+                        return config
 
             if attempt < MAX_SCAN_RETRIES - 1:
                 await asyncio.sleep(SCAN_RETRY_INTERVAL_S)
