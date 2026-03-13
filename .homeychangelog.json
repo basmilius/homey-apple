@@ -298,5 +298,8 @@
   },
   "1.6.7": {
     "en": "Introduce a new remote widget."
+  },
+  "1.6.8": {
+    "en": "Updated app images and made the app more robust."
   }
 }
