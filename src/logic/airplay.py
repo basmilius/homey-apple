@@ -69,7 +69,10 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         """Stop push updates and clean up the artwork image."""
         self.stop()
         if self._artwork is not None:
-            await self._device.homey.images.unregister_image(self._artwork)
+            try:
+                await self._device.homey.images.unregister_image(self._artwork)
+            except Exception:
+                pass
             self._artwork = None
 
     def set_atv(self, atv: pyatv_interface.AppleTV) -> None:
