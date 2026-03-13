@@ -295,5 +295,8 @@
   },
   "1.6.6": {
     "en": "Introduce mini player widget and made connections more stable."
+  },
+  "1.6.7": {
+    "en": "Introduce a new remote widget."
   }
 }
