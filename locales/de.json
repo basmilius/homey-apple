@@ -12,6 +12,9 @@
   "widget": {
     "apple_tv_remote": {
       "no_device": "Kein Apple TV ausgewählt"
+    },
+    "mini_player": {
+      "no_device": "Kein Gerät ausgewählt"
     }
   }
 }

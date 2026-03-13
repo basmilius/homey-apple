@@ -64,7 +64,7 @@ body {
 }
 
 .artwork-placeholder path {
-    fill: currentColor;
+    fill: currentcolor;
 }
 
 .now-playing-info {
@@ -185,5 +185,5 @@ body {
 
 .control-btn svg path,
 .control-btn svg circle {
-    fill: currentColor;
+    fill: currentcolor;
 }

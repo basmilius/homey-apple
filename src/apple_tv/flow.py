@@ -161,6 +161,8 @@ class AppleTVFlow:
                 await atv.power.turn_on()
             elif command == 'suspend':
                 await atv.power.turn_off()
+            else:
+                raise ValueError(f'Unsupported remote command: {command}')
 
         card.register_run_listener(run)
 

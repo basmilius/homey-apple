@@ -62,7 +62,7 @@ body {
 }
 
 .artwork-placeholder path {
-    fill: currentColor;
+    fill: currentcolor;
 }
 
 .player-content {
@@ -85,18 +85,18 @@ body {
     font-size: var(--homey-font-size-default);
     font-weight: var(--homey-font-weight-medium);
     line-height: var(--homey-line-height-default);
-    /*overflow: hidden;*/
-    /*text-overflow: ellipsis;*/
-    /*white-space: nowrap;*/
+    /* overflow: hidden; */
+    /* text-overflow: ellipsis; */
+    /* white-space: nowrap; */
 }
 
 .player-meta {
     color: var(--homey-color-mono-500);
     font-size: var(--homey-font-size-small);
     line-height: var(--homey-line-height-small);
-    /*overflow: hidden;*/
-    /*text-overflow: ellipsis;*/
-    /*white-space: nowrap;*/
+    /* overflow: hidden; */
+    /* text-overflow: ellipsis; */
+    /* white-space: nowrap; */
 }
 
 .player-controls {
@@ -154,7 +154,7 @@ body {
 }
 
 .control-btn svg path {
-    fill: currentColor;
+    fill: currentcolor;
 }
 
 .player-progress {
@@ -199,7 +199,7 @@ body {
 }
 
 .player-volume svg path {
-    fill: currentColor;
+    fill: currentcolor;
 }
 
 .volume-bar {

@@ -10,6 +10,9 @@
     }
   },
   "widget": {
+    "mini_player": {
+      "no_device": "선택된 장치 없음"
+    },
     "apple_tv_remote": {
       "no_device": "선택된 Apple TV 없음"
     }

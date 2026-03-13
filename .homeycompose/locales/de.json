@@ -10,6 +10,9 @@
         }
     },
     "widget": {
+        "mini_player": {
+            "no_device": "Kein Gerät ausgewählt"
+        },
         "apple_tv_remote": {
             "no_device": "Kein Apple TV ausgewählt"
         }

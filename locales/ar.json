@@ -10,6 +10,9 @@
     }
   },
   "widget": {
+    "mini_player": {
+      "no_device": "لم يتم اختيار جهاز"
+    },
     "apple_tv_remote": {
       "no_device": "لم يتم اختيار Apple TV"
     }

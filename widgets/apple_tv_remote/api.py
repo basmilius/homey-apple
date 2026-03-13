@@ -44,11 +44,7 @@ async def _send(homey: Any, query: dict | None, capability_id: str, value: Any =
         return False
 
     try:
-        await device._on_set_capability_value({
-            'capabilityId': capability_id,
-            'value': value,
-            'opts': {},
-        })
+        await device.trigger_capability_listener(capability_id, value)
         return True
     except Exception:
         return False
@@ -129,7 +125,20 @@ async def volume_down(homey: Any, query: dict | None = None, **kwargs: Any) -> b
 
 async def mute(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
     """Toggle mute."""
-    return await _send(homey, query, 'volume_mute')
+    device_id = (query or {}).get('deviceId')
+    if not device_id:
+        return False
+
+    device = _find_device(homey, device_id)
+    if device is None:
+        return False
+
+    try:
+        current = device.get_capability_value('volume_mute')
+        await device.trigger_capability_listener('volume_mute', not bool(current))
+        return True
+    except Exception:
+        return False
 
 
 async def power(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
@@ -144,11 +153,7 @@ async def power(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
 
     try:
         current = device.get_capability_value('onoff')
-        await device._on_set_capability_value({
-            'capabilityId': 'onoff',
-            'value': not bool(current),
-            'opts': {},
-        })
+        await device.trigger_capability_listener('onoff', not bool(current))
         return True
     except Exception:
         return False

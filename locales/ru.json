@@ -10,6 +10,9 @@
     }
   },
   "widget": {
+    "mini_player": {
+      "no_device": "Устройство не выбрано"
+    },
     "apple_tv_remote": {
       "no_device": "Apple TV не выбран"
     }

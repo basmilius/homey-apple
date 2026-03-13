@@ -110,6 +110,7 @@ class BasePairing(ABC):
 
     async def _on_device_selected(self, devices: list) -> None:
         """Handle device selection from the pairing list."""
+        self._selected_device = None
         if devices:
             last = devices[-1]
             device_id = last.get("data", {}).get("id") if isinstance(last, dict) else getattr(last, "id", None)
@@ -128,6 +129,7 @@ class BasePairing(ABC):
         except Exception as err:
             if self.on_error:
                 self.on_error(err)
+            raise
 
     async def _on_show_view_discover(self) -> None:
         """Wait for devices to appear and show the list."""

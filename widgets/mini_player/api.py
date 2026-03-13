@@ -16,7 +16,8 @@ def _find_device(homey: Any, device_id: str) -> Any | None:
             device = driver.get_device_by_id(device_id)
             if device is not None:
                 return device
-        except Exception:
+        except Exception as exc:
+            homey.error(f'mini_player: failed to enumerate driver "{driver_id}": {exc}')
             continue
     return None
 
@@ -69,13 +70,12 @@ async def set_playing(homey: Any, query: dict | None = None, **kwargs: Any) -> b
     if device is None:
         return False
 
-    current = device.get_capability_value('speaker_playing')
-    await device._on_set_capability_value({
-        'capabilityId': 'speaker_playing',
-        'value': not bool(current),
-        'opts': {},
-    })
-    return True
+    try:
+        current = device.get_capability_value('speaker_playing')
+        await device.trigger_capability_listener('speaker_playing', not bool(current))
+        return True
+    except Exception:
+        return False
 
 
 async def set_next(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
@@ -88,12 +88,11 @@ async def set_next(homey: Any, query: dict | None = None, **kwargs: Any) -> bool
     if device is None:
         return False
 
-    await device._on_set_capability_value({
-        'capabilityId': 'speaker_next',
-        'value': True,
-        'opts': {},
-    })
-    return True
+    try:
+        await device.trigger_capability_listener('speaker_next', True)
+        return True
+    except Exception:
+        return False
 
 
 async def set_previous(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
@@ -106,12 +105,11 @@ async def set_previous(homey: Any, query: dict | None = None, **kwargs: Any) -> 
     if device is None:
         return False
 
-    await device._on_set_capability_value({
-        'capabilityId': 'speaker_prev',
-        'value': True,
-        'opts': {},
-    })
-    return True
+    try:
+        await device.trigger_capability_listener('speaker_prev', True)
+        return True
+    except Exception:
+        return False
 
 
 async def set_shuffle(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
@@ -190,9 +188,8 @@ async def set_volume(homey: Any, body: dict | None = None, query: dict | None = 
     if not 0.0 <= volume_value <= 1.0:
         return False
 
-    await device._on_set_capability_value({
-        'capabilityId': 'volume_set',
-        'value': volume_value,
-        'opts': {},
-    })
-    return True
+    try:
+        await device.trigger_capability_listener('volume_set', volume_value)
+        return True
+    except Exception:
+        return False
