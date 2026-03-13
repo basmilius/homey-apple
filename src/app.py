@@ -59,7 +59,13 @@ class AppleApp(App):
         for driver_id, label in _driver_labels.items():
             try:
                 driver = self.homey.drivers.get_driver(driver_id)
-                for device in driver.get_devices():
+                devices = driver.get_devices()
+            except Exception as err:
+                self.error(f'Failed to enumerate driver "{driver_id}":', err)
+                continue
+
+            for device in devices:
+                try:
                     name = device.get_name()
                     if not query or query.lower() in name.lower():
                         results.append({
@@ -68,9 +74,8 @@ class AppleApp(App):
                             'icon': f'/drivers/{driver_id}/assets/icon.svg',
                             'data': {'id': device._id, 'driverId': driver_id},
                         })
-            except Exception as err:
-                self.error(f'Failed loading devices for driver "{driver_id}":', err)
-                continue
+                except Exception:
+                    continue
         return results
 
     async def _autocomplete_apple_tv_remote_device(self, query: str, settings: dict) -> list:

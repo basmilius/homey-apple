@@ -193,7 +193,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         try:
             self._artwork_hash = None
 
-            await self._call_image_method('set_url', '')
+            await self._call_image_method('set_url', None)
             await self._call_image_method('update')
 
             for cap in ('artwork_url', 'artwork_url_local', 'artwork_url_cloud'):
