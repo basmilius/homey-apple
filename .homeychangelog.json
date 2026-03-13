@@ -289,5 +289,8 @@
   },
   "1.6.4": {
     "en": "More stability fixes, artwork local and cloud url capabilities and more remote controls."
+  },
+  "1.6.5": {
+    "en": "Fixed various connection issues and playback state issues."
   }
 }
