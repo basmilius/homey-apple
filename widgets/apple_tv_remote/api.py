@@ -30,6 +30,7 @@ def _build_state(device: Any) -> dict:
         'album': cap('speaker_album'),
         'playing': cap('speaker_playing'),
         'artworkUrl': cap('artwork_url'),
+        'onoff': cap('onoff'),
     }
 
 

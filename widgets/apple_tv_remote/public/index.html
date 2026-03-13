@@ -229,6 +229,7 @@
         const meta = document.getElementById('meta');
         const volumeRow = document.getElementById('volume-row');
         const btnPlayPause = document.getElementById('btn-playpause');
+        const btnPower = document.getElementById('btn-power');
 
         let isPlaying = false;
         let ready = false;
@@ -282,6 +283,7 @@
             }
 
             isPlaying = state ? Boolean(state.playing) : false;
+            btnPower.classList.toggle('active', state ? Boolean(state.onoff) : false);
 
             updateHeight();
         }
