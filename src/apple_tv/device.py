@@ -103,12 +103,9 @@ class AppleTVDevice(DiscoverableDevice):
     # -- Volume mute --
 
     async def _on_volume_mute(self, _: Any, **__: Any) -> None:
-        if self._atv is None:
-            return
-
-        audio = getattr(self._atv, 'audio', None)
+        audio = getattr(self._require_atv(), 'audio', None)
         if audio is None:
-            return
+            raise RuntimeError('Apple TV audio interface not available.')
 
         is_muting = False
         try:
@@ -137,36 +134,36 @@ class AppleTVDevice(DiscoverableDevice):
     # -- Remote --
 
     async def _on_remote_up(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.up()
+        if value:
+            await self._require_atv().remote_control.up()
 
     async def _on_remote_down(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.down()
+        if value:
+            await self._require_atv().remote_control.down()
 
     async def _on_remote_left(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.left()
+        if value:
+            await self._require_atv().remote_control.left()
 
     async def _on_remote_right(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.right()
+        if value:
+            await self._require_atv().remote_control.right()
 
     async def _on_remote_select(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.select()
+        if value:
+            await self._require_atv().remote_control.select()
 
     async def _on_remote_home(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.home()
+        if value:
+            await self._require_atv().remote_control.home()
 
     async def _on_remote_back(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.menu()
+        if value:
+            await self._require_atv().remote_control.menu()
 
     async def _on_remote_playpause(self, value: bool, **_: Any) -> None:
-        if value and self._atv is not None:
-            await self._atv.remote_control.play_pause()
+        if value:
+            await self._require_atv().remote_control.play_pause()
 
 
 homey_export = AppleTVDevice

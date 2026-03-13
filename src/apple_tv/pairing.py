@@ -42,12 +42,25 @@ class AppleTVPairing(BasePairing):
         if self._pairing_handler is None:
             return None
 
-        pin = "".join(str(b) for b in code) if isinstance(code, (list, bytes)) else str(code)
+        if isinstance(code, bytes):
+            pin = code.decode('utf-8', 'ignore')
+        elif isinstance(code, list):
+            pin = "".join(str(b) for b in code)
+        else:
+            pin = str(code)
 
         if self.on_log:
             self.on_log(f'Pairing to {getattr(self._selected_device, "name", "?")} with PIN (redacted)')
 
-        self._pairing_handler.pin(int(pin))
+        pin = pin.strip()
+        try:
+            pin_int = int(pin)
+        except ValueError as err:
+            if self.on_error:
+                self.on_error(f'Invalid PIN format: {err}')
+            return False
+
+        self._pairing_handler.pin(pin_int)
 
         finish_error: Exception | None = None
         try:

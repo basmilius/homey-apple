@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from homey.app import App
 
 from .apple_tv.flow import AppleTVFlow
@@ -13,12 +15,21 @@ class AppleApp(App):
     # without a direct `self.app` property in the Homey Python SDK.
     _instance: AppleApp | None = None
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._apple_tv_flow: AppleTVFlow | None = None
+        self._homepod_flow: HomePodFlow | None = None
+
     @property
     def apple_tv_flow(self) -> AppleTVFlow:
+        if self._apple_tv_flow is None:
+            raise RuntimeError('AppleApp.apple_tv_flow accessed before on_init completed.')
         return self._apple_tv_flow
 
     @property
     def homepod_flow(self) -> HomePodFlow:
+        if self._homepod_flow is None:
+            raise RuntimeError('AppleApp.homepod_flow accessed before on_init completed.')
         return self._homepod_flow
 
     async def on_init(self) -> None:

@@ -16,9 +16,9 @@ def _find_device(homey: Any, device_id: str) -> Any | None:
             device = driver.get_device_by_id(device_id)
             if device is not None:
                 return device
-        except Exception as exc:
-            homey.error(f'mini_player: failed to enumerate driver "{driver_id}": {exc}')
+        except Exception:
             continue
+
     return None
 
 

@@ -67,7 +67,9 @@ class DiscoverableDevice(Device):
         self._atv: pyatv_interface.AppleTV | None = None
         self._airplay_logic: AirPlayLogic | None = None
         self._connected_once = False
+        self._is_closing = False
         self._is_reconnecting = False
+        self._initial_connect_task: asyncio.Task | None = None
         self._scheduled_reconnect_task: asyncio.Task | None = None
 
     # ------------------------------------------------------------------
@@ -86,11 +88,15 @@ class DiscoverableDevice(Device):
         await self.sync_capabilities(self._device_capabilities)
         self._register_capabilities()
 
-        asyncio.create_task(self._initial_connect())
+        self._initial_connect_task = asyncio.create_task(self._initial_connect())
 
         self.log('Initialized.')
 
     async def on_uninit(self) -> None:
+        if self._initial_connect_task is not None and not self._initial_connect_task.done():
+            self._initial_connect_task.cancel()
+            self._initial_connect_task = None
+
         if self._airplay_logic is not None:
             await self._airplay_logic.uninitialize()
         await self._disconnect()
@@ -117,22 +123,27 @@ class DiscoverableDevice(Device):
 
         for attempt in range(MAX_CONNECT_RETRIES):
             try:
-                self._atv = await connect_with_credentials(
+                atv = await connect_with_credentials(
                     config,
                     airplay_credentials=credentials.get('airplay'),
                     companion_credentials=credentials.get('companion'),
                 )
-                self._atv.listener = self
-                if self._airplay_logic is not None:
-                    self._airplay_logic.set_atv(self._atv)
-                self._connected_once = True
+                try:
+                    atv.listener = self
+                    if self._airplay_logic is not None:
+                        self._airplay_logic.set_atv(atv)
+                    self._atv = atv
+                    self._connected_once = True
 
-                await self._on_connected()
+                    await self._on_connected()
 
-                self._start_scheduled_reconnect()
-                await self.set_available()
-                self.log(f'Connected to {self._device_type_name}.')
-                return
+                    self._start_scheduled_reconnect()
+                    await self.set_available()
+                    self.log(f'Connected to {self._device_type_name}.')
+                    return
+                except Exception:
+                    atv.close()
+                    raise
             except pyatv_exceptions.ProtocolError as err:
                 if attempt < MAX_CONNECT_RETRIES - 1:
                     self.log(
@@ -157,8 +168,12 @@ class DiscoverableDevice(Device):
         if self._airplay_logic is not None:
             self._airplay_logic.stop()
         if self._atv is not None:
-            self._atv.close()
-            self._atv = None
+            self._is_closing = True
+            try:
+                self._atv.close()
+            finally:
+                self._atv = None
+                self._is_closing = False
 
     async def _reconnect(self) -> None:
         """Disconnect, re-scan, and reconnect."""
@@ -183,6 +198,8 @@ class DiscoverableDevice(Device):
 
     def connection_closed(self) -> None:
         self.log('Connection closed.')
+        if not self._is_closing:
+            asyncio.create_task(self._on_disconnected())
 
     async def _on_disconnected(self) -> None:
         """Handle unexpected disconnection with reconnect guard."""
@@ -345,8 +362,10 @@ class DiscoverableDevice(Device):
 
     def _register_capabilities(self) -> None:
         """Register capability listeners from the handler map."""
+        current = self.get_capabilities()
         for cap, handler in self._get_capability_handlers().items():
-            self.register_capability_listener(cap, handler)
+            if cap in current:
+                self.register_capability_listener(cap, handler)
 
     def _get_capability_handlers(self) -> dict[str, Any]:
         """Return a mapping of capability names to handler methods. Override to extend."""
@@ -361,35 +380,39 @@ class DiscoverableDevice(Device):
             'button.repair': self._on_repair,
         }
 
+    def _require_atv(self) -> pyatv_interface.AppleTV:
+        """Return the active pyatv connection or raise if not connected."""
+        if self._atv is None:
+            raise RuntimeError(f'{self._device_type_name} is not connected.')
+        return self._atv
+
     async def _on_speaker_next(self, _: Any, **__: Any) -> None:
-        if self._atv is not None:
-            await self._atv.remote_control.next()
+        await self._require_atv().remote_control.next()
 
     async def _on_speaker_prev(self, _: Any, **__: Any) -> None:
-        if self._atv is not None:
-            await self._atv.remote_control.previous()
+        await self._require_atv().remote_control.previous()
 
     async def _on_speaker_playing(self, play: bool, **_: Any) -> None:
-        if self._atv is None:
-            return
+        atv = self._require_atv()
         if play:
-            await self._atv.remote_control.play()
+            await atv.remote_control.play()
         else:
-            await self._atv.remote_control.pause()
+            await atv.remote_control.pause()
 
     async def _on_volume_up(self, _: Any, **__: Any) -> None:
-        if self._atv is not None:
-            await self._atv.audio.volume_up()
+        await self._require_atv().audio.volume_up()
 
     async def _on_volume_down(self, _: Any, **__: Any) -> None:
-        if self._atv is not None:
-            await self._atv.audio.volume_down()
+        await self._require_atv().audio.volume_down()
 
     async def _on_volume_set(self, volume: float, **_: Any) -> None:
-        if self._atv is not None:
-            await self._atv.audio.set_volume(volume * 100)
+        await self._require_atv().audio.set_volume(volume * 100)
 
     async def _on_restart(self, _: Any, **__: Any) -> None:
+        if self._is_reconnecting:
+            return
+
+        self._is_reconnecting = True
         try:
             await self._disconnect()
             if self._airplay_logic is not None:
@@ -399,6 +422,8 @@ class DiscoverableDevice(Device):
                 await self._connect(config)
         except Exception as err:
             self.error(err)
+        finally:
+            self._is_reconnecting = False
 
     async def _on_repair(self, _: Any, **__: Any) -> None:
         await self._disconnect()

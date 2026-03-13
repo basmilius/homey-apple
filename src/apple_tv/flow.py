@@ -8,6 +8,24 @@ if TYPE_CHECKING:
     from ..app import AppleApp
     from .device import AppleTVDevice
 
+# Maps flow command names to remote_control method names.
+_REMOTE_COMMAND_METHODS: dict[str, str] = {
+    'up': 'up',
+    'down': 'down',
+    'left': 'left',
+    'right': 'right',
+    'select': 'select',
+    'menu': 'menu',
+    'home': 'home',
+    'play': 'play',
+    'pause': 'pause',
+    'playPause': 'play_pause',
+    'next': 'next',
+    'previous': 'previous',
+    'volumeUp': 'volume_up',
+    'volumeDown': 'volume_down',
+}
+
 
 class AppleTVFlow:
     """Registers and manages Apple TV flow cards."""
@@ -124,26 +142,10 @@ class AppleTVFlow:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
 
             rc = atv.remote_control
-            _REMOTE_COMMANDS = {
-                'up': rc.up,
-                'down': rc.down,
-                'left': rc.left,
-                'right': rc.right,
-                'select': rc.select,
-                'menu': rc.menu,
-                'home': rc.home,
-                'play': rc.play,
-                'pause': rc.pause,
-                'playPause': rc.play_pause,
-                'next': rc.next,
-                'previous': rc.previous,
-                'volumeUp': rc.volume_up,
-                'volumeDown': rc.volume_down,
-            }
 
-            handler = _REMOTE_COMMANDS.get(command)
-            if handler is not None:
-                await handler()
+            method_name = _REMOTE_COMMAND_METHODS.get(command)
+            if method_name is not None:
+                await getattr(rc, method_name)()
                 return
 
             # Commands that use different interfaces or methods.

@@ -64,7 +64,10 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             await self.clear_now_playing()
             await self.update_artwork_url()
         except Exception:
-            await self._device.homey.images.unregister_image(self._artwork)
+            try:
+                await self._device.homey.images.unregister_image(self._artwork)
+            except Exception:
+                pass
             self._artwork = None
             raise
 
@@ -88,14 +91,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         # Power listener is only available on devices with Companion protocol.
         try:
             atv.power.listener = self
-        except Exception:
-            pass
+        except Exception as err:
+            self._device.log('Power listener not available:', err)
 
         # Audio listener for volume change notifications.
         try:
             atv.audio.listener = self
-        except Exception:
-            pass
+        except Exception as err:
+            self._device.log('Audio listener not available:', err)
 
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
@@ -116,11 +119,11 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
                 self._atv.power.listener = None
             except Exception:
                 pass
-
             try:
                 self._atv.audio.listener = None
             except Exception:
                 pass
+            self._atv = None
 
     # ------------------------------------------------------------------
     # PushListener implementation
@@ -320,6 +323,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
         playing = self._pending_playing
         if playing is not None:
+            if self._update_task is not None and not self._update_task.done():
+                self._update_task.cancel()
             self._update_task = asyncio.create_task(self._update_now_playing(playing))
 
     async def _update_now_playing(self, playing: pyatv_interface.Playing) -> None:
@@ -344,27 +349,10 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
         try:
             await self._device.set_capability_value('speaker_playing', is_playing)
-
-            if playing.album is not None:
-                await self._device.set_capability_value('speaker_album', playing.album)
-
-            if playing.title is not None:
-                await self._device.set_capability_value('speaker_track', playing.title)
-
-            if playing.total_time is not None:
-                await self._device.set_capability_value('speaker_duration', playing.total_time)
-
-            if playing.position is not None:
-                await self._device.set_capability_value('speaker_position', playing.position)
-
-            # Update volume_set capability from the audio interface.
-            if self._device.has_capability('volume_set') and self._atv is not None:
-                try:
-                    volume = self._atv.audio.volume
-                    if volume is not None:
-                        await self._device.set_capability_value('volume_set', volume / 100.0)
-                except Exception:
-                    pass
+            await self._device.set_capability_value('speaker_album', playing.album or '')
+            await self._device.set_capability_value('speaker_track', playing.title or '')
+            await self._device.set_capability_value('speaker_duration', playing.total_time if playing.total_time is not None else -1)
+            await self._device.set_capability_value('speaker_position', playing.position if playing.position is not None else -1)
 
             # Shuffle / repeat state
             shuffle_state = getattr(playing, 'shuffle', None)
@@ -406,8 +394,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             # Artist — fall back to app name when artist is not available
             # (e.g. video content on Netflix, YouTube, etc.).
             artist = playing.artist if playing.artist is not None else app_name
-            if artist is not None:
-                await self._device.set_capability_value('speaker_artist', artist)
+            await self._device.set_capability_value('speaker_artist', artist or '')
 
             await self._emit_mini_player_update()
 
@@ -433,6 +420,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
                     self.device_name,
                     f'Skipping HEIC artwork (mimetype={mimetype})',
                 )
+                # Still store the hash to avoid re-fetching on every update.
+                self._artwork_hash = artwork_hash
                 return
 
             await self._update_artwork_data(artwork_info.bytes)
@@ -446,7 +435,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             return
 
         try:
-            if data:
+            if data is not None:
                 async def write_to_stream(stream: Any) -> None:
                     stream.write(data)
 

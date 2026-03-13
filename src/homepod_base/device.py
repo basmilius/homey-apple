@@ -33,10 +33,6 @@ class HomePodBaseDevice(DiscoverableDevice):
     def _device_capabilities(self) -> list[str]:
         return CAPABILITIES
 
-    @property
-    def _device_type_name(self) -> str:
-        return 'HomePod'
-
     def _get_capability_handlers(self) -> dict[str, Any]:
         handlers = super()._get_capability_handlers()
         handlers['speaker_stop'] = self._on_speaker_stop
@@ -45,8 +41,7 @@ class HomePodBaseDevice(DiscoverableDevice):
     # -- Speaker --
 
     async def _on_speaker_stop(self, _: Any, **__: Any) -> None:
-        if self._atv is not None:
-            await self._atv.remote_control.stop()
+        await self._require_atv().remote_control.stop()
 
     # ------------------------------------------------------------------
     # URL streaming
@@ -72,6 +67,3 @@ class HomePodBaseDevice(DiscoverableDevice):
             await atv.stream.play_url(url)
         except Exception as err:
             self.error(f'play_url failed: {err}')
-
-
-homey_export = HomePodBaseDevice
