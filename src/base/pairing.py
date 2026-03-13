@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 from typing import Any
 
 from ..utils.wait_for import wait_for
 
 
-class BasePairing:
+class BasePairing(ABC):
     """
     Base class for device pairing flows.
 

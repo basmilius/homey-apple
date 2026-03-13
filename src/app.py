@@ -68,7 +68,8 @@ class AppleApp(App):
                             'icon': f'/drivers/{driver_id}/assets/icon.svg',
                             'data': {'id': device._id, 'driverId': driver_id},
                         })
-            except Exception:
+            except Exception as err:
+                self.error(f'Failed loading devices for driver "{driver_id}":', err)
                 continue
         return results
 

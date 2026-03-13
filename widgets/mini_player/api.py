@@ -179,9 +179,20 @@ async def set_volume(homey: Any, body: dict | None = None, query: dict | None = 
     if device is None:
         return False
 
+    if not getattr(device, 'has_capability', lambda _: False)('volume_set'):
+        return False
+
+    try:
+        volume_value = float(volume)
+    except (TypeError, ValueError):
+        return False
+
+    if not 0.0 <= volume_value <= 1.0:
+        return False
+
     await device._on_set_capability_value({
         'capabilityId': 'volume_set',
-        'value': float(volume),
+        'value': volume_value,
         'opts': {},
     })
     return True

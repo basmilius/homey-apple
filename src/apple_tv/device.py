@@ -110,10 +110,12 @@ class AppleTVDevice(DiscoverableDevice):
         if audio is None:
             return
 
+        is_muting = False
         try:
             current = float(getattr(audio, 'volume', None) or 0.0)
+            is_muting = current > 0.0
 
-            if current > 0.0:
+            if is_muting:
                 self._last_volume_before_mute = current
                 await audio.set_volume(0.0)
             else:
@@ -122,12 +124,15 @@ class AppleTVDevice(DiscoverableDevice):
                     restore = 20.0
                 await audio.set_volume(float(restore))
         except Exception as err:
-            self.error('Mute toggle via set_volume failed, falling back to volume_down steps:', err)
+            self.error('Mute toggle via set_volume failed, falling back to volume steps:', err)
             try:
                 for _ in range(10):
-                    await audio.volume_down()
-            except Exception:
-                pass
+                    if is_muting:
+                        await audio.volume_down()
+                    else:
+                        await audio.volume_up()
+            except Exception as fallback_err:
+                self.error('Mute fallback failed:', fallback_err)
 
     # -- Remote --
 

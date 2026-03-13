@@ -1,3 +1,2 @@
-pyatv>=0.17.0
-homey>=0.0.5
-homey-stubs>=0.0.5.0
+pyatv~=0.17.0
+homey~=0.0.5
