@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 _DEBOUNCE_DELAY_S = 0.3
 
 
-class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
+class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, pyatv_interface.AudioListener):
     """
     Receives push updates (now-playing state and power state) from pyatv and
     syncs them to Homey capabilities.
@@ -91,6 +91,12 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         except Exception:
             pass
 
+        # Audio listener for volume change notifications.
+        try:
+            atv.audio.listener = self
+        except Exception:
+            pass
+
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
         if self._debounce_task is not None:
@@ -108,6 +114,11 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
                 pass
             try:
                 self._atv.power.listener = None
+            except Exception:
+                pass
+
+            try:
+                self._atv.audio.listener = None
             except Exception:
                 pass
 
@@ -139,6 +150,39 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         new_state: PowerState,
     ) -> None:
         asyncio.create_task(self._handle_power_state(new_state))
+
+    # ------------------------------------------------------------------
+    # AudioListener implementation
+    # ------------------------------------------------------------------
+
+    def volume_update(self, old_level: float, new_level: float) -> None:
+        asyncio.create_task(self._on_volume_update(new_level))
+
+    def volume_device_update(
+        self,
+        output_device: pyatv_interface.OutputDevice,
+        old_level: float,
+        new_level: float,
+    ) -> None:
+        pass
+
+    def outputdevices_update(
+        self,
+        old_devices: list[pyatv_interface.OutputDevice],
+        new_devices: list[pyatv_interface.OutputDevice],
+    ) -> None:
+        pass
+
+    async def _on_volume_update(self, new_level: float) -> None:
+        """Handle volume change events from pyatv and propagate to the mini player."""
+        if not self._device.has_capability('volume_set'):
+            return
+
+        try:
+            await self._device.set_capability_value('volume_set', new_level / 100.0)
+            await self._emit_mini_player_update()
+        except Exception as err:
+            self._device.error(self.device_name, 'Failed to update volume:', err)
 
     # ------------------------------------------------------------------
     # Now-playing state
