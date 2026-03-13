@@ -441,10 +441,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
                 await self._call_image_method('set_stream', write_to_stream)
             else:
-                async def write_empty(stream: Any) -> None:
-                    pass
-
-                await self._call_image_method('set_stream', write_empty)
+                await self._call_image_method('set_url', None)
 
             await self._call_image_method('update')
             await self.update_artwork_url()

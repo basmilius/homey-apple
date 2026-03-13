@@ -80,7 +80,9 @@ class DiscoverableDevice(Device):
         await self.set_unavailable('Connecting...')
 
         from ..app import AppleApp
-        app: AppleApp = AppleApp._instance  # type: ignore[assignment]
+        app = AppleApp._instance
+        if app is None:
+            raise RuntimeError('AppleApp is not initialized yet; cannot initialize device.')
 
         self._airplay_logic = AirPlayLogic(self, app)
         await self._airplay_logic.initialize()
@@ -142,6 +144,7 @@ class DiscoverableDevice(Device):
                     self.log(f'Connected to {self._device_type_name}.')
                     return
                 except Exception:
+                    atv.listener = None
                     atv.close()
                     raise
             except pyatv_exceptions.ProtocolError as err:

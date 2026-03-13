@@ -86,14 +86,12 @@ class AppleTVDevice(DiscoverableDevice):
     # -- Power --
 
     async def _on_onoff(self, value: bool, **_: Any) -> None:
-        if self._atv is None:
-            raise RuntimeError('Not connected to Apple TV.')
-
+        atv = self._require_atv()
         try:
             if value:
-                await self._atv.power.turn_on()
+                await atv.power.turn_on()
             else:
-                await self._atv.power.turn_off()
+                await atv.power.turn_off()
                 if self._airplay_logic is not None:
                     await self._airplay_logic.clear_now_playing()
         except Exception as err:
