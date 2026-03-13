@@ -176,7 +176,7 @@ body {
 .player-volume svg {
     height: 20px;
     width: 20px;
-    color: var(--homey-color-mono-500);
+    color: var(--homey-color-mono-700);
 }
 
 .player-volume svg path {
