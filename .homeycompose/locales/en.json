@@ -8,5 +8,10 @@
             "off": "Off",
             "on": "On"
         }
+    },
+    "widget": {
+        "mini_player": {
+            "no_device": "No device selected"
+        }
     }
 }

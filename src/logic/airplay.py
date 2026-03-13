@@ -6,7 +6,7 @@ import time
 from typing import TYPE_CHECKING, Any
 
 import pyatv.interface as pyatv_interface
-from pyatv.const import DeviceState, PowerState
+from pyatv.const import DeviceState, PowerState, RepeatState, ShuffleState
 
 if TYPE_CHECKING:
     from homey.device import Device
@@ -38,6 +38,9 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         self._update_task: asyncio.Task | None = None
         self._pending_playing: pyatv_interface.Playing | None = None
         self._atv: pyatv_interface.AppleTV | None = None
+        self._shuffle: bool = False
+        self._repeat: str = 'off'
+        self._position_update_time: float = 0.0
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -158,6 +161,9 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             await self._device.set_capability_value('speaker_position', -1)
             await self._device.set_capability_value('speaker_playing', False)
 
+            self._shuffle = False
+            self._repeat = 'off'
+
             self._device.log(self.device_name, 'Now playing info cleared.')
         except Exception as err:
             self._device.log(self.device_name, 'Failed to clear now playing info', err)
@@ -192,6 +198,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             await self._device.set_capability_value('artwork_url_cloud', cloud_url_with_cache)
 
         await self._trigger_artwork_url_updated(local_url_with_cache, cloud_url_with_cache)
+        await self._emit_mini_player_update()
 
     async def _trigger_artwork_url_updated(self, local_url: str, cloud_url: str) -> None:
         from ..apple_tv.device import AppleTVDevice
@@ -239,6 +246,9 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
 
     async def _on_playing_update(self, playing: pyatv_interface.Playing) -> None:
         """Debounced handler for push-update playback state changes."""
+        if playing.position is not None:
+            self._position_update_time = time.time()
+
         self._pending_playing = playing
 
         if self._debounce_task is not None:
@@ -300,6 +310,19 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
                 except Exception:
                     pass
 
+            # Shuffle / repeat state
+            shuffle_state = getattr(playing, 'shuffle', None)
+            if shuffle_state is not None:
+                self._shuffle = shuffle_state != ShuffleState.Off
+
+            repeat_state = getattr(playing, 'repeat', None)
+            if repeat_state == RepeatState.Track:
+                self._repeat = 'one'
+            elif repeat_state == RepeatState.All:
+                self._repeat = 'all'
+            elif repeat_state is not None:
+                self._repeat = 'off'
+
             # Artwork
             artwork_hash = playing.hash
             if artwork_hash != self._artwork_hash:
@@ -329,6 +352,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             artist = playing.artist if playing.artist is not None else app_name
             if artist is not None:
                 await self._device.set_capability_value('speaker_artist', artist)
+
+            await self._emit_mini_player_update()
 
         except Exception as err:
             self._device.log(self.device_name, 'Failed to update now playing info', err)
@@ -375,6 +400,33 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             await self.update_artwork_url()
         except Exception as err:
             self._device.error(self.device_name, 'Failed to update artwork data:', err)
+
+    async def _emit_mini_player_update(self) -> None:
+        """Emit a realtime event so mini player widgets can update without polling."""
+        def cap(name: str) -> Any:
+            try:
+                return self._device.get_capability_value(name)
+            except Exception:
+                return None
+
+        try:
+            await self._device.homey.api.realtime('apple-mini-player-update', {
+                'deviceId': self._device._id,
+                'deviceName': self._device.get_name(),
+                'track': cap('speaker_track'),
+                'artist': cap('speaker_artist'),
+                'album': cap('speaker_album'),
+                'playing': cap('speaker_playing'),
+                'position': cap('speaker_position'),
+                'duration': cap('speaker_duration'),
+                'volume': cap('volume_set'),
+                'artworkUrl': cap('artwork_url'),
+                'shuffle': self._shuffle,
+                'repeat': self._repeat,
+                'positionTimestamp': int(self._position_update_time * 1000),
+            })
+        except Exception as err:
+            self._device.error(self.device_name, 'Failed to emit mini player update:', err)
 
     async def _update_now_playing_app(
         self,

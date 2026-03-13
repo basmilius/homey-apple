@@ -2347,6 +2347,138 @@
       "id": "homepod-mini"
     }
   ],
+  "widgets": {
+    "mini_player": {
+      "name": {
+        "en": "Mini Player",
+        "nl": "Mini Player",
+        "da": "Mini Player",
+        "de": "Mini Player",
+        "es": "Mini Player",
+        "fr": "Mini Player",
+        "it": "Mini Player",
+        "no": "Mini Player",
+        "sv": "Mini Player",
+        "pl": "Mini Player",
+        "ru": "Мини Плеер",
+        "ko": "미니 플레이어",
+        "ar": "مشغل مصغر"
+      },
+      "height": 160,
+      "settings": [
+        {
+          "id": "device",
+          "type": "autocomplete",
+          "title": {
+            "en": "Device",
+            "nl": "Apparaat",
+            "da": "Enhed",
+            "de": "Gerät",
+            "es": "Dispositivo",
+            "fr": "Appareil",
+            "it": "Dispositivo",
+            "no": "Enhet",
+            "sv": "Enhet",
+            "pl": "Urządzenie",
+            "ru": "Устройство",
+            "ko": "기기",
+            "ar": "الجهاز"
+          }
+        },
+        {
+          "id": "show_controls",
+          "type": "checkbox",
+          "title": {
+            "en": "Show playback controls",
+            "nl": "Afspeelknoppen tonen",
+            "da": "Vis afspilningskontroller",
+            "de": "Wiedergabe-Steuerelemente anzeigen",
+            "es": "Mostrar controles de reproducción",
+            "fr": "Afficher les contrôles de lecture",
+            "it": "Mostra controlli di riproduzione",
+            "no": "Vis avspillingskontroller",
+            "sv": "Visa uppspelningskontroller",
+            "pl": "Pokaż elementy sterowania odtwarzaniem",
+            "ru": "Показать элементы управления воспроизведением",
+            "ko": "재생 컨트롤 표시",
+            "ar": "إظهار عناصر التحكم في التشغيل"
+          },
+          "value": true
+        },
+        {
+          "id": "show_progress",
+          "type": "checkbox",
+          "title": {
+            "en": "Show progress bar",
+            "nl": "Voortgangsbalk tonen",
+            "da": "Vis statuslinje",
+            "de": "Fortschrittsbalken anzeigen",
+            "es": "Mostrar barra de progreso",
+            "fr": "Afficher la barre de progression",
+            "it": "Mostra barra di avanzamento",
+            "no": "Vis fremdriftslinje",
+            "sv": "Visa förloppsindikator",
+            "pl": "Pokaż pasek postępu",
+            "ru": "Показать индикатор выполнения",
+            "ko": "진행 막대 표시",
+            "ar": "إظهار شريط التقدم"
+          },
+          "value": true
+        },
+        {
+          "id": "show_volume",
+          "type": "checkbox",
+          "title": {
+            "en": "Show volume slider",
+            "nl": "Volumebalk tonen",
+            "da": "Vis lydstyrkebjælke",
+            "de": "Lautstärkeregler anzeigen",
+            "es": "Mostrar control de volumen",
+            "fr": "Afficher le contrôle du volume",
+            "it": "Mostra cursore del volume",
+            "no": "Vis volumkontroll",
+            "sv": "Visa volymreglage",
+            "pl": "Pokaż suwak głośności",
+            "ru": "Показать регулятор громкости",
+            "ko": "볼륨 슬라이더 표시",
+            "ar": "إظهار شريط الصوت"
+          },
+          "value": false
+        }
+      ],
+      "api": {
+        "get": {
+          "method": "GET",
+          "path": "/"
+        },
+        "set_playing": {
+          "method": "POST",
+          "path": "/playing"
+        },
+        "set_next": {
+          "method": "POST",
+          "path": "/next"
+        },
+        "set_previous": {
+          "method": "POST",
+          "path": "/previous"
+        },
+        "set_volume": {
+          "method": "POST",
+          "path": "/volume"
+        },
+        "set_shuffle": {
+          "method": "POST",
+          "path": "/shuffle"
+        },
+        "set_repeat": {
+          "method": "POST",
+          "path": "/repeat"
+        }
+      },
+      "id": "mini_player"
+    }
+  },
   "capabilities": {
     "artwork_url": {
       "type": "string",

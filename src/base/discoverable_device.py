@@ -6,6 +6,7 @@ from abc import abstractmethod
 from typing import Any
 
 import pyatv
+import pyatv.exceptions as pyatv_exceptions
 import pyatv.interface as pyatv_interface
 from homey.device import Device
 
@@ -18,6 +19,8 @@ SCAN_RETRY_INTERVAL_S = 1.0
 SCAN_TIMEOUT_S = 3
 RECONNECT_DELAY_S = 1.0
 SCHEDULED_RECONNECT_INTERVAL_S = 5 * 60
+MAX_CONNECT_RETRIES = 3
+CONNECT_RETRY_DELAY_S = 3.0
 
 
 class DiscoverableDevice(Device):
@@ -112,25 +115,38 @@ class DiscoverableDevice(Device):
         """Connect to the device using a pyatv config."""
         credentials = get_credentials_from_device(self)
 
-        try:
-            self._atv = await connect_with_credentials(
-                config,
-                airplay_credentials=credentials.get('airplay'),
-                companion_credentials=credentials.get('companion'),
-            )
-            self._atv.listener = self
-            if self._airplay_logic is not None:
-                self._airplay_logic.set_atv(self._atv)
-            self._connected_once = True
+        for attempt in range(MAX_CONNECT_RETRIES):
+            try:
+                self._atv = await connect_with_credentials(
+                    config,
+                    airplay_credentials=credentials.get('airplay'),
+                    companion_credentials=credentials.get('companion'),
+                )
+                self._atv.listener = self
+                if self._airplay_logic is not None:
+                    self._airplay_logic.set_atv(self._atv)
+                self._connected_once = True
 
-            await self._on_connected()
+                await self._on_connected()
 
-            self._start_scheduled_reconnect()
-            await self.set_available()
-            self.log(f'Connected to {self._device_type_name}.')
-        except Exception as err:
-            self.error(f'Failed to connect to {self._device_type_name}:', err)
-            await self.set_unavailable(f'Cannot connect to {self._device_type_name}: {err}')
+                self._start_scheduled_reconnect()
+                await self.set_available()
+                self.log(f'Connected to {self._device_type_name}.')
+                return
+            except pyatv_exceptions.ProtocolError as err:
+                if attempt < MAX_CONNECT_RETRIES - 1:
+                    self.log(
+                        f'Connection attempt {attempt + 1}/{MAX_CONNECT_RETRIES} failed '
+                        f'({err}), retrying in {CONNECT_RETRY_DELAY_S}s...'
+                    )
+                    await asyncio.sleep(CONNECT_RETRY_DELAY_S)
+                else:
+                    self.error(f'Failed to connect to {self._device_type_name} after {MAX_CONNECT_RETRIES} attempts:', err)
+                    await self.set_unavailable(f'Cannot connect to {self._device_type_name}: {err}')
+            except Exception as err:
+                self.error(f'Failed to connect to {self._device_type_name}:', err)
+                await self.set_unavailable(f'Cannot connect to {self._device_type_name}: {err}')
+                return
 
     async def _on_connected(self) -> None:
         """Hook called after successful connection. Override for post-connect behavior."""
