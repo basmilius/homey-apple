@@ -152,6 +152,10 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             await self._call_image_method('set_url', '')
             await self._call_image_method('update')
 
+            for cap in ('artwork_url', 'artwork_url_local', 'artwork_url_cloud'):
+                if self._device.has_capability(cap):
+                    await self._device.set_capability_value(cap, '')
+
             await self._update_now_playing_app(None, None)
 
             await self._device.set_capability_value('speaker_album', '')
@@ -238,6 +242,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             self._device.error('Failed to set power state:', err)
 
         if not is_on:
+            if self._debounce_task is not None:
+                self._debounce_task.cancel()
+                self._debounce_task = None
+
+            if self._update_task is not None and not self._update_task.done():
+                self._update_task.cancel()
+                self._update_task = None
+
             await self.clear_now_playing()
 
     # ------------------------------------------------------------------
