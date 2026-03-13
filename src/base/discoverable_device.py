@@ -65,7 +65,6 @@ class DiscoverableDevice(Device):
         self._airplay_logic: AirPlayLogic | None = None
         self._connected_once = False
         self._is_reconnecting = False
-        self._scan_config: pyatv_interface.BaseConfig | None = None
         self._scheduled_reconnect_task: asyncio.Task | None = None
 
     # ------------------------------------------------------------------
@@ -188,13 +187,21 @@ class DiscoverableDevice(Device):
     # ------------------------------------------------------------------
 
     def _start_scheduled_reconnect(self) -> None:
+        # When called from within the loop itself (during a scheduled reconnect),
+        # do nothing — the while-loop will naturally continue after _reconnect() returns.
+        if self._scheduled_reconnect_task is asyncio.current_task():
+            return
+
         self._stop_scheduled_reconnect()
         self._scheduled_reconnect_task = asyncio.create_task(self._scheduled_reconnect_loop())
 
     def _stop_scheduled_reconnect(self) -> None:
-        if self._scheduled_reconnect_task is not None:
-            self._scheduled_reconnect_task.cancel()
-            self._scheduled_reconnect_task = None
+        # Never cancel the task that is currently executing this code — that would
+        # cancel the scheduled reconnect loop from within itself.
+        task = self._scheduled_reconnect_task
+        if task is not None and task is not asyncio.current_task():
+            task.cancel()
+        self._scheduled_reconnect_task = None
 
     async def _scheduled_reconnect_loop(self) -> None:
         """Periodically reconnect to pick up port changes."""
@@ -269,7 +276,6 @@ class DiscoverableDevice(Device):
             if ip is not None:
                 config = await self._scan_by_host(ip)
                 if config is not None:
-                    self._scan_config = config
                     self.log(
                         f'Found {hostname} at '
                         f'{config.address} (attempt {attempt + 1})'
@@ -287,7 +293,6 @@ class DiscoverableDevice(Device):
                     )
                     config = await self._scan_by_host(str(result.address))
                     if config is not None:
-                        self._scan_config = config
                         self.log(
                             f'Found {hostname} at '
                             f'{config.address} (attempt {attempt + 1})'

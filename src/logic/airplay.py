@@ -35,6 +35,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         self._artwork: Image | None = None
         self._artwork_hash: str | None = None
         self._debounce_task: asyncio.Task | None = None
+        self._update_task: asyncio.Task | None = None
         self._pending_playing: pyatv_interface.Playing | None = None
         self._atv: pyatv_interface.AppleTV | None = None
 
@@ -55,9 +56,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
     async def initialize(self) -> None:
         """Register artwork image with Homey and clear now-playing state."""
         self._artwork = await self._device.homey.images.create_image()
-        await self._device.set_album_art_image(self._artwork)
-        await self.clear_now_playing()
-        await self.update_artwork_url()
+        try:
+            await self._device.set_album_art_image(self._artwork)
+            await self.clear_now_playing()
+            await self.update_artwork_url()
+        except Exception:
+            await self._device.homey.images.unregister_image(self._artwork)
+            self._artwork = None
+            raise
 
     async def uninitialize(self) -> None:
         """Stop push updates and clean up the artwork image."""
@@ -81,6 +87,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
 
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
+        if self._debounce_task is not None:
+            self._debounce_task.cancel()
+            self._debounce_task = None
+
+        if self._update_task is not None and not self._update_task.done():
+            self._update_task.cancel()
+            self._update_task = None
+
         if self._atv is not None:
             try:
                 self._atv.push_updater.stop()
@@ -237,7 +251,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
 
         playing = self._pending_playing
         if playing is not None:
-            asyncio.create_task(self._update_now_playing(playing))
+            self._update_task = asyncio.create_task(self._update_now_playing(playing))
 
     async def _update_now_playing(self, playing: pyatv_interface.Playing) -> None:
         """Update Homey capabilities from a Playing object."""
@@ -290,13 +304,11 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
 
             # Now-playing app — resolve before artist fallback.
             app_name: str | None = None
-            if is_playing:
-                app = None
-                if self._atv is not None:
-                    try:
-                        app = self._atv.metadata.app
-                    except Exception:
-                        app = None
+            if is_playing and self._atv is not None:
+                try:
+                    app = self._atv.metadata.app
+                except Exception:
+                    app = None
 
                 if app is not None:
                     app_name = getattr(app, 'name', None)
