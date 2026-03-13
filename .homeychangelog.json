@@ -292,5 +292,8 @@
   },
   "1.6.5": {
     "en": "Fixed various connection issues and playback state issues."
+  },
+  "1.6.6": {
+    "en": "Introduce mini player widget and made connections more stable."
   }
 }
