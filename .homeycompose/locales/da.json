@@ -8,5 +8,10 @@
             "off": "Slukket",
             "on": "Tændt"
         }
+    },
+    "widget": {
+        "apple_tv_remote": {
+            "no_device": "Ingen Apple TV valgt"
+        }
     }
 }

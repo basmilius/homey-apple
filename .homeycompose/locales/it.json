@@ -8,5 +8,10 @@
             "off": "Spento",
             "on": "Acceso"
         }
+    },
+    "widget": {
+        "apple_tv_remote": {
+            "no_device": "Nessun Apple TV selezionato"
+        }
     }
 }

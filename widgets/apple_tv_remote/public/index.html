@@ -1,0 +1,363 @@
+<!doctype html>
+<html>
+<head lang="en">
+    <title>Apple TV Remote</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css">
+</head>
+
+<body class="homey-widget">
+
+<div class="remote">
+    <div
+        class="now-playing"
+        id="now-playing">
+        <div
+            class="now-playing-artwork empty"
+            id="artwork">
+            <img
+                id="artwork-img"
+                src=""
+                alt="">
+            <svg
+                class="artwork-placeholder"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640">
+                <path d="M499.7 70.8c7.8 6 12.3 15.3 12.3 25.2v96c0 14.7-10 27.5-24.2 31L384 249v215c0 53-50.1 96-112 96s-112-43-112-96 50.1-96 112-96c17.2 0 33.5 3.3 48 9.2V128c0-14.7 10-27.5 24.2-31l128-32c9.6-2.4 19.7-.2 27.5 5.8"/>
+            </svg>
+        </div>
+
+        <div class="now-playing-info">
+            <div
+                class="now-playing-track"
+                id="track">
+                &mdash;
+            </div>
+
+            <div
+                class="now-playing-meta"
+                id="meta">
+                &mdash;
+            </div>
+        </div>
+    </div>
+
+    <div class="remote-controls">
+        <div class="dpad">
+            <button
+                class="control-btn dpad-btn-up"
+                id="btn-up"
+                title="Up">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M297.4 201.4a32.05 32.05 0 0 1 45.3 0l160 160a32.05 32.05 0 0 1 0 45.3 32.05 32.05 0 0 1-45.3 0L320 269.3 182.6 406.6a32.05 32.05 0 0 1-45.3 0 32.05 32.05 0 0 1 0-45.3l160-160z"/>
+                    </svg>
+                </svg>
+            </button>
+
+            <button
+                class="control-btn dpad-btn-left"
+                id="btn-left"
+                title="Left">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640">
+                    <path d="M201.4 297.4a32.05 32.05 0 0 0 0 45.3l160 160a32.05 32.05 0 0 0 45.3 0 32.05 32.05 0 0 0 0-45.3L269.3 320l137.3-137.4a32.05 32.05 0 0 0 0-45.3 32.05 32.05 0 0 0-45.3 0l-160 160z"/>
+                </svg>
+            </button>
+
+            <button
+                class="control-btn dpad-btn-select"
+                id="btn-select"
+                title="Select">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640">
+                    <path d="M160 320c0-88.4 71.6-160 160-160s160 71.6 160 160-71.6 160-160 160-160-71.6-160-160"/>
+                </svg>
+            </button>
+
+            <button
+                class="control-btn dpad-btn-right"
+                id="btn-right"
+                title="Right">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640">
+                    <path d="M439.1 297.4a32.05 32.05 0 0 1 0 45.3l-160 160a32.05 32.05 0 0 1-45.3 0 32.05 32.05 0 0 1 0-45.3L371.2 320 233.9 182.6a32.05 32.05 0 0 1 0-45.3 32.05 32.05 0 0 1 45.3 0l160 160z"/>
+                </svg>
+            </button>
+
+            <button
+                class="control-btn dpad-btn-down"
+                id="btn-down"
+                title="Down">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640">
+                    <path d="M297.4 438.6a32.05 32.05 0 0 0 45.3 0l160-160a32.05 32.05 0 0 0 0-45.3 32.05 32.05 0 0 0-45.3 0L320 370.7 182.6 233.4a32.05 32.05 0 0 0-45.3 0 32.05 32.05 0 0 0 0 45.3l160 160z"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="remote-side">
+            <div class="remote-row">
+                <button
+                    class="control-btn"
+                    id="btn-back"
+                    title="Back">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M73.4 297.4C60.9 309.9 60.9 330.2 73.4 342.7L233.4 502.7C245.9 515.2 266.2 515.2 278.7 502.7C291.2 490.2 291.2 469.9 278.7 457.4L173.3 352L544 352C561.7 352 576 337.7 576 320C576 302.3 561.7 288 544 288L173.3 288L278.7 182.6C291.2 170.1 291.2 149.8 278.7 137.3C266.2 124.8 245.9 124.8 233.4 137.3L73.4 297.3z"/>
+                    </svg>
+                </button>
+
+                <button
+                    class="control-btn"
+                    id="btn-home"
+                    title="Home">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M96 160v240h448V160zm-64 0c0-35.3 28.7-64 64-64h448c35.3 0 64 28.7 64 64v240c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64zm160 352h256c17.7 0 32 14.3 32 32s-14.3 32-32 32H192c-17.7 0-32-14.3-32-32s14.3-32 32-32"/>
+                    </svg>
+                </button>
+
+                <button
+                    class="control-btn"
+                    id="btn-power"
+                    title="Power">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v256c0 17.7 14.3 32 32 32s32-14.3 32-32zm-141.7 98.4c14.5-10.1 18-30.1 7.9-44.6a32.05 32.05 0 0 0-44.6-7.9C107.4 156.1 64 233 64 320c0 141.4 114.6 256 256 256s256-114.6 256-256c0-87-43.4-163.9-109.7-210.1a32.07 32.07 0 0 0-44.6 7.9 32 32 0 0 0 7.9 44.6c49.8 34.8 82.3 92.4 82.3 157.6 0 106-86 192-192 192S128 426 128 320c0-65.2 32.5-122.9 82.3-157.6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="remote-row">
+                <button
+                    class="control-btn"
+                    id="btn-prev"
+                    title="Previous">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M491 100.8c-12.9-7-28.7-6.3-41 1.8L192 272.1V128c0-17.7-14.3-32-32-32s-32 14.3-32 32v384c0 17.7 14.3 32 32 32s32-14.3 32-32V367.9l258 169.6c12.3 8.1 28 8.8 41 1.8s21-20.5 21-35.2v-368c0-14.7-8.1-28.2-21-35.2z"/>
+                    </svg>
+                </button>
+
+                <button
+                    class="control-btn"
+                    id="btn-playpause"
+                    title="Play / Pause">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M116.5 135.4c-9.5-7.9-22.8-9.7-34.1-4.4A32 32 0 0 0 64 160v320c0 12.4 7.2 23.7 18.4 29s24.5 3.6 34.1-4.4l192-160a32.03 32.03 0 0 0 0-49.2zM448 160c0-17.7-14.3-32-32-32s-32 14.3-32 32v320c0 17.7 14.3 32 32 32s32-14.3 32-32zm128 0c0-17.7-14.3-32-32-32s-32 14.3-32 32v320c0 17.7 14.3 32 32 32s32-14.3 32-32z"/>
+                    </svg>
+                </button>
+
+                <button
+                    class="control-btn"
+                    id="btn-next"
+                    title="Next">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M149 100.8c12.9-7 28.7-6.3 41 1.8l258 169.5V128c0-17.7 14.3-32 32-32s32 14.3 32 32v384c0 17.7-14.3 32-32 32s-32-14.3-32-32V367.9L190 537.5a39.97 39.97 0 0 1-62-33.5V136c0-14.7 8.1-28.2 21-35.2"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div
+                class="remote-row"
+                id="volume-row">
+                <button
+                    class="control-btn"
+                    id="btn-mute"
+                    title="Mute">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M80 416h48l134.1 119.2c6.4 5.7 14.6 8.8 23.1 8.8 19.2 0 34.8-15.6 34.8-34.8V130.8c0-19.2-15.6-34.8-34.8-34.8-8.5 0-16.7 3.1-23.1 8.8L128 224H80c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48m319-177a23.9 23.9 0 0 0 0 33.9l47 47-47 47a23.9 23.9 0 0 0 0 33.9c9.4 9.3 24.6 9.4 33.9 0l47-47 47 47a23.9 23.9 0 0 0 33.9 0c9.3-9.4 9.4-24.6 0-33.9l-47-47 47-47a23.9 23.9 0 0 0 0-33.9c-9.4-9.3-24.6-9.4-33.9 0l-47 47-47-47a23.9 23.9 0 0 0-33.9 0"/>
+                    </svg>
+                </button>
+
+                <button
+                    class="control-btn"
+                    id="btn-vol-down"
+                    title="Volume Down">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M144 416h48l134.1 119.2c6.4 5.7 14.6 8.8 23.1 8.8 19.2 0 34.8-15.6 34.8-34.8V130.8c0-19.2-15.6-34.8-34.8-34.8-8.5 0-16.7 3.1-23.1 8.8L192 224h-48c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48m332.6-170.5a24 24 0 0 0-33.8 3.5 24 24 0 0 0 3.5 33.8A47.9 47.9 0 0 1 464 320c0 15-6.9 28.4-17.7 37.3a24.1 24.1 0 0 0-3.5 33.8c8.3 10.3 23.5 11.8 33.8 3.5 21.5-17.7 35.4-44.5 35.4-74.6a95.9 95.9 0 0 0-35.5-74.5z"/>
+                    </svg>
+                </button>
+
+                <button
+                    class="control-btn"
+                    id="btn-vol-up"
+                    title="Volume Up">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 640 640">
+                        <path d="M533.6 96.5a24 24 0 0 0-33.8 3.5 24 24 0 0 0 3.5 33.8c54.2 44 88.7 111 88.7 186.2s-34.5 142.2-88.7 186.3a24.1 24.1 0 0 0-3.5 33.8c8.3 10.3 23.5 11.8 33.8 3.5C598.5 490.7 640 410.2 640 320S598.5 149.2 533.6 96.5M473.1 171a24 24 0 0 0-33.8 3.5 24 24 0 0 0 3.5 33.8C475.3 234.7 496 274.9 496 320s-20.7 85.3-53.2 111.8a24.1 24.1 0 0 0-3.5 33.8c8.3 10.3 23.5 11.8 33.8 3.5 43.2-35.2 70.9-88.9 70.9-149s-27.7-113.8-70.9-149zm-60.5 74.5a24 24 0 0 0-33.8 3.5 24 24 0 0 0 3.5 33.8A47.9 47.9 0 0 1 400 320c0 15-6.9 28.4-17.7 37.3a24.1 24.1 0 0 0-3.5 33.8c8.3 10.3 23.5 11.8 33.8 3.5 21.5-17.7 35.4-44.5 35.4-74.6s-13.9-56.9-35.4-74.5M80 416h48l134.1 119.2c6.4 5.7 14.6 8.8 23.1 8.8 19.2 0 34.8-15.6 34.8-34.8V130.8c0-19.2-15.6-34.8-34.8-34.8-8.5 0-16.7 3.1-23.1 8.8L128 224H80c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function onHomeyReady(Homey) {
+        const REALTIME_EVENT = 'apple-mini-player-update';
+
+        const settings = Homey.getSettings();
+        const deviceId = settings.device && settings.device.data && settings.device.data.id
+            ? settings.device.data.id
+            : null;
+
+        const nowPlayingEl = document.getElementById('now-playing');
+        const artwork = document.getElementById('artwork');
+        const artworkImg = document.getElementById('artwork-img');
+        const track = document.getElementById('track');
+        const meta = document.getElementById('meta');
+        const volumeRow = document.getElementById('volume-row');
+        const btnPlayPause = document.getElementById('btn-playpause');
+
+        let isPlaying = false;
+        let ready = false;
+
+        if (!settings.show_now_playing) {
+            nowPlayingEl.style.display = 'none';
+        }
+
+        if (!settings.show_volume) {
+            volumeRow.style.display = 'none';
+        }
+
+        function updateHeight() {
+            const height = document.body.getBoundingClientRect().height;
+
+            if (ready) {
+                Homey.setHeight(height);
+            } else {
+                Homey.ready({height});
+                ready = true;
+            }
+        }
+
+        function render(state) {
+            if (settings.show_now_playing) {
+                if (!state) {
+                    track.textContent = '—';
+                    meta.textContent = deviceId ? '—' : Homey.__('widget.apple_tv_remote.no_device');
+                    artworkImg.src = '';
+                    artwork.className = 'now-playing-artwork empty';
+                } else {
+                    track.textContent = state.track || '—';
+
+                    const artist = state.artist || '';
+                    const album = state.album || '';
+
+                    if (artist && album) {
+                        meta.textContent = `${artist} • ${album}`;
+                    } else {
+                        meta.textContent = artist || album || '—';
+                    }
+
+                    if (state.artworkUrl) {
+                        artworkImg.src = state.artworkUrl;
+                        artwork.className = 'now-playing-artwork';
+                    } else {
+                        artworkImg.src = '';
+                        artwork.className = 'now-playing-artwork empty';
+                    }
+                }
+            }
+
+            isPlaying = state ? Boolean(state.playing) : false;
+
+            updateHeight();
+        }
+
+        artworkImg.addEventListener('error', function () {
+            artworkImg.src = '';
+            artwork.className = 'now-playing-artwork empty';
+        });
+
+        async function init() {
+            if (!deviceId) {
+                render(null);
+                return;
+            }
+
+            Homey.on(REALTIME_EVENT, function (state) {
+                if (state && state.deviceId === deviceId) {
+                    render(state);
+                }
+            });
+
+            const state = await Homey.api('GET', `/?deviceId=${encodeURIComponent(deviceId)}`);
+            render(state);
+        }
+
+        function remoteBtn(endpoint) {
+            return async function () {
+                if (!deviceId) {
+                    return;
+                }
+
+                try {
+                    Homey.hapticFeedback();
+                } catch (_) {
+                }
+
+                await Homey.api('POST', `/${endpoint}?deviceId=${encodeURIComponent(deviceId)}`);
+            };
+        }
+
+        document.getElementById('btn-up').addEventListener('click', remoteBtn('up'));
+        document.getElementById('btn-down').addEventListener('click', remoteBtn('down'));
+        document.getElementById('btn-left').addEventListener('click', remoteBtn('left'));
+        document.getElementById('btn-right').addEventListener('click', remoteBtn('right'));
+        document.getElementById('btn-select').addEventListener('click', remoteBtn('select'));
+        document.getElementById('btn-home').addEventListener('click', remoteBtn('home'));
+        document.getElementById('btn-back').addEventListener('click', remoteBtn('back'));
+        document.getElementById('btn-power').addEventListener('click', remoteBtn('power'));
+        document.getElementById('btn-prev').addEventListener('click', remoteBtn('previous'));
+        document.getElementById('btn-next').addEventListener('click', remoteBtn('next'));
+        document.getElementById('btn-vol-down').addEventListener('click', remoteBtn('volume_down'));
+        document.getElementById('btn-mute').addEventListener('click', remoteBtn('mute'));
+        document.getElementById('btn-vol-up').addEventListener('click', remoteBtn('volume_up'));
+
+        btnPlayPause.addEventListener('click', async function () {
+            if (!deviceId) {
+                return;
+            }
+
+            try {
+                Homey.hapticFeedback();
+            } catch (_) {
+            }
+
+            isPlaying = !isPlaying;
+
+            await Homey.api('POST', `/playpause?deviceId=${encodeURIComponent(deviceId)}`);
+        });
+
+        init();
+    }
+</script>
+
+</body>
+</html>

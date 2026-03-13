@@ -12,11 +12,20 @@
 
 <div class="player">
     <div class="player-top">
-        <img
+        <div
             class="player-artwork empty"
-            id="artwork"
-            src=""
-            alt="">
+            id="artwork">
+            <img
+                id="artwork-img"
+                src=""
+                alt="">
+            <svg
+                class="artwork-placeholder"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640">
+                <path d="M499.7 70.8c7.8 6 12.3 15.3 12.3 25.2v96c0 14.7-10 27.5-24.2 31L384 249v215c0 53-50.1 96-112 96s-112-43-112-96 50.1-96 112-96c17.2 0 33.5 3.3 48 9.2V128c0-14.7 10-27.5 24.2-31l128-32c9.6-2.4 19.7-.2 27.5 5.8"/>
+            </svg>
+        </div>
 
         <div class="player-content">
             <div class="player-info">
@@ -137,6 +146,7 @@
             : null;
 
         const artwork = document.getElementById('artwork');
+        const artworkImg = document.getElementById('artwork-img');
         const track = document.getElementById('track');
         const meta = document.getElementById('meta');
         const controls = document.getElementById('controls');
@@ -222,7 +232,7 @@
             if (!state) {
                 track.textContent = '—';
                 meta.textContent = deviceId ? '—' : Homey.__('widget.mini_player.no_device');
-                artwork.src = '';
+                artworkImg.src = '';
                 artwork.className = 'player-artwork empty';
                 btnPlay.innerHTML = SVG_PLAY;
                 btnShuffle.classList.remove('active');
@@ -249,10 +259,10 @@
             }
 
             if (state.artworkUrl) {
-                artwork.src = state.artworkUrl;
+                artworkImg.src = state.artworkUrl;
                 artwork.className = 'player-artwork';
             } else {
-                artwork.src = '';
+                artworkImg.src = '';
                 artwork.className = 'player-artwork empty';
             }
 
@@ -293,6 +303,11 @@
 
             updateHeight();
         }
+
+        artworkImg.addEventListener('error', function () {
+            artworkImg.src = '';
+            artwork.className = 'player-artwork empty';
+        });
 
         async function init() {
             if (!deviceId) {

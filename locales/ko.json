@@ -8,5 +8,10 @@
       "off": "꺼짐",
       "on": "켜짐"
     }
+  },
+  "widget": {
+    "apple_tv_remote": {
+      "no_device": "선택된 Apple TV 없음"
+    }
   }
 }

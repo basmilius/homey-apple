@@ -12,6 +12,9 @@
   "widget": {
     "mini_player": {
       "no_device": "Geen apparaat geselecteerd"
+    },
+    "apple_tv_remote": {
+      "no_device": "Geen Apple TV geselecteerd"
     }
   }
 }

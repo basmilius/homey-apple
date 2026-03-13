@@ -8,5 +8,10 @@
             "off": "إيقاف",
             "on": "تشغيل"
         }
+    },
+    "widget": {
+        "apple_tv_remote": {
+            "no_device": "لم يتم اختيار Apple TV"
+        }
     }
 }
