@@ -15,6 +15,9 @@ class HomePodBaseDriver(Driver):
     def model_filter(self) -> re.Pattern:
         raise NotImplementedError
 
+    async def on_init(self) -> None:
+        pass
+
     async def on_pair(self, session: Any) -> None:
         pairing = HomePodBasePairing(
             session=session,

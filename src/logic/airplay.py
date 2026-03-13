@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from ..app import AppleApp
 
-_DEBOUNCE_DELAY_S = 1.0
+_DEBOUNCE_DELAY_S = 0.3
 
 
 class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
@@ -200,7 +200,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
         is_on = new_state == PowerState.On
 
         try:
-            await self._device.set_capability_value('onoff', is_on)
+            if self._device.has_capability('onoff'):
+                await self._device.set_capability_value('onoff', is_on)
 
             if self._device.has_capability('power'):
                 await self._device.set_capability_value(
@@ -231,11 +232,12 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
     async def _debounced_update(self) -> None:
         try:
             await asyncio.sleep(_DEBOUNCE_DELAY_S)
-            playing = self._pending_playing
-            if playing is not None:
-                await self._update_now_playing(playing)
         except asyncio.CancelledError:
-            pass
+            return
+
+        playing = self._pending_playing
+        if playing is not None:
+            asyncio.create_task(self._update_now_playing(playing))
 
     async def _update_now_playing(self, playing: pyatv_interface.Playing) -> None:
         """Update Homey capabilities from a Playing object."""
@@ -272,11 +274,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener):
             if playing.position is not None:
                 await self._device.set_capability_value('speaker_position', playing.position)
 
-            # Update volume_set capability from push updates.
-            if self._device.has_capability('volume_set'):
-                volume = getattr(playing, 'volume', None)
-                if volume is not None:
-                    await self._device.set_capability_value('volume_set', volume / 100.0)
+            # Update volume_set capability from the audio interface.
+            if self._device.has_capability('volume_set') and self._atv is not None:
+                try:
+                    volume = self._atv.audio.volume
+                    if volume is not None:
+                        await self._device.set_capability_value('volume_set', volume / 100.0)
+                except Exception:
+                    pass
 
             # Artwork
             artwork_hash = playing.hash

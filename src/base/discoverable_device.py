@@ -6,41 +6,216 @@ from abc import abstractmethod
 from typing import Any
 
 import pyatv
+import pyatv.interface as pyatv_interface
 from homey.device import Device
+
+from ..connection.airplay import connect_with_credentials
+from ..logic.airplay import AirPlayLogic
+from ..utils.get_credentials_from_device import get_credentials_from_device
 
 MAX_SCAN_RETRIES = 10
 SCAN_RETRY_INTERVAL_S = 1.0
 SCAN_TIMEOUT_S = 3
+RECONNECT_DELAY_S = 1.0
+SCHEDULED_RECONNECT_INTERVAL_S = 5 * 60
 
 
 class DiscoverableDevice(Device):
     """
     A Homey device that discovers itself on the local network via
-    ``pyatv.scan()``.
+    ``pyatv.scan()``, connects, and manages the connection lifecycle.
 
-    Subclasses declare which services they need (via :attr:`services`) and
-    receive a single pyatv ``BaseConfig`` containing all available protocols
-    once scanning is complete.
+    Subclasses provide their capabilities list, device type name, and
+    capability handlers via abstract properties and hook methods.
     """
 
     @property
+    def atv(self) -> pyatv_interface.AppleTV | None:
+        """The underlying pyatv AppleTV interface, or None if not connected."""
+        return self._atv
+
+    @property
+    def airplay_logic(self) -> AirPlayLogic | None:
+        """The AirPlay logic instance, or None before initialization."""
+        return self._airplay_logic
+
+    @property
     def discovery_id(self) -> str:
-        """The mDNS hostname stored in device data during pairing (e.g. ``Woonkamer-TV.local``)."""
+        """The mDNS hostname stored in device data during pairing."""
         return self.get_data().get('id', '')
 
     @property
     def _expected_name(self) -> str:
-        """Device name derived from the mDNS hostname (strip ``.local``, replace ``-`` with `` ``)."""
+        """Device name derived from the mDNS hostname."""
         return self.discovery_id.removesuffix('.local').replace('-', ' ')
 
     @property
     @abstractmethod
-    def services(self) -> list[str]:
-        """Logical service names this device needs (e.g. ``['airplay', 'companion-link']``)."""
+    def _device_capabilities(self) -> list[str]:
+        """List of Homey capabilities for this device type."""
+
+    @property
+    @abstractmethod
+    def _device_type_name(self) -> str:
+        """Human-readable device type name for log messages."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._scan_config: pyatv.interface.BaseConfig | None = None
+        self._atv: pyatv_interface.AppleTV | None = None
+        self._airplay_logic: AirPlayLogic | None = None
+        self._connected_once = False
+        self._is_reconnecting = False
+        self._scan_config: pyatv_interface.BaseConfig | None = None
+        self._scheduled_reconnect_task: asyncio.Task | None = None
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+
+    async def on_init(self) -> None:
+        await self.set_unavailable('Connecting...')
+
+        from ..app import AppleApp
+        app: AppleApp = AppleApp._instance  # type: ignore[assignment]
+
+        self._airplay_logic = AirPlayLogic(self, app)
+        await self._airplay_logic.initialize()
+
+        await self.sync_capabilities(self._device_capabilities)
+        self._register_capabilities()
+
+        asyncio.create_task(self._initial_connect())
+
+        self.log('Initialized.')
+
+    async def on_uninit(self) -> None:
+        if self._airplay_logic is not None:
+            await self._airplay_logic.uninitialize()
+        await self._disconnect()
+        self.log('Uninitialized.')
+
+    # ------------------------------------------------------------------
+    # Connection management
+    # ------------------------------------------------------------------
+
+    async def _initial_connect(self) -> None:
+        """Scan for the device and connect."""
+        config = await self.scan()
+        if config is None:
+            await self.set_unavailable(
+                'Cannot find device on network. You might need to re-pair.'
+            )
+            return
+
+        await self._connect(config)
+
+    async def _connect(self, config: pyatv_interface.BaseConfig) -> None:
+        """Connect to the device using a pyatv config."""
+        credentials = get_credentials_from_device(self)
+
+        try:
+            self._atv = await connect_with_credentials(
+                config,
+                airplay_credentials=credentials.get('airplay'),
+                companion_credentials=credentials.get('companion'),
+            )
+            self._atv.listener = self
+            if self._airplay_logic is not None:
+                self._airplay_logic.set_atv(self._atv)
+            self._connected_once = True
+
+            await self._on_connected()
+
+            self._start_scheduled_reconnect()
+            await self.set_available()
+            self.log(f'Connected to {self._device_type_name}.')
+        except Exception as err:
+            self.error(f'Failed to connect to {self._device_type_name}:', err)
+            await self.set_unavailable(f'Cannot connect to {self._device_type_name}: {err}')
+
+    async def _on_connected(self) -> None:
+        """Hook called after successful connection. Override for post-connect behavior."""
+
+    async def _disconnect(self) -> None:
+        """Disconnect and clean up."""
+        self._stop_scheduled_reconnect()
+        if self._airplay_logic is not None:
+            self._airplay_logic.stop()
+        if self._atv is not None:
+            self._atv.close()
+            self._atv = None
+
+    async def _reconnect(self) -> None:
+        """Disconnect, re-scan, and reconnect."""
+        await self._disconnect()
+
+        config = await self.scan()
+        if config is None:
+            await self.set_unavailable(
+                'Cannot find device on network after reconnect attempt.'
+            )
+            return
+
+        await self._connect(config)
+
+    # ------------------------------------------------------------------
+    # pyatv DeviceListener
+    # ------------------------------------------------------------------
+
+    def connection_lost(self, exception: Exception) -> None:
+        self.log('Connection lost:', exception)
+        asyncio.create_task(self._on_disconnected())
+
+    def connection_closed(self) -> None:
+        self.log('Connection closed.')
+
+    async def _on_disconnected(self) -> None:
+        """Handle unexpected disconnection with reconnect guard."""
+        if self._is_reconnecting:
+            return
+
+        self._is_reconnecting = True
+        try:
+            self.log(f'Disconnected from {self._device_type_name}, reconnecting...')
+            await self.set_unavailable(f'Disconnected from {self._device_type_name}, reconnecting...')
+            await asyncio.sleep(RECONNECT_DELAY_S)
+            await self._reconnect()
+        finally:
+            self._is_reconnecting = False
+
+    # ------------------------------------------------------------------
+    # Scheduled reconnect (handles port changes)
+    # ------------------------------------------------------------------
+
+    def _start_scheduled_reconnect(self) -> None:
+        self._stop_scheduled_reconnect()
+        self._scheduled_reconnect_task = asyncio.create_task(self._scheduled_reconnect_loop())
+
+    def _stop_scheduled_reconnect(self) -> None:
+        if self._scheduled_reconnect_task is not None:
+            self._scheduled_reconnect_task.cancel()
+            self._scheduled_reconnect_task = None
+
+    async def _scheduled_reconnect_loop(self) -> None:
+        """Periodically reconnect to pick up port changes."""
+        while True:
+            await asyncio.sleep(SCHEDULED_RECONNECT_INTERVAL_S)
+
+            if self._is_reconnecting:
+                continue
+
+            self._is_reconnecting = True
+            try:
+                self.log('Scheduled reconnection, re-scanning...')
+                await self._reconnect()
+            except Exception as err:
+                self.error('Scheduled reconnect failed:', err)
+            finally:
+                self._is_reconnecting = False
+
+    # ------------------------------------------------------------------
+    # Network discovery
+    # ------------------------------------------------------------------
 
     async def _resolve_host(self) -> str | None:
         """Resolve the mDNS hostname to an IPv4 address."""
@@ -61,28 +236,27 @@ class DiscoverableDevice(Device):
 
         return None
 
-    def _match_scan_result(self, config: pyatv.interface.BaseConfig) -> bool:
+    def _match_scan_result(self, config: pyatv_interface.BaseConfig) -> bool:
         """Check if a pyatv scan result matches this device by name."""
         if not config.name:
             return False
         return config.name.lower() == self._expected_name.lower()
 
-    async def _scan_by_host(self, ip: str) -> pyatv.interface.BaseConfig | None:
+    async def _scan_by_host(self, ip: str) -> pyatv_interface.BaseConfig | None:
         """Targeted unicast scan of a specific IP — discovers all protocols."""
         loop = asyncio.get_running_loop()
         results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S, hosts=[ip])
         return results[0] if results else None
 
-    async def scan(self) -> pyatv.interface.BaseConfig | None:
+    async def scan(self) -> pyatv_interface.BaseConfig | None:
         """
         Scan for this device on the local network using pyatv, retrying
         up to :data:`MAX_SCAN_RETRIES` times.
 
         First attempts to resolve the mDNS hostname to an IP and scan that
-        host directly.  If hostname resolution fails (e.g. in a sandboxed
-        runtime without mDNS support), falls back to a broad network scan
-        to find the device by name, then does a targeted follow-up scan on
-        the discovered IP to ensure all protocols are found.
+        host directly.  If hostname resolution fails, falls back to a broad
+        network scan to find the device by name, then does a targeted
+        follow-up scan on the discovered IP to ensure all protocols are found.
 
         Returns the first matching config, or *None* if not found.
         """
@@ -143,3 +317,72 @@ class DiscoverableDevice(Device):
                     await self.remove_capability(cap)
                 except Exception as err:
                     self.error(f'Failed to remove capability {cap!r}:', err)
+
+    # ------------------------------------------------------------------
+    # Capability handlers (shared)
+    # ------------------------------------------------------------------
+
+    def _register_capabilities(self) -> None:
+        """Register capability listeners from the handler map."""
+        for cap, handler in self._get_capability_handlers().items():
+            self.register_capability_listener(cap, handler)
+
+    def _get_capability_handlers(self) -> dict[str, Any]:
+        """Return a mapping of capability names to handler methods. Override to extend."""
+        return {
+            'speaker_next': self._on_speaker_next,
+            'speaker_prev': self._on_speaker_prev,
+            'speaker_playing': self._on_speaker_playing,
+            'volume_up': self._on_volume_up,
+            'volume_down': self._on_volume_down,
+            'volume_set': self._on_volume_set,
+            'button.restart': self._on_restart,
+            'button.repair': self._on_repair,
+        }
+
+    async def _on_speaker_next(self, _: Any, **__: Any) -> None:
+        if self._atv is not None:
+            await self._atv.remote_control.next()
+
+    async def _on_speaker_prev(self, _: Any, **__: Any) -> None:
+        if self._atv is not None:
+            await self._atv.remote_control.previous()
+
+    async def _on_speaker_playing(self, play: bool, **_: Any) -> None:
+        if self._atv is None:
+            return
+        if play:
+            await self._atv.remote_control.play()
+        else:
+            await self._atv.remote_control.pause()
+
+    async def _on_volume_up(self, _: Any, **__: Any) -> None:
+        if self._atv is not None:
+            await self._atv.audio.volume_up()
+
+    async def _on_volume_down(self, _: Any, **__: Any) -> None:
+        if self._atv is not None:
+            await self._atv.audio.volume_down()
+
+    async def _on_volume_set(self, volume: float, **_: Any) -> None:
+        if self._atv is not None:
+            await self._atv.audio.set_volume(volume * 100)
+
+    async def _on_restart(self, _: Any, **__: Any) -> None:
+        try:
+            await self._disconnect()
+            if self._airplay_logic is not None:
+                await self._airplay_logic.clear_now_playing()
+            config = await self.scan()
+            if config is not None:
+                await self._connect(config)
+        except Exception as err:
+            self.error(err)
+
+    async def _on_repair(self, _: Any, **__: Any) -> None:
+        await self._disconnect()
+        if self._airplay_logic is not None:
+            await self._airplay_logic.clear_now_playing()
+        await self.set_unavailable(
+            'Device marked for re-pairing. Please remove and re-add this device.'
+        )

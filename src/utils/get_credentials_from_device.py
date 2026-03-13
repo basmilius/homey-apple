@@ -3,40 +3,54 @@ from __future__ import annotations
 from typing import Any
 
 
-def get_credentials_from_device(device: Any) -> str | None:
+def get_credentials_from_device(device: Any) -> dict[str, str | None]:
     """
-    Get pyatv AirPlay HAP credentials from the device store.
+    Get pyatv credentials from the device store.
+
+    Returns a dict with ``'airplay'`` and ``'companion'`` keys, each
+    containing a credential string or *None*.
+
+    The same credentials work for both AirPlay and Companion protocols.
+    When only AirPlay credentials are present (the common case), they
+    are returned for both keys.
 
     Supports both the new pyatv credential format (stored as a plain string)
     and the legacy TypeScript credential format (stored as a dict), converting
     the latter on the fly so that previously-paired devices continue to work.
-
-    Returns a credential string in the pyatv HAP format
-    ``ltpk_hex:ltsk_hex:atv_id_hex:client_id_hex``, or *None* when no
-    credentials are found.
     """
     store = device.get_store()
 
-    # New format: credential string stored directly by pyatv after pairing
-    airplay_credentials = store.get('airplay_credentials')
-    if airplay_credentials and isinstance(airplay_credentials, str):
-        return airplay_credentials
+    airplay_credentials: str | None = None
 
-    # Legacy format: credentials stored by the old TypeScript library as a dict
-    old_credentials = store.get('credentials')
-    if old_credentials and isinstance(old_credentials, dict):
-        try:
-            ltpk = old_credentials['accessoryLongTermPublicKey']
-            ltsk = old_credentials['secretKey']
-            atv_id_str = old_credentials['accessoryIdentifier']
-            client_id = old_credentials['pairingId']
+    # New format: credential string stored directly by pyatv after pairing.
+    raw = store.get('airplay_credentials')
+    if raw and isinstance(raw, str):
+        airplay_credentials = raw
+    else:
+        # Legacy format: credentials stored by the old TypeScript library as a dict.
+        old_credentials = store.get('credentials')
+        if old_credentials and isinstance(old_credentials, dict):
+            try:
+                ltpk = old_credentials['accessoryLongTermPublicKey']
+                ltsk = old_credentials['secretKey']
+                atv_id_str = old_credentials['accessoryIdentifier']
+                client_id = old_credentials['pairingId']
 
-            # atv_id was stored as a hex string, possibly with colon separators
-            # (e.g. "AA:BB:CC:DD:EE:FF"). Normalize to a plain lowercase hex string.
-            atv_id = atv_id_str.lower().replace(':', '')
+                # atv_id was stored as a hex string, possibly with colon separators
+                # (e.g. "AA:BB:CC:DD:EE:FF"). Normalize to a plain lowercase hex string.
+                atv_id = atv_id_str.lower().replace(':', '')
 
-            return f'{ltpk}:{ltsk}:{atv_id}:{client_id}'
-        except (KeyError, TypeError):
-            return None
+                airplay_credentials = f'{ltpk}:{ltsk}:{atv_id}:{client_id}'
+            except (KeyError, TypeError):
+                pass
 
-    return None
+    # Companion credentials: use dedicated store value if present,
+    # otherwise fall back to AirPlay credentials (they are interchangeable).
+    companion_credentials = store.get('companion_credentials')
+    if not companion_credentials or not isinstance(companion_credentials, str):
+        companion_credentials = airplay_credentials
+
+    return {
+        'airplay': airplay_credentials,
+        'companion': companion_credentials,
+    }
