@@ -49,6 +49,7 @@ body {
 .player-content {
     display: flex;
     min-width: 0;
+    align-self: center;
     flex: 1;
     flex-flow: column;
     gap: var(--homey-su-2);
@@ -65,19 +66,18 @@ body {
     font-size: var(--homey-font-size-default);
     font-weight: var(--homey-font-weight-medium);
     line-height: var(--homey-line-height-default);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    /*overflow: hidden;*/
+    /*text-overflow: ellipsis;*/
+    /*white-space: nowrap;*/
 }
 
 .player-meta {
-    color: var(--homey-color-mono-700);
+    color: var(--homey-color-mono-500);
     font-size: var(--homey-font-size-small);
     line-height: var(--homey-line-height-small);
-    opacity: 0.55;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    /*overflow: hidden;*/
+    /*text-overflow: ellipsis;*/
+    /*white-space: nowrap;*/
 }
 
 .player-controls {
