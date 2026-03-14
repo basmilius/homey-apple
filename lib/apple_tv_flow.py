@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from pyatv.const import RepeatState, ShuffleState
+from pyatv.const import InputAction, RepeatState, ShuffleState
 
 if TYPE_CHECKING:
     import homey
@@ -113,6 +113,7 @@ class AppleTVFlow:
             'left': lambda rc: rc.left(),
             'right': lambda rc: rc.right(),
             'select': lambda rc: rc.select(),
+            'doubleTapSelect': lambda rc: rc.select(action=InputAction.DoubleTap),
             'menu': lambda rc: rc.menu(),
             'home': lambda rc: rc.home(),
             'play': lambda rc: rc.play(),
@@ -138,6 +139,21 @@ class AppleTVFlow:
             command = args['command']
             rc = device._atv.remote_control
             pwr = device._atv.power
+
+            if command == 'mute':
+                await device._atv.audio.set_volume(0)
+                return
+
+            if command == 'siri':
+                # HidCommand.Siri is available via the Companion Link protocol's
+                # internal API (public `api` attribute on CompanionRemoteControl).
+                if hasattr(rc, 'api'):
+                    from pyatv.protocols.companion.api import HidCommand
+                    await rc.api.hid_command(True, HidCommand.Siri)
+                    await rc.api.hid_command(False, HidCommand.Siri)
+                else:
+                    logger.warning('Siri command requires Companion Link; not connected via Companion.')
+                return
 
             handler = _COMMAND_MAP.get(command)
             if handler is None:
