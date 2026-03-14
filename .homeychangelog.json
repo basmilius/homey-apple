@@ -301,5 +301,8 @@
   },
   "1.6.8": {
     "en": "Updated app images and made the app more robust."
+  },
+  "1.6.9": {
+    "en": "More work on the Python migration."
   }
 }

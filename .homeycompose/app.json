@@ -1,6 +1,6 @@
 {
   "id": "com.basmilius.apple",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "compatibility": ">=13.0.0",
   "sdk": 3,
   "runtime": "python",
