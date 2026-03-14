@@ -45,7 +45,7 @@ class HomePodFlow:
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
             if device._atv is None:
-                return
+                raise RuntimeError('Not connected.')
             await device.play_url(args['url'])
 
         card.register_run_listener(run)
@@ -56,7 +56,7 @@ class HomePodFlow:
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
             if device._atv is None:
-                return
+                raise RuntimeError('Not connected.')
             await device.play_url(args['url'], args['volume'])
 
         card.register_run_listener(run)
@@ -67,7 +67,7 @@ class HomePodFlow:
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
             if device._atv is None:
-                return
+                raise RuntimeError('Not connected.')
             await device._atv.remote_control.set_position(int(args['position']))
 
         card.register_run_listener(run)
@@ -78,7 +78,7 @@ class HomePodFlow:
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
             if device._atv is None:
-                return
+                raise RuntimeError('Not connected.')
             await device._atv.remote_control.skip_forward(int(args['seconds']))
 
         card.register_run_listener(run)
@@ -89,7 +89,7 @@ class HomePodFlow:
         async def run(args: dict) -> None:
             device: HomePodBaseDevice = args['device']
             if device._atv is None:
-                return
+                raise RuntimeError('Not connected.')
             await device._atv.remote_control.skip_backward(int(args['seconds']))
 
         card.register_run_listener(run)

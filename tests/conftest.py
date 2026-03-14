@@ -165,5 +165,5 @@ def mock_atv():
     atv.audio.set_volume = AsyncMock()
     atv.stream = MagicMock()
     atv.stream.play_url = AsyncMock()
-    atv.close = AsyncMock()
+    atv.close = MagicMock()  # close() is synchronous in pyatv — returns Set[Task]
     return atv

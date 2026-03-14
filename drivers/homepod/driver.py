@@ -12,7 +12,7 @@ class HomePodDriver(HomePodBaseDriver):
 
     @property
     def model_filter(self) -> re.Pattern:
-        return re.compile(r'AudioAccessory[16],\d')
+        return re.compile(r'AudioAccessory[16],\d+')
 
     async def on_init(self) -> None:
         await super().on_init()

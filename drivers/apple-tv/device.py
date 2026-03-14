@@ -114,6 +114,9 @@ class AppleTVDevice(DiscoverableDevice):
 
         self._connected_once = True
         await self._connect()
+        # If _connect() failed (atv is still None), allow retries from future discovery callbacks
+        if self._atv is None:
+            self._connected_once = False
 
     # ------------------------------------------------------------------
     # Connection
@@ -151,7 +154,7 @@ class AppleTVDevice(DiscoverableDevice):
             self._airplay_logic.stop()
         if self._atv is not None:
             try:
-                await self._atv.close()
+                self._atv.close()
             except Exception:
                 pass
             self._atv = None
@@ -189,6 +192,12 @@ class AppleTVDevice(DiscoverableDevice):
     # ------------------------------------------------------------------
 
     def _start_companion_reconnect(self) -> None:
+        # If called from within the running reconnect loop (via _connect after a
+        # scheduled reconnect), don't cancel and recreate the loop — the current
+        # iteration will simply continue into the next sleep cycle.
+        if self._companion_reconnect_task and asyncio.current_task() is self._companion_reconnect_task:
+            return
+
         self._stop_companion_reconnect()
 
         async def _reconnect_loop() -> None:
@@ -205,9 +214,14 @@ class AppleTVDevice(DiscoverableDevice):
         self._companion_reconnect_task = asyncio.create_task(_reconnect_loop())
 
     def _stop_companion_reconnect(self) -> None:
-        if self._companion_reconnect_task and not self._companion_reconnect_task.done():
-            self._companion_reconnect_task.cancel()
+        task = self._companion_reconnect_task
         self._companion_reconnect_task = None
+        if task and not task.done():
+            # Don't cancel ourselves if we're the reconnect loop task — just clear
+            # the reference so _start_companion_reconnect knows to create a new one
+            # when called from an external context.
+            if asyncio.current_task() is not task:
+                task.cancel()
 
     # ------------------------------------------------------------------
     # Capabilities

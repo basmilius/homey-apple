@@ -340,7 +340,7 @@ class TestDisconnect:
         device = ConcreteHomePod()
         device._atv = mock_atv
         await device._disconnect()
-        mock_atv.close.assert_awaited_once()
+        mock_atv.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sets_atv_to_none(self, mock_atv):

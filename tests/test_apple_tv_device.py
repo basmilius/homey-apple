@@ -385,5 +385,5 @@ class TestDisconnect:
         device = ConcreteAppleTV()
         device._atv = mock_atv
         await device._disconnect()
-        mock_atv.close.assert_awaited_once()
+        mock_atv.close.assert_called_once()
         assert device._atv is None

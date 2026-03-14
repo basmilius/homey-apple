@@ -87,6 +87,9 @@ class HomePodBaseDevice(DiscoverableDevice):
 
         self._connected_once = True
         await self._connect()
+        # If _connect() failed (atv is still None), allow retries from future discovery callbacks
+        if self._atv is None:
+            self._connected_once = False
 
     # ------------------------------------------------------------------
     # Connection
@@ -121,7 +124,7 @@ class HomePodBaseDevice(DiscoverableDevice):
             self._airplay_logic.stop()
         if self._atv is not None:
             try:
-                await self._atv.close()
+                self._atv.close()
             except Exception:
                 pass
             self._atv = None

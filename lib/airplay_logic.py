@@ -35,6 +35,17 @@ class AirPlayLogic(PushListener, PowerListener):
         self._artwork_identifier: str | None = None
         # Debounce handle for now_playing_app updates
         self._now_playing_app_task: asyncio.Task | None = None
+        # Track the app name we're debouncing toward (prevents livelock on repeated updates)
+        self._pending_now_playing_app: str | None = None
+        # Track all fire-and-forget tasks so stop() can cancel them
+        self._push_tasks: set[asyncio.Task] = set()
+
+    def _track_task(self, coro) -> asyncio.Task:
+        """Create a tracked task that is automatically removed when done."""
+        task = asyncio.create_task(coro)
+        self._push_tasks.add(task)
+        task.add_done_callback(self._push_tasks.discard)
+        return task
 
     def set_protocol(self, atv: AppleTV) -> None:
         """Attach to a (new) pyatv AppleTV connection."""
@@ -44,7 +55,7 @@ class AirPlayLogic(PushListener, PowerListener):
         self._atv.power.listener = self
 
     def stop(self) -> None:
-        """Stop push updates (called on disconnect / uninit)."""
+        """Stop push updates and cancel any in-flight tasks."""
         if self._atv is not None:
             try:
                 self._atv.push_updater.stop()
@@ -54,13 +65,16 @@ class AirPlayLogic(PushListener, PowerListener):
                 self._atv.power.listener = None
             except Exception:
                 pass
+        for task in list(self._push_tasks):
+            task.cancel()
+        self._push_tasks.clear()
 
     # ------------------------------------------------------------------
     # PushListener callbacks
     # ------------------------------------------------------------------
 
     def playstatus_update(self, updater: iface.PushUpdater, playing: Playing) -> None:
-        asyncio.create_task(self._handle_playstatus(playing))
+        self._track_task(self._handle_playstatus(playing))
 
     def playstatus_error(self, updater: iface.PushUpdater, exception: Exception) -> None:
         self._device.log(f'Push update error: {exception}')
@@ -70,7 +84,7 @@ class AirPlayLogic(PushListener, PowerListener):
         old_state: PowerState,
         new_state: PowerState,
     ) -> None:
-        asyncio.create_task(self._handle_powerstate(new_state))
+        self._track_task(self._handle_powerstate(new_state))
 
     # ------------------------------------------------------------------
     # Internal handlers
@@ -78,10 +92,11 @@ class AirPlayLogic(PushListener, PowerListener):
 
     async def clear_now_playing(self) -> None:
         """Reset all now-playing capabilities to their defaults."""
-        # Cancel any pending app-change debounce so it can't fire after clear (Finding 8)
+        # Cancel any pending app-change debounce so it can't fire after clear
         if self._now_playing_app_task and not self._now_playing_app_task.done():
             self._now_playing_app_task.cancel()
             self._now_playing_app_task = None
+        self._pending_now_playing_app = None
         try:
             self._artwork_identifier = None
             await self._device.set_capability_value('speaker_album', '')
@@ -172,29 +187,41 @@ class AirPlayLogic(PushListener, PowerListener):
     ) -> None:
         """Debounced update of the now_playing_app capability.
 
-        The debounce timer is only reset when the display_name actually changes.
-        Position-tick push updates that carry the same app do not restart the
-        timer, preventing the livelock where the task is perpetually cancelled
-        before it runs during active playback (Finding 4).
+        Guards against two livelock sources:
+        1. Repeated updates for the same pending target cancel and recreate the
+           debounce task, so it never fires. Fixed by tracking _pending_now_playing_app
+           and short-circuiting if the incoming value matches it.
+        2. Comparing against the persisted capability value (rather than the pending
+           target) causes the debounce to restart on every position-tick update
+           until the task finally fires and persists the value.
         """
         device = self._device
 
         if not device.has_capability('now_playing_app'):
             return
 
-        current = device.get_capability_value('now_playing_app')
-        if current == (display_name or ''):
-            # Same app — no update needed; leave any existing task alone.
+        target = display_name or ''
+
+        # If a debounce task is already pending for this exact value, leave it alone.
+        if self._pending_now_playing_app == target:
             return
 
-        # App changed: cancel previous debounce and start a fresh one.
+        # Check the already-persisted capability — if it matches, nothing to do.
+        current = device.get_capability_value('now_playing_app')
+        if current == target:
+            self._pending_now_playing_app = None
+            return
+
+        # App changed: track the pending target and start/restart debounce.
+        self._pending_now_playing_app = target
         if self._now_playing_app_task and not self._now_playing_app_task.done():
             self._now_playing_app_task.cancel()
 
         async def _do_update() -> None:
             await asyncio.sleep(1.0)
             device.log(f'Now playing app changed: {bundle_id} / {display_name}')
-            await device.set_capability_value('now_playing_app', display_name or '')
+            await device.set_capability_value('now_playing_app', target)
+            self._pending_now_playing_app = None
 
             # Fire flow trigger (Apple TV only — checked by device subclass)
             await device.trigger_now_playing_app_changed(bundle_id or '-', display_name or '-')

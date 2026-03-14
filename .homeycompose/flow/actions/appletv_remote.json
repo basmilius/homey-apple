@@ -114,17 +114,17 @@
                     "label": {
                         "en": "Right",
                         "nl": "Rechts",
-                        "da": "Rigtigt",
-                        "de": "Richtig",
-                        "es": "Correcto",
-                        "fr": "D'accord",
-                        "it": "Giusto",
-                        "no": "Riktig",
-                        "sv": "Rätt",
-                        "pl": "Dobrze",
-                        "ru": "Верно",
-                        "ko": "맞아요",
-                        "ar": "صحيح"
+                        "da": "Højre",
+                        "de": "Rechts",
+                        "es": "Derecha",
+                        "fr": "Droite",
+                        "it": "Destra",
+                        "no": "Høyre",
+                        "sv": "Höger",
+                        "pl": "Prawo",
+                        "ru": "Право",
+                        "ko": "오른쪽",
+                        "ar": "يمين"
                     }
                 },
                 {

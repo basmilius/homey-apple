@@ -83,11 +83,15 @@ class AppleTVFlow:
                 return []
             apps = await device._atv.apps.app_list()
             results = [
-                {'id': a.identifier, 'name': a.name, 'description': a.identifier}
+                {
+                    'id': a.identifier,
+                    'name': a.name or a.identifier,
+                    'description': a.identifier,
+                }
                 for a in apps
-                if not query.strip() or query.lower() in a.name.lower()
+                if not query.strip() or query.lower() in (a.name or a.identifier).lower()
             ]
-            return sorted(results, key=lambda x: x['name'])
+            return sorted(results, key=lambda x: x['name'].lower())
 
         card.register_run_listener(run)
         card.register_argument_autocomplete_listener('app', autocomplete_app)
@@ -246,11 +250,11 @@ class AppleTVFlow:
                 return []
             accounts = await device._atv.user_accounts.account_list()
             results = [
-                {'id': a.account_id, 'name': a.name}
+                {'id': a.identifier, 'name': a.name or a.identifier}
                 for a in accounts
-                if not query.strip() or query.lower() in a.name.lower()
+                if not query.strip() or query.lower() in (a.name or a.identifier).lower()
             ]
-            return sorted(results, key=lambda x: x['name'])
+            return sorted(results, key=lambda x: x['name'].lower())
 
         card.register_run_listener(run)
         card.register_argument_autocomplete_listener('account', autocomplete_account)

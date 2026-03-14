@@ -39,12 +39,12 @@ class HomePodBasePairing:
         self._selected_device = None
 
     async def start(self) -> None:
-        await self._load_devices()
-
         self._session.set_handler('show_view', self._on_show_view)
         self._session.set_handler('list_devices', self._on_list_devices)
         self._session.set_handler('list_devices_selection', self._on_list_devices_selection)
         self._session.set_handler('get_device', self._on_get_device)
+
+        await self._load_devices()
 
     # ------------------------------------------------------------------
     # Session handlers
@@ -94,7 +94,7 @@ class HomePodBasePairing:
 
     async def _on_show_view_discover(self) -> None:
         for _ in range(DISCOVER_RETRIES):
-            if self._devices:
+            if await self._on_list_devices():
                 break
             await asyncio.sleep(DISCOVER_RETRY_INTERVAL)
             await self._load_devices()

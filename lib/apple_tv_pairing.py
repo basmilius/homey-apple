@@ -34,13 +34,13 @@ class AppleTVPairing:
         self._pairing = None
 
     async def start(self) -> None:
-        await self._load_devices()
-
         self._session.set_handler('show_view', self._on_show_view)
         self._session.set_handler('list_devices', self._on_list_devices)
         self._session.set_handler('list_devices_selection', self._on_list_devices_selection)
         self._session.set_handler('pincode', self._on_pincode)
         self._session.set_handler('get_device', self._on_get_device)
+
+        await self._load_devices()
 
     # ------------------------------------------------------------------
     # Session handlers
@@ -84,7 +84,7 @@ class AppleTVPairing:
         else:
             pin = str(code)
 
-        logger.info(f'Pairing to {self._selected_device.name} with PIN {pin}')
+        logger.info('Finishing pairing with Apple TV: %s', self._selected_device.name)
         try:
             self._pairing.pin(pin)
             await self._pairing.finish()

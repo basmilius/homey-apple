@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -151,18 +151,14 @@ class TestOnShowViewAuthenticate:
         mock_pairing.service = MagicMock()
         mock_pairing.service.credentials = 'hp-creds'
 
-        import pyatv
-        with __import__('unittest.mock', fromlist=['patch']).patch(
-            'lib.homepod_pairing.pyatv.pair',
-            new=AsyncMock(return_value=mock_pairing),
-        ):
+        with patch('lib.homepod_pairing.pyatv.pair', new=AsyncMock(return_value=mock_pairing)):
             await instance._on_show_view_authenticate()
 
         session.show_view.assert_awaited_once_with('add_my_device')
 
     @pytest.mark.asyncio
     async def test_stores_credentials_on_success(self):
-        instance, session = _make_instance()
+        instance, _ = _make_instance()
         device = _make_device()
         instance._selected_device = device
 
@@ -174,10 +170,7 @@ class TestOnShowViewAuthenticate:
         mock_pairing.service = MagicMock()
         mock_pairing.service.credentials = 'hp-creds-xyz'
 
-        with __import__('unittest.mock', fromlist=['patch']).patch(
-            'lib.homepod_pairing.pyatv.pair',
-            new=AsyncMock(return_value=mock_pairing),
-        ):
+        with patch('lib.homepod_pairing.pyatv.pair', new=AsyncMock(return_value=mock_pairing)):
             await instance._on_show_view_authenticate()
 
         assert device._credentials == 'hp-creds-xyz'
@@ -191,7 +184,7 @@ class TestOnShowViewAuthenticate:
 
     @pytest.mark.asyncio
     async def test_always_closes_pairing_even_on_failure(self):
-        instance, session = _make_instance()
+        instance, _ = _make_instance()
         device = _make_device()
         instance._selected_device = device
 
@@ -200,10 +193,7 @@ class TestOnShowViewAuthenticate:
         mock_pairing.finish = AsyncMock(side_effect=RuntimeError('network error'))
         mock_pairing.close = AsyncMock()
 
-        with __import__('unittest.mock', fromlist=['patch']).patch(
-            'lib.homepod_pairing.pyatv.pair',
-            new=AsyncMock(return_value=mock_pairing),
-        ):
+        with patch('lib.homepod_pairing.pyatv.pair', new=AsyncMock(return_value=mock_pairing)):
             with pytest.raises(RuntimeError):
                 await instance._on_show_view_authenticate()
 
