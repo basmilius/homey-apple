@@ -101,7 +101,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
-        if self._debounce_task is not None:
+        if self._debounce_task is not None and not self._debounce_task.done():
             self._debounce_task.cancel()
             self._debounce_task = None
 
@@ -484,15 +484,16 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         if not self._device.has_capability('now_playing_app'):
             return
 
+        normalized = display_name or ''
         current = self._device.get_capability_value('now_playing_app')
-        if current == display_name:
+        if current == normalized:
             return
 
         self._device.log(
             self.device_name, 'Now playing app changed.', bundle_identifier, display_name
         )
 
-        await self._device.set_capability_value('now_playing_app', display_name or '')
+        await self._device.set_capability_value('now_playing_app', normalized)
 
         from ..apple_tv.device import AppleTVDevice
         if isinstance(self._device, AppleTVDevice):

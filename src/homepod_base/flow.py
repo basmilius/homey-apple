@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -31,6 +32,8 @@ class HomePodFlow:
                 'homepod_artwork_url_updated'
             )
             await card.trigger(device, {'localUrl': local_url, 'cloudUrl': cloud_url})
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
             self._app.log(device.get_name(), 'Failed to trigger artwork url updated card.', err)
 

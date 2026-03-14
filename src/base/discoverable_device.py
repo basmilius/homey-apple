@@ -193,9 +193,15 @@ class DiscoverableDevice(Device):
             await self.set_unavailable(
                 'Cannot find device on network after reconnect attempt.'
             )
+            self._start_scheduled_reconnect()
             return
 
         await self._connect(config)
+
+        # If _connect() failed (e.g. protocol error), self._atv is still None.
+        # Schedule periodic retries so the device recovers without manual intervention.
+        if self._atv is None:
+            self._start_scheduled_reconnect()
 
     # ------------------------------------------------------------------
     # pyatv DeviceListener
@@ -244,7 +250,7 @@ class DiscoverableDevice(Device):
         task = self._scheduled_reconnect_task
         if task is not None and task is not asyncio.current_task():
             task.cancel()
-        self._scheduled_reconnect_task = None
+            self._scheduled_reconnect_task = None
 
     async def _scheduled_reconnect_loop(self) -> None:
         """Periodically reconnect to pick up port changes."""
@@ -434,8 +440,11 @@ class DiscoverableDevice(Device):
                 await self.set_unavailable(
                     'Cannot find device on network after restart attempt.'
                 )
+                self._start_scheduled_reconnect()
             else:
                 await self._connect(config)
+                if self._atv is None:
+                    self._start_scheduled_reconnect()
         except Exception as err:
             self.error(err)
         finally:
