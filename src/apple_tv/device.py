@@ -66,6 +66,14 @@ class AppleTVDevice(DiscoverableDevice):
                 await self._airplay_logic.handle_power_state(initial_state)
         except Exception as err:
             self.error('Failed to fetch initial power state:', err)
+            await self._trigger_companion_link_failed()
+
+    async def _trigger_companion_link_failed(self) -> None:
+        """Fire the companion link failed trigger when power/companion is unavailable."""
+        from ..app import AppleApp
+        app = AppleApp._instance
+        if app is not None:
+            await app.apple_tv_flow.trigger_companion_link_failed(self)
 
     def _get_capability_handlers(self) -> dict[str, Any]:
         handlers = super()._get_capability_handlers()

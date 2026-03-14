@@ -86,7 +86,8 @@ class DiscoverableDevice(Device):
         self._airplay_logic: AirPlayLogic | None = None
         self._connected_once = False
         self._is_closing = False
-        self._is_reconnecting = False
+        self._is_repair_requested = False
+        self._reconnect_lock = asyncio.Lock()
         self._initial_connect_task: asyncio.Task | None = None
         self._scheduled_reconnect_task: asyncio.Task | None = None
 
@@ -137,7 +138,7 @@ class DiscoverableDevice(Device):
             await self.set_unavailable(
                 'Cannot find device on network. You might need to re-pair.'
             )
-            self._start_scheduled_reconnect()
+            await self._start_scheduled_reconnect()
             return
 
         await self._connect(config)
@@ -145,7 +146,7 @@ class DiscoverableDevice(Device):
         # If _connect() failed (e.g. protocol error), self._atv is still None.
         # Schedule periodic retries so the device recovers without manual intervention.
         if self._atv is None:
-            self._start_scheduled_reconnect()
+            await self._start_scheduled_reconnect()
 
     async def _connect(self, config: pyatv_interface.BaseConfig) -> None:
         """Connect to the device using a pyatv config."""
@@ -167,7 +168,7 @@ class DiscoverableDevice(Device):
 
                     await self._on_connected()
 
-                    self._start_scheduled_reconnect()
+                    await self._start_scheduled_reconnect()
                     await self.set_available()
                     self.log(f'Connected to {self._device_type_name}.')
                     return
@@ -215,7 +216,7 @@ class DiscoverableDevice(Device):
             await self.set_unavailable(
                 'Cannot find device on network after reconnect attempt.'
             )
-            self._start_scheduled_reconnect()
+            await self._start_scheduled_reconnect()
             return
 
         await self._connect(config)
@@ -223,7 +224,7 @@ class DiscoverableDevice(Device):
         # If _connect() failed (e.g. protocol error), self._atv is still None.
         # Schedule periodic retries so the device recovers without manual intervention.
         if self._atv is None:
-            self._start_scheduled_reconnect()
+            await self._start_scheduled_reconnect()
 
     # ------------------------------------------------------------------
     # pyatv DeviceListener
@@ -241,26 +242,24 @@ class DiscoverableDevice(Device):
 
     async def _on_disconnected(self) -> None:
         """Handle unexpected disconnection with reconnect guard."""
-        if self._is_reconnecting:
+        if self._reconnect_lock.locked() or self._is_repair_requested:
             return
 
-        self._is_reconnecting = True
-        try:
-            self.log(f'Disconnected from {self._device_type_name}, reconnecting...')
-            await self.set_unavailable(f'Disconnected from {self._device_type_name}, reconnecting...')
-            await asyncio.sleep(RECONNECT_DELAY_S)
-            await self._reconnect()
-        except Exception as err:
-            self.error('Reconnect after disconnection failed:', err)
-            self._start_scheduled_reconnect()
-        finally:
-            self._is_reconnecting = False
+        async with self._reconnect_lock:
+            try:
+                self.log(f'Disconnected from {self._device_type_name}, reconnecting...')
+                await self.set_unavailable(f'Disconnected from {self._device_type_name}, reconnecting...')
+                await asyncio.sleep(RECONNECT_DELAY_S)
+                await self._reconnect()
+            except Exception as err:
+                self.error('Reconnect after disconnection failed:', err)
+                await self._start_scheduled_reconnect()
 
     # ------------------------------------------------------------------
     # Scheduled reconnect (handles port changes)
     # ------------------------------------------------------------------
 
-    def _start_scheduled_reconnect(self) -> None:
+    async def _start_scheduled_reconnect(self) -> None:
         # When called from within the loop itself (during a scheduled reconnect),
         # do nothing — the while-loop will naturally continue after _reconnect() returns.
         if self._scheduled_reconnect_task is asyncio.current_task():
@@ -286,17 +285,15 @@ class DiscoverableDevice(Device):
         while True:
             await asyncio.sleep(SCHEDULED_RECONNECT_INTERVAL_S)
 
-            if self._is_reconnecting:
+            if self._reconnect_lock.locked() or self._is_repair_requested:
                 continue
 
-            self._is_reconnecting = True
-            try:
-                self.log('Scheduled reconnection, re-scanning...')
-                await self._reconnect()
-            except Exception as err:
-                self.error('Scheduled reconnect failed:', err)
-            finally:
-                self._is_reconnecting = False
+            async with self._reconnect_lock:
+                try:
+                    self.log('Scheduled reconnection, re-scanning...')
+                    await self._reconnect()
+                except Exception as err:
+                    self.error('Scheduled reconnect failed:', err)
 
     # ------------------------------------------------------------------
     # Network discovery
@@ -462,30 +459,29 @@ class DiscoverableDevice(Device):
         await self._require_atv().audio.set_volume(volume * 100)
 
     async def _on_restart(self, _: Any, **__: Any) -> None:
-        if self._is_reconnecting:
+        if self._reconnect_lock.locked():
             return
 
-        self._is_reconnecting = True
-        try:
-            await self._disconnect()
-            if self._airplay_logic is not None:
-                await self._airplay_logic.clear_now_playing()
-            config = await self.scan()
-            if config is None:
-                await self.set_unavailable(
-                    'Cannot find device on network after restart attempt.'
-                )
-                self._start_scheduled_reconnect()
-            else:
-                await self._connect(config)
-                if self._atv is None:
-                    self._start_scheduled_reconnect()
-        except Exception as err:
-            self.error(err)
-        finally:
-            self._is_reconnecting = False
+        async with self._reconnect_lock:
+            try:
+                await self._disconnect()
+                if self._airplay_logic is not None:
+                    await self._airplay_logic.clear_now_playing()
+                config = await self.scan()
+                if config is None:
+                    await self.set_unavailable(
+                        'Cannot find device on network after restart attempt.'
+                    )
+                    await self._start_scheduled_reconnect()
+                else:
+                    await self._connect(config)
+                    if self._atv is None:
+                        await self._start_scheduled_reconnect()
+            except Exception as err:
+                self.error(err)
 
     async def _on_repair(self, _: Any, **__: Any) -> None:
+        self._is_repair_requested = True
         await self._disconnect()
         if self._airplay_logic is not None:
             await self._airplay_logic.clear_now_playing()

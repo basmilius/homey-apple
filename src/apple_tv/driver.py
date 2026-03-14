@@ -9,6 +9,7 @@ class AppleTVDriver(Driver):
     """Homey driver for Apple TV devices."""
 
     async def on_init(self) -> None:
+        await super().on_init()
         self.log('Apple TV Driver has been initialized.')
 
     async def on_pair(self, session) -> None:

@@ -74,6 +74,7 @@ class AppleTVPairing(BasePairing):
         if finish_error is not None and not credentials:
             if self.on_error:
                 self.on_error(finish_error)
+            await self._pairing_handler.close()
             return False
 
         if finish_error is not None and credentials and self.on_log:
