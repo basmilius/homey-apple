@@ -3,8 +3,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pyatv.auth.hap_pairing import TRANSIENT_CREDENTIALS
-
 from ..base.pairing import BasePairing
 
 
@@ -64,9 +62,6 @@ class HomePodBasePairing(BasePairing):
             "id": str(getattr(device, "id", "")),
             "address": str(address),
             "port": port,
-            "protocol": "Protocol.AirPlay",
-            "credentials": str(TRANSIENT_CREDENTIALS),
-            "credentials_type": "transient",
             "model": model,
         }
 

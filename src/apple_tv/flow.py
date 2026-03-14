@@ -9,6 +9,12 @@ if TYPE_CHECKING:
     from .device import AppleTVDevice
 
 # Maps flow command names to remote_control method names.
+_REPEAT_MAP: dict[str, RepeatState] = {
+    'off': RepeatState.Off,
+    'one': RepeatState.Track,
+    'all': RepeatState.All,
+}
+
 _REMOTE_COMMAND_METHODS: dict[str, str] = {
     'up': 'up',
     'down': 'down',
@@ -158,7 +164,7 @@ class AppleTVFlow:
             elif command == 'homeHold':
                 await rc.home_hold()
             elif command == 'mute':
-                await device._on_volume_mute(None)
+                await device.toggle_mute()
             elif command == 'wake':
                 await atv.power.turn_on()
             elif command == 'suspend':
@@ -206,12 +212,6 @@ class AppleTVFlow:
 
     def _register_set_repeat(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_set_repeat')
-
-        _REPEAT_MAP = {
-            'off': RepeatState.Off,
-            'one': RepeatState.Track,
-            'all': RepeatState.All,
-        }
 
         async def run(args: dict[str, Any]) -> None:
             device: AppleTVDevice = args['device']

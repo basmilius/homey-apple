@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from abc import abstractmethod
 from typing import Any
 
 from homey.driver import Driver
@@ -12,11 +13,9 @@ class HomePodBaseDriver(Driver):
     """Abstract base driver for HomePod and HomePod Mini."""
 
     @property
+    @abstractmethod
     def model_filter(self) -> re.Pattern:
-        raise NotImplementedError
-
-    async def on_init(self) -> None:
-        pass
+        """Regex pattern to match device model strings during pairing."""
 
     async def on_pair(self, session: Any) -> None:
         pairing = HomePodBasePairing(

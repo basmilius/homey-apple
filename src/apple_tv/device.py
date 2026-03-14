@@ -63,7 +63,7 @@ class AppleTVDevice(DiscoverableDevice):
         try:
             initial_state = self._atv.power.power_state
             if self._airplay_logic is not None:
-                await self._airplay_logic._handle_power_state(initial_state)
+                await self._airplay_logic.handle_power_state(initial_state)
         except Exception as err:
             self.error('Failed to fetch initial power state:', err)
 
@@ -101,6 +101,10 @@ class AppleTVDevice(DiscoverableDevice):
     # -- Volume mute --
 
     async def _on_volume_mute(self, _: Any, **__: Any) -> None:
+        await self.toggle_mute()
+
+    async def toggle_mute(self) -> None:
+        """Toggle mute on the Apple TV."""
         audio = getattr(self._require_atv(), 'audio', None)
         if audio is None:
             raise RuntimeError('Apple TV audio interface not available.')
