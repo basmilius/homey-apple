@@ -97,6 +97,10 @@ class DiscoverableDevice(Device):
     async def on_uninit(self) -> None:
         if self._initial_connect_task is not None and not self._initial_connect_task.done():
             self._initial_connect_task.cancel()
+            try:
+                await self._initial_connect_task
+            except (asyncio.CancelledError, Exception):
+                pass
             self._initial_connect_task = None
 
         if self._airplay_logic is not None:
@@ -149,7 +153,7 @@ class DiscoverableDevice(Device):
                     await self.set_available()
                     self.log(f'Connected to {self._device_type_name}.')
                     return
-                except Exception:
+                except BaseException:
                     atv.listener = None
                     atv.close()
                     raise
@@ -228,6 +232,9 @@ class DiscoverableDevice(Device):
             await self.set_unavailable(f'Disconnected from {self._device_type_name}, reconnecting...')
             await asyncio.sleep(RECONNECT_DELAY_S)
             await self._reconnect()
+        except Exception as err:
+            self.error('Reconnect after disconnection failed:', err)
+            self._start_scheduled_reconnect()
         finally:
             self._is_reconnecting = False
 
@@ -293,10 +300,16 @@ class DiscoverableDevice(Device):
         return None
 
     def _match_scan_result(self, config: pyatv_interface.BaseConfig) -> bool:
-        """Check if a pyatv scan result matches this device by name."""
-        if not config.name:
-            return False
-        return config.name.lower() == self._expected_name.lower()
+        """Check if a pyatv scan result matches this device by name or identifier."""
+        hostname = self.discovery_id.removesuffix('.local')
+
+        if config.name and config.name.lower() == self._expected_name.lower():
+            return True
+
+        if config.identifier and hostname.lower() in config.identifier.lower():
+            return True
+
+        return False
 
     async def _scan_by_host(self, ip: str) -> pyatv_interface.BaseConfig | None:
         """Targeted unicast scan of a specific IP — discovers all protocols."""
