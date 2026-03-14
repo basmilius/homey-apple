@@ -112,7 +112,7 @@ class AppleTVPairing(BasePairing):
 
         loop = asyncio.get_running_loop()
         config = PyATVConfig(
-            address=ipaddress.IPv4Address(device.address),
+            address=ipaddress.ip_address(device.address),
             name=device.name or "",
         )
         config.add_service(

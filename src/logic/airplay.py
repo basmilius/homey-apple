@@ -62,7 +62,6 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         try:
             await self._device.set_album_art_image(self._artwork)
             await self.clear_now_playing()
-            await self.update_artwork_url()
         except Exception:
             try:
                 await self._device.homey.images.unregister_image(self._artwork)
@@ -152,7 +151,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         old_state: PowerState,
         new_state: PowerState,
     ) -> None:
-        asyncio.create_task(self._handle_power_state(new_state))
+        asyncio.create_task(self.handle_power_state(new_state))
 
     # ------------------------------------------------------------------
     # AudioListener implementation
@@ -268,7 +267,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
     # Power state
     # ------------------------------------------------------------------
 
-    async def _handle_power_state(self, new_state: PowerState) -> None:
+    async def handle_power_state(self, new_state: PowerState) -> None:
         """Handle power state change events."""
         self._device.log('Power state changed:', new_state)
 
@@ -289,7 +288,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             self._device.error('Failed to set power state:', err)
 
         if not is_on:
-            if self._debounce_task is not None:
+            if self._debounce_task is not None and not self._debounce_task.done():
                 self._debounce_task.cancel()
                 self._debounce_task = None
 
@@ -410,6 +409,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             artwork_info = await self._atv.metadata.artwork()
 
             if artwork_info is None or artwork_info.bytes is None:
+                self._artwork_hash = artwork_hash
                 await self._update_artwork_data(None)
                 return
 
@@ -492,7 +492,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             self.device_name, 'Now playing app changed.', bundle_identifier, display_name
         )
 
-        await self._device.set_capability_value('now_playing_app', display_name)
+        await self._device.set_capability_value('now_playing_app', display_name or '')
 
         from ..apple_tv.device import AppleTVDevice
         if isinstance(self._device, AppleTVDevice):

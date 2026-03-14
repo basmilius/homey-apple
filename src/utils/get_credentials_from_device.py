@@ -41,8 +41,8 @@ def get_credentials_from_device(device: Any) -> dict[str, str | None]:
                 atv_id = atv_id_str.lower().replace(':', '')
 
                 airplay_credentials = f'{ltpk}:{ltsk}:{atv_id}:{client_id}'
-            except (KeyError, TypeError):
-                pass
+            except (KeyError, TypeError) as err:
+                device.error('Failed to convert legacy credentials:', err)
 
     # Companion credentials: use dedicated store value if present,
     # otherwise fall back to AirPlay credentials (they are interchangeable).

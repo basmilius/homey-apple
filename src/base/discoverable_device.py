@@ -115,9 +115,15 @@ class DiscoverableDevice(Device):
             await self.set_unavailable(
                 'Cannot find device on network. You might need to re-pair.'
             )
+            self._start_scheduled_reconnect()
             return
 
         await self._connect(config)
+
+        # If _connect() failed (e.g. protocol error), self._atv is still None.
+        # Schedule periodic retries so the device recovers without manual intervention.
+        if self._atv is None:
+            self._start_scheduled_reconnect()
 
     async def _connect(self, config: pyatv_interface.BaseConfig) -> None:
         """Connect to the device using a pyatv config."""
@@ -197,7 +203,8 @@ class DiscoverableDevice(Device):
 
     def connection_lost(self, exception: Exception) -> None:
         self.log('Connection lost:', exception)
-        asyncio.create_task(self._on_disconnected())
+        if not self._is_closing:
+            asyncio.create_task(self._on_disconnected())
 
     def connection_closed(self) -> None:
         self.log('Connection closed.')
@@ -344,16 +351,18 @@ class DiscoverableDevice(Device):
     async def sync_capabilities(self, expected: list[str]) -> None:
         """Add missing and remove stale capabilities to match *expected*."""
         current = self.get_capabilities()
+        expected_set = set(expected)
+        current_set = set(current)
 
         for cap in expected:
-            if cap not in current:
+            if cap not in current_set:
                 try:
                     await self.add_capability(cap)
                 except Exception as err:
                     self.error(f'Failed to add capability {cap!r}:', err)
 
         for cap in current:
-            if cap not in expected:
+            if cap not in expected_set:
                 try:
                     await self.remove_capability(cap)
                 except Exception as err:
@@ -421,7 +430,11 @@ class DiscoverableDevice(Device):
             if self._airplay_logic is not None:
                 await self._airplay_logic.clear_now_playing()
             config = await self.scan()
-            if config is not None:
+            if config is None:
+                await self.set_unavailable(
+                    'Cannot find device on network after restart attempt.'
+                )
+            else:
                 await self._connect(config)
         except Exception as err:
             self.error(err)
