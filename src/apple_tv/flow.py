@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any
 
 from pyatv.const import RepeatState, ShuffleState
@@ -56,6 +57,8 @@ class AppleTVFlow:
                 'appletv_companion_link_failed'
             )
             await card.trigger(device)
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
             self._app.log(device.get_name(), 'Failed to trigger companion link failed card.', err)
 
@@ -67,6 +70,8 @@ class AppleTVFlow:
                 'appletv_artwork_url_updated'
             )
             await card.trigger(device, {'localUrl': local_url, 'cloudUrl': cloud_url})
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
             self._app.log(device.get_name(), 'Failed to trigger artwork url updated card.', err)
 
@@ -84,6 +89,8 @@ class AppleTVFlow:
                 device,
                 {'bundleIdentifier': bundle_identifier, 'displayName': display_name},
             )
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
             self._app.log(
                 device.get_name(), 'Failed to trigger now playing app changes card.', err
@@ -218,8 +225,10 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-            repeat_state = _REPEAT_MAP.get(args['mode'], RepeatState.Off)
-            await atv.remote_control.set_repeat(repeat_state)
+            mode = args['mode']
+            if mode not in _REPEAT_MAP:
+                raise ValueError(f'Unsupported repeat mode: {mode!r}')
+            await atv.remote_control.set_repeat(_REPEAT_MAP[mode])
 
         card.register_run_listener(run)
 

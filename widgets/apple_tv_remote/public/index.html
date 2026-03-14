@@ -19,7 +19,6 @@
             id="artwork">
             <img
                 id="artwork-img"
-                src=""
                 alt="">
             <svg
                 class="artwork-placeholder"
@@ -258,7 +257,7 @@
                 if (!state) {
                     track.textContent = '—';
                     meta.textContent = deviceId ? '—' : Homey.__('widget.apple_tv_remote.no_device');
-                    artworkImg.src = '';
+                    artworkImg.removeAttribute('src');
                     artwork.className = 'now-playing-artwork empty';
                 } else {
                     track.textContent = state.track || '—';
@@ -276,7 +275,7 @@
                         artworkImg.src = state.artworkUrl;
                         artwork.className = 'now-playing-artwork';
                     } else {
-                        artworkImg.src = '';
+                        artworkImg.removeAttribute('src');
                         artwork.className = 'now-playing-artwork empty';
                     }
                 }
@@ -289,9 +288,18 @@
         }
 
         artworkImg.addEventListener('error', function () {
-            artworkImg.src = '';
+            artworkImg.removeAttribute('src');
             artwork.className = 'now-playing-artwork empty';
         });
+
+        async function apiSafe(method, path, fallback = null) {
+            try {
+                return await Homey.api(method, path);
+            } catch (err) {
+                console.error('Homey API error:', method, path, err);
+                return fallback;
+            }
+        }
 
         async function init() {
             if (!deviceId) {
@@ -305,7 +313,7 @@
                 }
             });
 
-            const state = await Homey.api('GET', `/?deviceId=${encodeURIComponent(deviceId)}`);
+            const state = await apiSafe('GET', `/?deviceId=${encodeURIComponent(deviceId)}`);
             render(state);
         }
 
@@ -320,7 +328,7 @@
                 } catch (_) {
                 }
 
-                await Homey.api('POST', `/${endpoint}?deviceId=${encodeURIComponent(deviceId)}`);
+                await apiSafe('POST', `/${endpoint}?deviceId=${encodeURIComponent(deviceId)}`);
             };
         }
 
@@ -350,7 +358,7 @@
 
             isPlaying = !isPlaying;
 
-            await Homey.api('POST', `/playpause?deviceId=${encodeURIComponent(deviceId)}`);
+            await apiSafe('POST', `/playpause?deviceId=${encodeURIComponent(deviceId)}`);
         });
 
         init();

@@ -87,7 +87,9 @@ class BasePairing(ABC):
                 data = device.get_data() or {}
                 if data.get("id"):
                     known_ids.add(data["id"])
-            except Exception:
+            except Exception as err:
+                if self.on_error:
+                    self.on_error(err)
                 continue
 
         entries: list[dict] = []
@@ -103,7 +105,9 @@ class BasePairing(ABC):
                     continue
 
                 entries.append({"id": rid, "name": getattr(result, "name", None), "data": {"id": rid}})
-            except Exception:
+            except Exception as err:
+                if self.on_error:
+                    self.on_error(err)
                 continue
 
         return entries
