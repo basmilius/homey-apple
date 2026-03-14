@@ -722,17 +722,17 @@
                 "label": {
                   "en": "Right",
                   "nl": "Rechts",
-                  "da": "Rigtigt",
-                  "de": "Richtig",
-                  "es": "Correcto",
-                  "fr": "D'accord",
-                  "it": "Giusto",
-                  "no": "Riktig",
-                  "sv": "Rätt",
-                  "pl": "Dobrze",
-                  "ru": "Верно",
-                  "ko": "맞아요",
-                  "ar": "صحيح"
+                  "da": "Højre",
+                  "de": "Rechts",
+                  "es": "Derecha",
+                  "fr": "Droite",
+                  "it": "Destra",
+                  "no": "Høyre",
+                  "sv": "Höger",
+                  "pl": "Prawo",
+                  "ru": "Право",
+                  "ko": "오른쪽",
+                  "ar": "يمين"
                 }
               },
               {
@@ -1039,6 +1039,78 @@
                   "ru": "Сон",
                   "ko": "수면",
                   "ar": "نوم"
+                }
+              },
+              {
+                "id": "doubleTapSelect",
+                "label": {
+                  "en": "Select (double tap)",
+                  "nl": "Selecteer (dubbeltik)",
+                  "da": "Vælg (dobbelttryk)",
+                  "de": "Auswählen (Doppeltippen)",
+                  "es": "Seleccionar (doble toque)",
+                  "fr": "Sélectionner (double appui)",
+                  "it": "Seleziona (doppio tocco)",
+                  "no": "Velg (dobbelttrykk)",
+                  "sv": "Välj (dubbelknacka)",
+                  "pl": "Wybierz (podwójne stuknięcie)",
+                  "ru": "Выбрать (двойное касание)",
+                  "ko": "선택 (두 번 탭)",
+                  "ar": "اختر (نقرة مزدوجة)"
+                }
+              },
+              {
+                "id": "channelUp",
+                "label": {
+                  "en": "Channel Up",
+                  "nl": "Kanaal omhoog",
+                  "da": "Kanal op",
+                  "de": "Kanal hoch",
+                  "es": "Canal arriba",
+                  "fr": "Chaîne suivante",
+                  "it": "Canale su",
+                  "no": "Kanal opp",
+                  "sv": "Kanal upp",
+                  "pl": "Kanał w górę",
+                  "ru": "Канал вверх",
+                  "ko": "채널 올리기",
+                  "ar": "القناة التالية"
+                }
+              },
+              {
+                "id": "channelDown",
+                "label": {
+                  "en": "Channel Down",
+                  "nl": "Kanaal omlaag",
+                  "da": "Kanal ned",
+                  "de": "Kanal runter",
+                  "es": "Canal abajo",
+                  "fr": "Chaîne précédente",
+                  "it": "Canale giù",
+                  "no": "Kanal ned",
+                  "sv": "Kanal ner",
+                  "pl": "Kanał w dół",
+                  "ru": "Канал вниз",
+                  "ko": "채널 내리기",
+                  "ar": "القناة السابقة"
+                }
+              },
+              {
+                "id": "siri",
+                "label": {
+                  "en": "Siri",
+                  "nl": "Siri",
+                  "da": "Siri",
+                  "de": "Siri",
+                  "es": "Siri",
+                  "fr": "Siri",
+                  "it": "Siri",
+                  "no": "Siri",
+                  "sv": "Siri",
+                  "pl": "Siri",
+                  "ru": "Siri",
+                  "ko": "Siri",
+                  "ar": "Siri"
                 }
               }
             ]

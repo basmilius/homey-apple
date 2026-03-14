@@ -99,6 +99,22 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         except Exception as err:
             self._device.log('Audio listener not available:', err)
 
+    def _create_guarded_task(self, coro: Any) -> asyncio.Task:
+        """Create a task that logs exceptions instead of leaving them unhandled."""
+        task = asyncio.create_task(coro)
+        task.add_done_callback(self._on_task_done)
+        return task
+
+    def _on_task_done(self, task: asyncio.Task) -> None:
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is not None:
+            try:
+                self._device.error('Unhandled task exception:', exc)
+            except Exception:
+                pass
+
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
         if self._debounce_task is not None and not self._debounce_task.done():
@@ -133,7 +149,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         updater: pyatv_interface.PushUpdater,
         playing: pyatv_interface.Playing,
     ) -> None:
-        asyncio.create_task(self._on_playing_update(playing))
+        self._create_guarded_task(self._on_playing_update(playing))
 
     def playstatus_error(
         self,
@@ -151,14 +167,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         old_state: PowerState,
         new_state: PowerState,
     ) -> None:
-        asyncio.create_task(self.handle_power_state(new_state))
+        self._create_guarded_task(self.handle_power_state(new_state))
 
     # ------------------------------------------------------------------
     # AudioListener implementation
     # ------------------------------------------------------------------
 
     def volume_update(self, old_level: float, new_level: float) -> None:
-        asyncio.create_task(self._on_volume_update(new_level))
+        self._create_guarded_task(self._on_volume_update(new_level))
 
     def volume_device_update(
         self,
@@ -312,7 +328,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         if self._debounce_task is not None:
             self._debounce_task.cancel()
 
-        self._debounce_task = asyncio.create_task(self._debounced_update())
+        self._debounce_task = self._create_guarded_task(self._debounced_update())
 
     async def _debounced_update(self) -> None:
         try:
@@ -324,7 +340,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         if playing is not None:
             if self._update_task is not None and not self._update_task.done():
                 self._update_task.cancel()
-            self._update_task = asyncio.create_task(self._update_now_playing(playing))
+            self._update_task = self._create_guarded_task(self._update_now_playing(playing))
 
     async def _update_now_playing(self, playing: pyatv_interface.Playing) -> None:
         """Update Homey capabilities from a Playing object."""

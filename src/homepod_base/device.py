@@ -55,7 +55,8 @@ class HomePodBaseDevice(DiscoverableDevice):
         if volume is not None:
             await self._atv.audio.set_volume(volume)
 
-        asyncio.create_task(self._stream_url(url))
+        from ..base.discoverable_device import _guarded_task
+        _guarded_task(self._stream_url(url), self)
 
     async def _stream_url(self, url: str) -> None:
         atv = self._atv

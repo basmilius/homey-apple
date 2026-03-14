@@ -23,6 +23,24 @@ MAX_CONNECT_RETRIES = 3
 CONNECT_RETRY_DELAY_S = 3.0
 
 
+def _guarded_task(coro: Any, device: Any) -> asyncio.Task:
+    """Create a task that logs exceptions instead of leaving them unhandled."""
+    task = asyncio.create_task(coro)
+    task.add_done_callback(lambda t: _on_task_done(t, device))
+    return task
+
+
+def _on_task_done(task: asyncio.Task, device: Any) -> None:
+    if task.cancelled():
+        return
+    exc = task.exception()
+    if exc is not None:
+        try:
+            device.error('Unhandled task exception:', exc)
+        except Exception:
+            pass
+
+
 class DiscoverableDevice(Device):
     """
     A Homey device that discovers itself on the local network via
@@ -90,7 +108,7 @@ class DiscoverableDevice(Device):
         await self.sync_capabilities(self._device_capabilities)
         self._register_capabilities()
 
-        self._initial_connect_task = asyncio.create_task(self._initial_connect())
+        self._initial_connect_task = _guarded_task(self._initial_connect(), self)
 
         self.log('Initialized.')
 
@@ -177,7 +195,7 @@ class DiscoverableDevice(Device):
 
     async def _disconnect(self) -> None:
         """Disconnect and clean up."""
-        self._stop_scheduled_reconnect()
+        await self._stop_scheduled_reconnect()
         if self._airplay_logic is not None:
             self._airplay_logic.stop()
         if self._atv is not None:
@@ -214,12 +232,12 @@ class DiscoverableDevice(Device):
     def connection_lost(self, exception: Exception) -> None:
         self.log('Connection lost:', exception)
         if not self._is_closing:
-            asyncio.create_task(self._on_disconnected())
+            _guarded_task(self._on_disconnected(), self)
 
     def connection_closed(self) -> None:
         self.log('Connection closed.')
         if not self._is_closing:
-            asyncio.create_task(self._on_disconnected())
+            _guarded_task(self._on_disconnected(), self)
 
     async def _on_disconnected(self) -> None:
         """Handle unexpected disconnection with reconnect guard."""
@@ -248,16 +266,20 @@ class DiscoverableDevice(Device):
         if self._scheduled_reconnect_task is asyncio.current_task():
             return
 
-        self._stop_scheduled_reconnect()
-        self._scheduled_reconnect_task = asyncio.create_task(self._scheduled_reconnect_loop())
+        await self._stop_scheduled_reconnect()
+        self._scheduled_reconnect_task = _guarded_task(self._scheduled_reconnect_loop(), self)
 
-    def _stop_scheduled_reconnect(self) -> None:
+    async def _stop_scheduled_reconnect(self) -> None:
         # Never cancel the task that is currently executing this code — that would
         # cancel the scheduled reconnect loop from within itself.
         task = self._scheduled_reconnect_task
         if task is not None and task is not asyncio.current_task():
             task.cancel()
             self._scheduled_reconnect_task = None
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
 
     async def _scheduled_reconnect_loop(self) -> None:
         """Periodically reconnect to pick up port changes."""

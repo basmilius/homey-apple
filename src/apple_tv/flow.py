@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, Any
 
-from pyatv.const import RepeatState, ShuffleState
+from pyatv.const import InputAction, RepeatState, ShuffleState
 
 if TYPE_CHECKING:
     from ..app import AppleApp
@@ -170,6 +170,19 @@ class AppleTVFlow:
                 await rc.top_menu()
             elif command == 'homeHold':
                 await rc.home_hold()
+            elif command == 'doubleTapSelect':
+                await rc.select(action=InputAction.DoubleTap)
+            elif command == 'channelUp':
+                await rc.channel_up()
+            elif command == 'channelDown':
+                await rc.channel_down()
+            elif command == 'siri':
+                if hasattr(rc, 'api'):
+                    from pyatv.protocols.companion.api import HidCommand
+                    await rc.api.hid_command(True, HidCommand.Siri)
+                    await rc.api.hid_command(False, HidCommand.Siri)
+                else:
+                    self._app.log(device.get_name(), 'Siri requires Companion Link protocol')
             elif command == 'mute':
                 await device.toggle_mute()
             elif command == 'wake':
