@@ -99,8 +99,8 @@ class AppleTVFlow:
             device = args['device']
             if device._atv is None:
                 return
-            # Companion Link supports URL launching
-            await device._atv.apps.launch_app(args['url'])
+            # Stream the URL via AirPlay using pyatv's stream interface
+            await device._atv.stream.play_url(args['url'])
 
         card.register_run_listener(run)
 

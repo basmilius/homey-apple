@@ -122,6 +122,7 @@ class HomePodBasePairing:
                 await self._session.show_view('add_my_device')
             else:
                 logger.error('HomePod pairing did not complete successfully.')
+                await self._session.show_view('list_devices')
         finally:
             await pairing.close()
 

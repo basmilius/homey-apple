@@ -85,22 +85,26 @@ class AppleTVPairing:
             pin = str(code)
 
         logger.info(f'Pairing to {self._selected_device.name} with PIN {pin}')
-        self._pairing.pin(pin)
-        await self._pairing.finish()
+        try:
+            self._pairing.pin(pin)
+            await self._pairing.finish()
 
-        if self._pairing.has_paired:
-            credentials = self._pairing.service.credentials
-            self._selected_device._credentials = credentials
-            logger.info(f'Successfully paired with Apple TV: {self._selected_device.name}')
-            await self._pairing.close()
-            self._pairing = None
-            await self._session.show_view('add_my_device')
-        else:
-            logger.error('Pairing did not complete successfully — wrong PIN?')
-            await self._pairing.close()
-            self._pairing = None
-            # Restart the authenticate view so the user can try again
-            await self._session.show_view('authenticate')
+            if self._pairing.has_paired:
+                credentials = self._pairing.service.credentials
+                self._selected_device._credentials = credentials
+                logger.info(f'Successfully paired with Apple TV: {self._selected_device.name}')
+                await self._session.show_view('add_my_device')
+            else:
+                logger.error('Pairing did not complete successfully — wrong PIN?')
+                # Restart the authenticate view so the user can try again
+                await self._session.show_view('authenticate')
+        finally:
+            if self._pairing is not None:
+                try:
+                    await self._pairing.close()
+                except Exception:
+                    pass
+                self._pairing = None
 
     async def _on_get_device(self) -> dict | None:
         if not self._selected_device:

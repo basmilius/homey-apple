@@ -74,17 +74,23 @@ class DiscoverableDevice(homey.Device):
             await self.on_service_found(service, config)
 
     async def _find_services(self, update: bool = True) -> None:
-        """Find all required services concurrently."""
-        try:
-            await asyncio.gather(
-                *[self.find_service(svc, update) for svc in self.services]
-            )
-        except Exception as err:
+        """Find all required services concurrently.
+
+        Uses return_exceptions=True so that a failure on one service does not
+        cancel scans that are still in progress for other services (Finding 7).
+        """
+        results = await asyncio.gather(
+            *[self.find_service(svc, update) for svc in self.services],
+            return_exceptions=True,
+        )
+        errors = [r for r in results if isinstance(r, BaseException)]
+        if errors:
             await self.set_unavailable(
                 f'Cannot find {self.discovery_id} on network. '
                 'You might need to pair with the device again.'
             )
-            self.error(f'Failed to find services: {err}')
+            for err in errors:
+                self.error(f'Failed to find service: {err}')
 
     async def on_service_found(self, service: str, config: BaseConfig) -> None:
         """Called when a service is found for the first time."""

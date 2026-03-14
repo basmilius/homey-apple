@@ -78,6 +78,10 @@ class AirPlayLogic(PushListener, PowerListener):
 
     async def clear_now_playing(self) -> None:
         """Reset all now-playing capabilities to their defaults."""
+        # Cancel any pending app-change debounce so it can't fire after clear (Finding 8)
+        if self._now_playing_app_task and not self._now_playing_app_task.done():
+            self._now_playing_app_task.cancel()
+            self._now_playing_app_task = None
         try:
             self._artwork_identifier = None
             await self._device.set_capability_value('speaker_album', '')
@@ -166,21 +170,29 @@ class AirPlayLogic(PushListener, PowerListener):
         bundle_id: str | None,
         display_name: str | None,
     ) -> None:
-        """Debounced update of the now_playing_app capability."""
+        """Debounced update of the now_playing_app capability.
+
+        The debounce timer is only reset when the display_name actually changes.
+        Position-tick push updates that carry the same app do not restart the
+        timer, preventing the livelock where the task is perpetually cancelled
+        before it runs during active playback (Finding 4).
+        """
+        device = self._device
+
+        if not device.has_capability('now_playing_app'):
+            return
+
+        current = device.get_capability_value('now_playing_app')
+        if current == (display_name or ''):
+            # Same app — no update needed; leave any existing task alone.
+            return
+
+        # App changed: cancel previous debounce and start a fresh one.
         if self._now_playing_app_task and not self._now_playing_app_task.done():
             self._now_playing_app_task.cancel()
 
         async def _do_update() -> None:
             await asyncio.sleep(1.0)
-            device = self._device
-
-            if not device.has_capability('now_playing_app'):
-                return
-
-            current = device.get_capability_value('now_playing_app')
-            if current == display_name:
-                return
-
             device.log(f'Now playing app changed: {bundle_id} / {display_name}')
             await device.set_capability_value('now_playing_app', display_name or '')
 
@@ -194,7 +206,9 @@ class AirPlayLogic(PushListener, PowerListener):
         if url == self._artwork_identifier:
             return
 
-        self._artwork_identifier = url
+        # Do NOT set _artwork_identifier yet — only mark success after async ops
+        # complete so a transient failure doesn't permanently deduplicate this URL
+        # (Finding 3).
         device = self._device
 
         try:
@@ -207,6 +221,9 @@ class AirPlayLogic(PushListener, PowerListener):
             await image.update()
             await device.set_album_art_image(image)
 
+            # Mark as processed only after all async operations succeed.
+            self._artwork_identifier = url
+
             if device.has_capability('artwork_url'):
                 from time import time
                 cache_buster = int(time() * 1000)
@@ -216,7 +233,8 @@ class AirPlayLogic(PushListener, PowerListener):
                         'artwork_url',
                         f'{cloud_url}?v={cache_buster}',
                     )
-
-                await device.trigger_artwork_url_updated(image)
+                    # Only trigger the flow when we have an actual URL to deliver
+                    # (Finding 6).
+                    await device.trigger_artwork_url_updated(image)
         except Exception as err:
             device.error(f'Failed to update artwork: {err}')
