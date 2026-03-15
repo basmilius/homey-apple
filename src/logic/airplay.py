@@ -315,6 +315,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
             await self.clear_now_playing()
 
+        await self._emit_mini_player_update()
+
     # ------------------------------------------------------------------
     # Debounced now-playing updates
     # ------------------------------------------------------------------
