@@ -35,5 +35,27 @@ echo "Removed __pycache__ and .pyc files."
 find "$BUILD_DIR" -type d -name '*.dist-info' -exec rm -rf {} + 2>/dev/null || true
 echo "Removed .dist-info directories."
 
+# Remove packages not used by this app (transitive pyatv dependencies).
+UNUSED_PACKAGES=(
+    "tabulate*"       # Only used by pyatv's atvremote CLI tool.
+    "six*"            # Legacy Python 2/3 compatibility shim.
+    "requests*"       # pyatv only uses CaseInsensitiveDict from it.
+    "urllib3*"        # Transitive dependency of requests.
+    "certifi*"        # Transitive dependency of requests.
+    "charset_normalizer*" # Transitive dependency of requests.
+)
+
+for arch_dir in "$BUILD_DIR"/*/; do
+    site_packages="$arch_dir/lib/python3.14/site-packages"
+    if [ ! -d "$site_packages" ]; then
+        continue
+    fi
+
+    for pattern in "${UNUSED_PACKAGES[@]}"; do
+        rm -rf "$site_packages"/$pattern
+    done
+done
+echo "Removed unused packages."
+
 after=$(du -sm "$BUILD_DIR" | cut -f1)
 echo "Done: ${before}MB → ${after}MB (saved $((before - after))MB)"

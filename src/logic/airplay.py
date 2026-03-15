@@ -57,6 +57,17 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             if inspect.isawaitable(result):
                 await result
 
+    async def _clear_artwork(self) -> None:
+        """Clear the artwork image source.
+
+        The Python Homey SDK does not support passing None to set_url(),
+        unlike the TypeScript SDK. Using set_path with an empty path
+        as a workaround to reset the image source."""
+        if self._artwork is None:
+            return
+
+        self._artwork.set_path(None)
+
     async def initialize(self) -> None:
         """Register artwork image with Homey and clear now-playing state."""
         self._artwork = await self._device.homey.images.create_image()
@@ -212,8 +223,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         try:
             self._artwork_hash = None
 
-            await self._call_image_method('set_url', None)
-            await self._call_image_method('update')
+            await self._clear_artwork()
 
             for cap in ('artwork_url', 'artwork_url_local', 'artwork_url_cloud'):
                 if self._device.has_capability(cap):
@@ -463,10 +473,9 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
                     stream.write(data)
 
                 await self._call_image_method('set_stream', write_to_stream)
+                await self._call_image_method('update')
             else:
-                await self._call_image_method('set_url', None)
-
-            await self._call_image_method('update')
+                await self._clear_artwork()
             await self.update_artwork_url()
         except Exception as err:
             self._device.error(self.device_name, 'Failed to update artwork data:', err)
