@@ -457,7 +457,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
         try:
             if data is not None:
-                def write_to_stream(stream: Any) -> None:
+                async def write_to_stream(stream: Any) -> None:
                     stream.write(data)
 
                 await self._call_image_method('set_stream', write_to_stream)
