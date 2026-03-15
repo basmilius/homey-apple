@@ -310,5 +310,8 @@
   },
   "1.6.11": {
     "en": "More work on Python migration."
+  },
+  "1.6.12": {
+    "en": "Fixed clearing artworks."
   }
 }
