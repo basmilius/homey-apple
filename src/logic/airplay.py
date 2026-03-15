@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import pyatv.interface as pyatv_interface
 from pyatv.const import DeviceState, PowerState, RepeatState, ShuffleState
+from pyatv.exceptions import NotSupportedError
 
 if TYPE_CHECKING:
     from homey.device import Device
@@ -442,6 +443,10 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
             await self._update_artwork_data(artwork_info.bytes)
             self._artwork_hash = artwork_hash
+        except NotSupportedError:
+            # Artwork/metadata not supported for this protocol configuration.
+            # Store the hash to prevent re-fetching on every update.
+            self._artwork_hash = artwork_hash
         except Exception as err:
             self._device.error(self.device_name, 'Failed to fetch artwork:', err)
 
@@ -452,7 +457,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
         try:
             if data is not None:
-                async def write_to_stream(stream: Any) -> None:
+                def write_to_stream(stream: Any) -> None:
                     stream.write(data)
 
                 await self._call_image_method('set_stream', write_to_stream)

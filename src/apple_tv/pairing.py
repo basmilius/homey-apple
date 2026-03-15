@@ -60,7 +60,13 @@ class AppleTVPairing(BasePairing):
                 self.on_error(f'Invalid PIN format: {err}')
             return False
 
-        self._pairing_handler.pin(pin_int)
+        try:
+            self._pairing_handler.pin(pin_int)
+        except Exception as err:
+            if self.on_error:
+                self.on_error(f'Failed to set PIN: {err}')
+            await self._close_pairing_handler()
+            return False
 
         finish_error: Exception | None = None
         try:
@@ -74,7 +80,7 @@ class AppleTVPairing(BasePairing):
         if finish_error is not None and not credentials:
             if self.on_error:
                 self.on_error(finish_error)
-            await self._pairing_handler.close()
+            await self._close_pairing_handler()
             return False
 
         if finish_error is not None and credentials and self.on_log:
@@ -82,7 +88,7 @@ class AppleTVPairing(BasePairing):
 
         self._credentials = credentials
 
-        await self._pairing_handler.close()
+        await self._close_pairing_handler()
 
         return True
 
@@ -100,6 +106,15 @@ class AppleTVPairing(BasePairing):
             },
         }
 
+    async def _close_pairing_handler(self) -> None:
+        """Close the pairing handler if it exists."""
+        if self._pairing_handler is not None:
+            try:
+                await self._pairing_handler.close()
+            except Exception:
+                pass
+            self._pairing_handler = None
+
     async def _on_show_view_authenticate(self) -> None:
         if self._selected_device is None:
             await self._session.show_view("list_devices")
@@ -108,22 +123,36 @@ class AppleTVPairing(BasePairing):
             return
 
         device = self._selected_device
+        address = getattr(device, "address", None)
+        port = getattr(device, "port", None)
+
+        if not address:
+            if self.on_error:
+                self.on_error("Device has no address; cannot pair.")
+            await self._session.show_view("list_devices")
+            return
+
         if self.on_log:
-            self.on_log(f"Connecting to {device.address}:{device.port} for pairing...")
+            self.on_log(f"Connecting to {address}:{port} for pairing...")
 
         loop = asyncio.get_running_loop()
         config = PyATVConfig(
-            address=ipaddress.ip_address(device.address),
-            name=device.name or "",
+            address=ipaddress.ip_address(str(address)),
+            name=getattr(device, "name", None) or "",
         )
         config.add_service(
             ManualService(
-                identifier=device.id,
+                identifier=getattr(device, "id", None),
                 protocol=Protocol.AirPlay,
-                port=device.port,
+                port=int(port or 7000),
                 properties=dict(getattr(device, "txt", {}) or {}),
             )
         )
 
-        self._pairing_handler = await pyatv.pair(config, Protocol.AirPlay, loop)
-        await self._pairing_handler.begin()
+        try:
+            self._pairing_handler = await pyatv.pair(config, Protocol.AirPlay, loop)
+            await self._pairing_handler.begin()
+        except Exception as err:
+            if self.on_error:
+                self.on_error(f'Failed to start pairing: {err}')
+            await self._close_pairing_handler()

@@ -24,7 +24,7 @@ def get_credentials_from_device(device: Any) -> dict[str, str | None]:
 
     # New format: credential string stored directly by pyatv after pairing.
     raw = store.get('airplay_credentials')
-    if raw and isinstance(raw, str):
+    if isinstance(raw, str) and raw:
         airplay_credentials = raw
     else:
         # Legacy format: credentials stored by the old TypeScript library as a dict.

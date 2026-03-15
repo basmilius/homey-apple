@@ -105,10 +105,12 @@ class AppleTVFlow:
 
         async def run(args: dict[str, Any]) -> None:
             device: AppleTVDevice = args['device']
-            app_arg: Any = args['app']
+            app_arg: Any = args.get('app')
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            if not isinstance(app_arg, dict) or 'id' not in app_arg:
+                raise ValueError('No app selected')
             await atv.apps.launch_app(app_arg['id'])
 
         async def autocomplete(query: str, args: dict[str, Any]) -> list[dict]:
@@ -116,7 +118,10 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 return []
-            app_list = await atv.apps.app_list()
+            try:
+                app_list = await atv.apps.app_list()
+            except Exception:
+                return []
             results = [
                 {
                     'id': a.identifier,
@@ -124,7 +129,7 @@ class AppleTVFlow:
                     'description': a.identifier,
                 }
                 for a in app_list
-                if not query.strip() or query.lower() in a.name.lower()
+                if not query.strip() or query.lower() in (a.name or '').lower()
             ]
             return sorted(results, key=lambda x: x['name'])
 
@@ -202,7 +207,7 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-            await atv.remote_control.set_position(int(args['position']))
+            await atv.remote_control.set_position(int(float(args['position'])))
 
         card.register_run_listener(run)
 
@@ -214,7 +219,7 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-            await atv.remote_control.skip_forward(int(args['seconds']))
+            await atv.remote_control.skip_forward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
 
@@ -226,7 +231,7 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-            await atv.remote_control.skip_backward(int(args['seconds']))
+            await atv.remote_control.skip_backward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
 
@@ -264,10 +269,12 @@ class AppleTVFlow:
 
         async def run(args: dict[str, Any]) -> None:
             device: AppleTVDevice = args['device']
-            account: Any = args['account']
+            account: Any = args.get('account')
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            if not isinstance(account, dict) or 'id' not in account:
+                raise ValueError('No account selected')
             await atv.user_accounts.switch_account(account['id'])
 
         async def autocomplete(query: str, args: dict[str, Any]) -> list[dict]:
@@ -275,11 +282,14 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 return []
-            accounts = await atv.user_accounts.account_list()
+            try:
+                accounts = await atv.user_accounts.account_list()
+            except Exception:
+                return []
             results = [
                 {'id': a.account_id, 'name': a.name}
                 for a in accounts
-                if not query.strip() or query.lower() in a.name.lower()
+                if not query.strip() or query.lower() in (a.name or '').lower()
             ]
             return sorted(results, key=lambda x: x['name'])
 

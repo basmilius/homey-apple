@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from ..base.discoverable_device import DiscoverableDevice
+from ..base.discoverable_device import DiscoverableDevice, _guarded_task
 
 CAPABILITIES = [
     'speaker_album',
@@ -55,7 +55,6 @@ class HomePodBaseDevice(DiscoverableDevice):
         if volume is not None:
             await self._atv.audio.set_volume(volume)
 
-        from ..base.discoverable_device import _guarded_task
         _guarded_task(self._stream_url(url), self)
 
     async def _stream_url(self, url: str) -> None:

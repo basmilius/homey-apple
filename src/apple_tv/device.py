@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from pyatv.exceptions import NotSupportedError
+
 from ..base.discoverable_device import DiscoverableDevice
 
 CAPABILITIES = [
@@ -64,6 +66,9 @@ class AppleTVDevice(DiscoverableDevice):
             initial_state = self._atv.power.power_state
             if self._airplay_logic is not None:
                 await self._airplay_logic.handle_power_state(initial_state)
+        except NotSupportedError:
+            self.log('Power state not supported (Companion protocol unavailable).')
+            await self._trigger_companion_link_failed()
         except Exception as err:
             self.error('Failed to fetch initial power state:', err)
             await self._trigger_companion_link_failed()

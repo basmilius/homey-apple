@@ -17,6 +17,7 @@ from ..utils.get_credentials_from_device import get_credentials_from_device
 MAX_SCAN_RETRIES = 10
 SCAN_RETRY_INTERVAL_S = 1.0
 SCAN_TIMEOUT_S = 3
+DNS_RESOLVE_TIMEOUT_S = 5.0
 RECONNECT_DELAY_S = 1.0
 SCHEDULED_RECONNECT_INTERVAL_S = 5 * 60
 MAX_CONNECT_RETRIES = 3
@@ -305,15 +306,18 @@ class DiscoverableDevice(Device):
         hostname = self.discovery_id
 
         try:
-            results = await loop.getaddrinfo(
-                hostname,
-                None,
-                family=socket.AF_INET,
-                type=socket.SOCK_STREAM,
+            results = await asyncio.wait_for(
+                loop.getaddrinfo(
+                    hostname,
+                    None,
+                    family=socket.AF_INET,
+                    type=socket.SOCK_STREAM,
+                ),
+                timeout=DNS_RESOLVE_TIMEOUT_S,
             )
             if results:
                 return results[0][4][0]
-        except (socket.gaierror, OSError):
+        except (socket.gaierror, OSError, asyncio.TimeoutError):
             pass
 
         return None

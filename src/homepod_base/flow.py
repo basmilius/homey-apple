@@ -70,7 +70,7 @@ class HomePodFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'HomePod "{device.get_name()}" is not connected')
-            await atv.remote_control.set_position(int(args['position']))
+            await atv.remote_control.set_position(int(float(args['position'])))
 
         card.register_run_listener(run)
 
@@ -82,7 +82,7 @@ class HomePodFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'HomePod "{device.get_name()}" is not connected')
-            await atv.remote_control.skip_forward(int(args['seconds']))
+            await atv.remote_control.skip_forward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
 
@@ -94,6 +94,6 @@ class HomePodFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'HomePod "{device.get_name()}" is not connected')
-            await atv.remote_control.skip_backward(int(args['seconds']))
+            await atv.remote_control.skip_backward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
