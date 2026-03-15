@@ -2,8 +2,13 @@
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.basmilius.apple",
   "version": "1.5.3",
-  "compatibility": ">=12.9.0",
+  "compatibility": ">=13.0.0",
   "sdk": 3,
+  "runtime": "python",
+  "pythonVersion": "3.13",
+  "pythonPackages": [
+    "pyatv>=0.15.0"
+  ],
   "brandColor": "#147efb",
   "platforms": [
     "local"
@@ -717,17 +722,17 @@
                 "label": {
                   "en": "Right",
                   "nl": "Rechts",
-                  "da": "Rigtigt",
-                  "de": "Richtig",
-                  "es": "Correcto",
-                  "fr": "D'accord",
-                  "it": "Giusto",
-                  "no": "Riktig",
-                  "sv": "Rätt",
-                  "pl": "Dobrze",
-                  "ru": "Верно",
-                  "ko": "맞아요",
-                  "ar": "صحيح"
+                  "da": "Højre",
+                  "de": "Rechts",
+                  "es": "Derecha",
+                  "fr": "Droite",
+                  "it": "Destra",
+                  "no": "Høyre",
+                  "sv": "Höger",
+                  "pl": "Prawo",
+                  "ru": "Право",
+                  "ko": "오른쪽",
+                  "ar": "يمين"
                 }
               },
               {
@@ -963,8 +968,513 @@
                   "ko": "수면",
                   "ar": "نوم"
                 }
+              },
+              {
+                "id": "screensaver",
+                "label": {
+                  "en": "Screensaver",
+                  "nl": "Schermbeveiliging",
+                  "da": "Pauseskærm",
+                  "de": "Bildschirmschoner",
+                  "es": "Salvapantallas",
+                  "fr": "Économiseur d'écran",
+                  "it": "Salvaschermo",
+                  "no": "Skjermsparer",
+                  "sv": "Skärmsläckare",
+                  "pl": "Wygaszacz ekranu",
+                  "ru": "Заставка",
+                  "ko": "화면 보호기",
+                  "ar": "شاشة التوقف"
+                }
+              },
+              {
+                "id": "homeHold",
+                "label": {
+                  "en": "Home (hold)",
+                  "nl": "Home (vasthouden)",
+                  "da": "Hjem (hold)",
+                  "de": "Home (halten)",
+                  "es": "Inicio (mantener)",
+                  "fr": "Accueil (maintenir)",
+                  "it": "Home (tieni premuto)",
+                  "no": "Hjem (hold inne)",
+                  "sv": "Hem (håll in)",
+                  "pl": "Dom (przytrzymaj)",
+                  "ru": "Дом (удержание)",
+                  "ko": "홈 (길게 누르기)",
+                  "ar": "الصفحة الرئيسية (اضغط مطولاً)"
+                }
+              },
+              {
+                "id": "doubleTapSelect",
+                "label": {
+                  "en": "Select (double tap)",
+                  "nl": "Selecteer (dubbeltik)",
+                  "da": "Vælg (dobbelttryk)",
+                  "de": "Auswählen (Doppeltippen)",
+                  "es": "Seleccionar (doble toque)",
+                  "fr": "Sélectionner (double appui)",
+                  "it": "Seleziona (doppio tocco)",
+                  "no": "Velg (dobbelttrykk)",
+                  "sv": "Välj (dubbelknacka)",
+                  "pl": "Wybierz (podwójne stuknięcie)",
+                  "ru": "Выбрать (двойное касание)",
+                  "ko": "선택 (두 번 탭)",
+                  "ar": "اختر (نقرة مزدوجة)"
+                }
+              },
+              {
+                "id": "channelUp",
+                "label": {
+                  "en": "Channel Up",
+                  "nl": "Kanaal omhoog",
+                  "da": "Kanal op",
+                  "de": "Kanal hoch",
+                  "es": "Canal arriba",
+                  "fr": "Chaîne suivante",
+                  "it": "Canale su",
+                  "no": "Kanal opp",
+                  "sv": "Kanal upp",
+                  "pl": "Kanał w górę",
+                  "ru": "Канал вверх",
+                  "ko": "채널 올리기",
+                  "ar": "القناة التالية"
+                }
+              },
+              {
+                "id": "channelDown",
+                "label": {
+                  "en": "Channel Down",
+                  "nl": "Kanaal omlaag",
+                  "da": "Kanal ned",
+                  "de": "Kanal runter",
+                  "es": "Canal abajo",
+                  "fr": "Chaîne précédente",
+                  "it": "Canale giù",
+                  "no": "Kanal ned",
+                  "sv": "Kanal ner",
+                  "pl": "Kanał w dół",
+                  "ru": "Канал вниз",
+                  "ko": "채널 내리기",
+                  "ar": "القناة السابقة"
+                }
+              },
+              {
+                "id": "siri",
+                "label": {
+                  "en": "Siri",
+                  "nl": "Siri",
+                  "da": "Siri",
+                  "de": "Siri",
+                  "es": "Siri",
+                  "fr": "Siri",
+                  "it": "Siri",
+                  "no": "Siri",
+                  "sv": "Siri",
+                  "pl": "Siri",
+                  "ru": "Siri",
+                  "ko": "Siri",
+                  "ar": "Siri"
+                }
               }
             ]
+          }
+        ]
+      },
+      {
+        "id": "appletv_set_position",
+        "title": {
+          "en": "Seek to position",
+          "nl": "Ga naar positie",
+          "da": "Søg til position",
+          "de": "Zu Position springen",
+          "es": "Ir a posición",
+          "fr": "Aller à la position",
+          "it": "Vai alla posizione",
+          "no": "Søk til posisjon",
+          "sv": "Gå till position",
+          "pl": "Przejdź do pozycji",
+          "ru": "Перейти к позиции",
+          "ko": "위치로 이동",
+          "ar": "الانتقال إلى الموضع"
+        },
+        "titleFormatted": {
+          "en": "Seek to [[position]] seconds",
+          "nl": "Ga naar [[position]] seconden",
+          "da": "Søg til [[position]] sekunder",
+          "de": "Zu [[position]] Sekunden springen",
+          "es": "Ir a [[position]] segundos",
+          "fr": "Aller à [[position]] secondes",
+          "it": "Vai a [[position]] secondi",
+          "no": "Søk til [[position]] sekunder",
+          "sv": "Gå till [[position]] sekunder",
+          "pl": "Przejdź do [[position]] sekund",
+          "ru": "Перейти к [[position]] секундам",
+          "ko": "[[position]]초로 이동",
+          "ar": "الانتقال إلى [[position]] ثانية"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "name": "position",
+            "type": "number",
+            "min": 0,
+            "step": 1,
+            "title": {
+              "en": "Position (seconds)",
+              "nl": "Positie (seconden)",
+              "da": "Position (sekunder)",
+              "de": "Position (Sekunden)",
+              "es": "Posición (segundos)",
+              "fr": "Position (secondes)",
+              "it": "Posizione (secondi)",
+              "no": "Posisjon (sekunder)",
+              "sv": "Position (sekunder)",
+              "pl": "Pozycja (sekundy)",
+              "ru": "Позиция (секунды)",
+              "ko": "위치 (초)",
+              "ar": "الموضع (ثانية)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "appletv_set_repeat",
+        "title": {
+          "en": "Set repeat mode",
+          "nl": "Herhaalstand instellen",
+          "da": "Indstil gentagelsestilstand",
+          "de": "Wiederholungsmodus festlegen",
+          "es": "Establecer modo repetición",
+          "fr": "Définir le mode de répétition",
+          "it": "Imposta modalità ripetizione",
+          "no": "Angi gjentakelsesmodus",
+          "sv": "Ange upprepningsläge",
+          "pl": "Ustaw tryb powtarzania",
+          "ru": "Установить режим повтора",
+          "ko": "반복 모드 설정",
+          "ar": "تعيين وضع التكرار"
+        },
+        "titleFormatted": {
+          "en": "Set repeat to [[mode]]",
+          "nl": "Stel herhaling in op [[mode]]",
+          "da": "Sæt gentagelse til [[mode]]",
+          "de": "Wiederholung auf [[mode]] setzen",
+          "es": "Repetición en [[mode]]",
+          "fr": "Répétition sur [[mode]]",
+          "it": "Imposta ripetizione su [[mode]]",
+          "no": "Sett gjentakelse til [[mode]]",
+          "sv": "Ange upprepning till [[mode]]",
+          "pl": "Ustaw powtarzanie na [[mode]]",
+          "ru": "Установить повтор: [[mode]]",
+          "ko": "반복을 [[mode]]로 설정",
+          "ar": "تعيين التكرار على [[mode]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "type": "dropdown",
+            "name": "mode",
+            "title": {
+              "en": "Mode",
+              "nl": "Modus",
+              "da": "Tilstand",
+              "de": "Modus",
+              "es": "Modo",
+              "fr": "Mode",
+              "it": "Modalità",
+              "no": "Modus",
+              "sv": "Läge",
+              "pl": "Tryb",
+              "ru": "Режим",
+              "ko": "모드",
+              "ar": "الوضع"
+            },
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit",
+                  "da": "Fra",
+                  "de": "Aus",
+                  "es": "Desactivado",
+                  "fr": "Désactivé",
+                  "it": "Disattivato",
+                  "no": "Av",
+                  "sv": "Av",
+                  "pl": "Wyłączone",
+                  "ru": "Выкл",
+                  "ko": "끄기",
+                  "ar": "إيقاف"
+                }
+              },
+              {
+                "id": "one",
+                "label": {
+                  "en": "Repeat One",
+                  "nl": "Één herhalen",
+                  "da": "Gentag én",
+                  "de": "Einen wiederholen",
+                  "es": "Repetir uno",
+                  "fr": "Répéter un",
+                  "it": "Ripeti uno",
+                  "no": "Gjenta én",
+                  "sv": "Upprepa en",
+                  "pl": "Powtórz jeden",
+                  "ru": "Повторить одну",
+                  "ko": "한 곡 반복",
+                  "ar": "تكرار واحد"
+                }
+              },
+              {
+                "id": "all",
+                "label": {
+                  "en": "Repeat All",
+                  "nl": "Alles herhalen",
+                  "da": "Gentag alle",
+                  "de": "Alle wiederholen",
+                  "es": "Repetir todo",
+                  "fr": "Répéter tout",
+                  "it": "Ripeti tutto",
+                  "no": "Gjenta alle",
+                  "sv": "Upprepa alla",
+                  "pl": "Powtórz wszystkie",
+                  "ru": "Повторить всё",
+                  "ko": "전체 반복",
+                  "ar": "تكرار الكل"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "appletv_set_shuffle",
+        "title": {
+          "en": "Set shuffle",
+          "nl": "Willekeurig afspelen instellen",
+          "da": "Indstil shuffle",
+          "de": "Zufallswiedergabe festlegen",
+          "es": "Establecer aleatorio",
+          "fr": "Définir la lecture aléatoire",
+          "it": "Imposta riproduzione casuale",
+          "no": "Angi tilfeldig avspilling",
+          "sv": "Ange blandning",
+          "pl": "Ustaw losowe odtwarzanie",
+          "ru": "Установить перемешивание",
+          "ko": "셔플 설정",
+          "ar": "تعيين التشغيل العشوائي"
+        },
+        "titleFormatted": {
+          "en": "Turn shuffle [[shuffle]]",
+          "nl": "Willekeurig afspelen [[shuffle]]",
+          "da": "Shuffle [[shuffle]]",
+          "de": "Zufallswiedergabe [[shuffle]]",
+          "es": "Aleatorio [[shuffle]]",
+          "fr": "Lecture aléatoire [[shuffle]]",
+          "it": "Casuale [[shuffle]]",
+          "no": "Tilfeldig avspilling [[shuffle]]",
+          "sv": "Blandning [[shuffle]]",
+          "pl": "Losowe odtwarzanie [[shuffle]]",
+          "ru": "Перемешивание [[shuffle]]",
+          "ko": "셔플 [[shuffle]]",
+          "ar": "التشغيل العشوائي [[shuffle]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "name": "shuffle",
+            "type": "dropdown",
+            "title": {
+              "en": "Shuffle",
+              "nl": "Willekeurig",
+              "da": "Shuffle",
+              "de": "Zufällig",
+              "es": "Aleatorio",
+              "fr": "Aléatoire",
+              "it": "Casuale",
+              "no": "Tilfeldig",
+              "sv": "Blanda",
+              "pl": "Losowo",
+              "ru": "Перемешать",
+              "ko": "셔플",
+              "ar": "عشوائي"
+            },
+            "values": [
+              {
+                "id": "true",
+                "label": {
+                  "en": "On",
+                  "nl": "Aan",
+                  "da": "Til",
+                  "de": "Ein",
+                  "es": "Activado",
+                  "fr": "Activé",
+                  "it": "Attivato",
+                  "no": "På",
+                  "sv": "På",
+                  "pl": "Włączone",
+                  "ru": "Вкл",
+                  "ko": "켜기",
+                  "ar": "تشغيل"
+                }
+              },
+              {
+                "id": "false",
+                "label": {
+                  "en": "Off",
+                  "nl": "Uit",
+                  "da": "Fra",
+                  "de": "Aus",
+                  "es": "Desactivado",
+                  "fr": "Désactivé",
+                  "it": "Disattivato",
+                  "no": "Av",
+                  "sv": "Av",
+                  "pl": "Wyłączone",
+                  "ru": "Выкл",
+                  "ko": "끄기",
+                  "ar": "إيقاف"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "appletv_skip_backward",
+        "title": {
+          "en": "Skip backward",
+          "nl": "Snel terugspoelen",
+          "da": "Spring tilbage",
+          "de": "Rückwärts springen",
+          "es": "Saltar atrás",
+          "fr": "Reculer",
+          "it": "Salta indietro",
+          "no": "Hopp bakover",
+          "sv": "Hoppa bakåt",
+          "pl": "Przewiń do tyłu",
+          "ru": "Перемотать назад",
+          "ko": "뒤로 건너뛰기",
+          "ar": "التخطي للخلف"
+        },
+        "titleFormatted": {
+          "en": "Skip backward [[seconds]] seconds",
+          "nl": "Snel [[seconds]] seconden terugspoelen",
+          "da": "Spring [[seconds]] sekunder tilbage",
+          "de": "[[seconds]] Sekunden rückwärts springen",
+          "es": "Saltar [[seconds]] segundos atrás",
+          "fr": "Reculer de [[seconds]] secondes",
+          "it": "Salta indietro di [[seconds]] secondi",
+          "no": "Hopp [[seconds]] sekunder bakover",
+          "sv": "Hoppa [[seconds]] sekunder bakåt",
+          "pl": "Przewiń o [[seconds]] sekund do tyłu",
+          "ru": "Перемотать назад на [[seconds]] секунд",
+          "ko": "[[seconds]]초 뒤로 건너뛰기",
+          "ar": "التخطي [[seconds]] ثانية للخلف"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "name": "seconds",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": "15",
+            "title": {
+              "en": "Seconds",
+              "nl": "Seconden",
+              "da": "Sekunder",
+              "de": "Sekunden",
+              "es": "Segundos",
+              "fr": "Secondes",
+              "it": "Secondi",
+              "no": "Sekunder",
+              "sv": "Sekunder",
+              "pl": "Sekundy",
+              "ru": "Секунды",
+              "ko": "초",
+              "ar": "ثواني"
+            }
+          }
+        ]
+      },
+      {
+        "id": "appletv_skip_forward",
+        "title": {
+          "en": "Skip forward",
+          "nl": "Snel vooruitspoelen",
+          "da": "Spring fremad",
+          "de": "Vorwärts springen",
+          "es": "Saltar adelante",
+          "fr": "Avancer",
+          "it": "Salta in avanti",
+          "no": "Hopp fremover",
+          "sv": "Hoppa framåt",
+          "pl": "Przewiń do przodu",
+          "ru": "Перемотать вперёд",
+          "ko": "앞으로 건너뛰기",
+          "ar": "التخطي للأمام"
+        },
+        "titleFormatted": {
+          "en": "Skip forward [[seconds]] seconds",
+          "nl": "Snel [[seconds]] seconden vooruitspoelen",
+          "da": "Spring [[seconds]] sekunder fremad",
+          "de": "[[seconds]] Sekunden vorwärts springen",
+          "es": "Saltar [[seconds]] segundos adelante",
+          "fr": "Avancer de [[seconds]] secondes",
+          "it": "Salta avanti di [[seconds]] secondi",
+          "no": "Hopp [[seconds]] sekunder fremover",
+          "sv": "Hoppa [[seconds]] sekunder framåt",
+          "pl": "Przewiń o [[seconds]] sekund do przodu",
+          "ru": "Перемотать вперёд на [[seconds]] секунд",
+          "ko": "[[seconds]]초 앞으로 건너뛰기",
+          "ar": "التخطي [[seconds]] ثانية للأمام"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "name": "seconds",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": "15",
+            "title": {
+              "en": "Seconds",
+              "nl": "Seconden",
+              "da": "Sekunder",
+              "de": "Sekunden",
+              "es": "Segundos",
+              "fr": "Secondes",
+              "it": "Secondi",
+              "no": "Sekunder",
+              "sv": "Sekunder",
+              "pl": "Sekundy",
+              "ru": "Секунды",
+              "ko": "초",
+              "ar": "ثواني"
+            }
           }
         ]
       },
@@ -1171,6 +1681,191 @@
             }
           }
         ]
+      },
+      {
+        "id": "homepod_set_position",
+        "title": {
+          "en": "Seek to position",
+          "nl": "Ga naar positie",
+          "da": "Søg til position",
+          "de": "Zu Position springen",
+          "es": "Ir a posición",
+          "fr": "Aller à la position",
+          "it": "Vai alla posizione",
+          "no": "Søk til posisjon",
+          "sv": "Gå till position",
+          "pl": "Przejdź do pozycji",
+          "ru": "Перейти к позиции",
+          "ko": "위치로 이동",
+          "ar": "الانتقال إلى الموضع"
+        },
+        "titleFormatted": {
+          "en": "Seek to [[position]] seconds",
+          "nl": "Ga naar [[position]] seconden",
+          "da": "Søg til [[position]] sekunder",
+          "de": "Zu [[position]] Sekunden springen",
+          "es": "Ir a [[position]] segundos",
+          "fr": "Aller à [[position]] secondes",
+          "it": "Vai a [[position]] secondi",
+          "no": "Søk til [[position]] sekunder",
+          "sv": "Gå till [[position]] sekunder",
+          "pl": "Przejdź do [[position]] sekund",
+          "ru": "Перейти к [[position]] секундам",
+          "ko": "[[position]]초로 이동",
+          "ar": "الانتقال إلى [[position]] ثانية"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+          },
+          {
+            "name": "position",
+            "type": "number",
+            "min": 0,
+            "step": 1,
+            "title": {
+              "en": "Position (seconds)",
+              "nl": "Positie (seconden)",
+              "da": "Position (sekunder)",
+              "de": "Position (Sekunden)",
+              "es": "Posición (segundos)",
+              "fr": "Position (secondes)",
+              "it": "Posizione (secondi)",
+              "no": "Posisjon (sekunder)",
+              "sv": "Position (sekunder)",
+              "pl": "Pozycja (sekundy)",
+              "ru": "Позиция (секунды)",
+              "ko": "위치 (초)",
+              "ar": "الموضع (ثانية)"
+            }
+          }
+        ]
+      },
+      {
+        "id": "homepod_skip_backward",
+        "title": {
+          "en": "Skip backward",
+          "nl": "Snel terugspoelen",
+          "da": "Spring tilbage",
+          "de": "Rückwärts springen",
+          "es": "Saltar atrás",
+          "fr": "Reculer",
+          "it": "Salta indietro",
+          "no": "Hopp bakover",
+          "sv": "Hoppa bakåt",
+          "pl": "Przewiń do tyłu",
+          "ru": "Перемотать назад",
+          "ko": "뒤로 건너뛰기",
+          "ar": "التخطي للخلف"
+        },
+        "titleFormatted": {
+          "en": "Skip backward [[seconds]] seconds",
+          "nl": "Snel [[seconds]] seconden terugspoelen",
+          "da": "Spring [[seconds]] sekunder tilbage",
+          "de": "[[seconds]] Sekunden rückwärts springen",
+          "es": "Saltar [[seconds]] segundos atrás",
+          "fr": "Reculer de [[seconds]] secondes",
+          "it": "Salta indietro di [[seconds]] secondi",
+          "no": "Hopp [[seconds]] sekunder bakover",
+          "sv": "Hoppa [[seconds]] sekunder bakåt",
+          "pl": "Przewiń o [[seconds]] sekund do tyłu",
+          "ru": "Перемотать назад на [[seconds]] секунд",
+          "ko": "[[seconds]]초 뒤로 건너뛰기",
+          "ar": "التخطي [[seconds]] ثانية للخلف"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+          },
+          {
+            "name": "seconds",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": "15",
+            "title": {
+              "en": "Seconds",
+              "nl": "Seconden",
+              "da": "Sekunder",
+              "de": "Sekunden",
+              "es": "Segundos",
+              "fr": "Secondes",
+              "it": "Secondi",
+              "no": "Sekunder",
+              "sv": "Sekunder",
+              "pl": "Sekundy",
+              "ru": "Секунды",
+              "ko": "초",
+              "ar": "ثواني"
+            }
+          }
+        ]
+      },
+      {
+        "id": "homepod_skip_forward",
+        "title": {
+          "en": "Skip forward",
+          "nl": "Snel vooruitspoelen",
+          "da": "Spring fremad",
+          "de": "Vorwärts springen",
+          "es": "Saltar adelante",
+          "fr": "Avancer",
+          "it": "Salta in avanti",
+          "no": "Hopp fremover",
+          "sv": "Hoppa framåt",
+          "pl": "Przewiń do przodu",
+          "ru": "Перемотать вперёд",
+          "ko": "앞으로 건너뛰기",
+          "ar": "التخطي للأمام"
+        },
+        "titleFormatted": {
+          "en": "Skip forward [[seconds]] seconds",
+          "nl": "Snel [[seconds]] seconden vooruitspoelen",
+          "da": "Spring [[seconds]] sekunder fremad",
+          "de": "[[seconds]] Sekunden vorwärts springen",
+          "es": "Saltar [[seconds]] segundos adelante",
+          "fr": "Avancer de [[seconds]] secondes",
+          "it": "Salta avanti di [[seconds]] secondi",
+          "no": "Hopp [[seconds]] sekunder fremover",
+          "sv": "Hoppa [[seconds]] sekunder framåt",
+          "pl": "Przewiń o [[seconds]] sekund do przodu",
+          "ru": "Перемотать вперёд на [[seconds]] секунд",
+          "ko": "[[seconds]]초 앞으로 건너뛰기",
+          "ar": "التخطي [[seconds]] ثانية للأمام"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+          },
+          {
+            "name": "seconds",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": "15",
+            "title": {
+              "en": "Seconds",
+              "nl": "Seconden",
+              "da": "Sekunder",
+              "de": "Sekunden",
+              "es": "Segundos",
+              "fr": "Secondes",
+              "it": "Secondi",
+              "no": "Sekunder",
+              "sv": "Sekunder",
+              "pl": "Sekundy",
+              "ru": "Секунды",
+              "ko": "초",
+              "ar": "ثواني"
+            }
+          }
+        ]
       }
     ]
   },
@@ -1217,8 +1912,9 @@
         "remote_back",
         "remote_playpause",
         "now_playing_app",
-        "button.restart",
-        "button.repair"
+        "media_type",
+        "volume_set",
+        "button.restart"
       ],
       "capabilitiesOptions": {
         "button.restart": {
@@ -1334,6 +2030,81 @@
         },
         {
           "id": "add_my_device"
+        }
+      ],
+      "repair": [
+        {
+          "id": "discover",
+          "template": "loading"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "authenticate"
+          },
+          "options": {
+            "singular": true,
+            "title": {
+              "en": "Select the device to re-pair",
+              "nl": "Selecteer het apparaat om opnieuw te koppelen",
+              "da": "Vælg enheden, der skal parres igen",
+              "de": "Wähle das Gerät zum erneuten Koppeln",
+              "es": "Selecciona el dispositivo para volver a emparejar",
+              "fr": "Sélectionnez l'appareil à réassocier",
+              "it": "Seleziona il dispositivo da riassociare",
+              "no": "Velg enheten som skal kobles på nytt",
+              "sv": "Välj enheten att para om",
+              "pl": "Wybierz urządzenie do ponownego sparowania",
+              "ru": "Выберите устройство для повторного сопряжения",
+              "ko": "다시 페어링할 기기를 선택하세요",
+              "ar": "اختر الجهاز لإعادة الإقران"
+            }
+          }
+        },
+        {
+          "id": "authenticate",
+          "template": "pincode",
+          "options": {
+            "title": {
+              "en": "Pincode",
+              "nl": "Pincode",
+              "da": "Pin-kode",
+              "de": "Pin-Code",
+              "es": "Código PIN",
+              "fr": "Code Pin",
+              "it": "Codice Pin",
+              "no": "Pinkode",
+              "sv": "Pin-kod",
+              "pl": "Kod PIN",
+              "ru": "Пин-код",
+              "ko": "핀 코드",
+              "ar": "رمز PIN"
+            },
+            "hint": {
+              "en": "Enter the code displayed on the TV",
+              "nl": "Vul de code in die op de TV wordt weergegeven",
+              "da": "Indtast koden, der vises på tv'et",
+              "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
+              "es": "Ingrese el código que se muestra en la televisión",
+              "fr": "Entrez le code affiché sur la télévision",
+              "it": "Inserisci il codice visualizzato sul televisore",
+              "no": "Skriv inn koden som vises på TV-en",
+              "sv": "Ange koden som visas på TV:n",
+              "pl": "Wprowadź kod wyświetlany na telewizorze",
+              "ru": "Введите код, отображаемый на телевизоре",
+              "ko": "TV에 표시된 코드를 입력하세요",
+              "ar": "أدخل الرمز المعروض على التلفاز"
+            },
+            "type": "number",
+            "length": 4
+          },
+          "navigation": {
+            "prev": "discover"
+          }
+        },
+        {
+          "id": "done"
         }
       ],
       "images": {
@@ -1604,6 +2375,27 @@
       "uiComponent": null,
       "icon": "assets/capabilities/artwork.svg"
     },
+    "media_type": {
+      "type": "string",
+      "title": {
+        "en": "Media Type",
+        "nl": "Mediatype",
+        "da": "Medietype",
+        "de": "Medientyp",
+        "es": "Tipo de medio",
+        "fr": "Type de média",
+        "it": "Tipo di media",
+        "no": "Medietype",
+        "sv": "Mediatyp",
+        "pl": "Typ mediów",
+        "ru": "Тип медиа",
+        "ko": "미디어 유형",
+        "ar": "نوع الوسائط"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null
+    },
     "now_playing_app": {
       "type": "string",
       "title": {
@@ -1840,7 +2632,7 @@
         "name": "_airplay",
         "protocol": "tcp"
       },
-      "id": "{{host}}"
+      "id": "{{txt.deviceid}}"
     },
     "companion-link": {
       "type": "mdns-sd",
