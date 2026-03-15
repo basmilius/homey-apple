@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from lib.homepod_base_driver import HomePodBaseDriver
+from app.lib.homepod_base_driver import HomePodBaseDriver
 
 
 class HomePodMiniDriver(HomePodBaseDriver):
@@ -17,3 +17,5 @@ class HomePodMiniDriver(HomePodBaseDriver):
     async def on_init(self) -> None:
         await super().on_init()
         self.log('HomePod Mini Driver has been initialized.')
+
+homey_export = HomePodMiniDriver

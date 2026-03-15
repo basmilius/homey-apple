@@ -4,5 +4,5 @@
         "name": "_airplay",
         "protocol": "tcp"
     },
-    "id": "{{host}}"
+    "id": "{{txt.deviceid}}"
 }

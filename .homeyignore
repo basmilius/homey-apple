@@ -1,0 +1,11 @@
+tests/
+node_modules/
+__pycache__/
+*.pyc
+pytest.ini
+requirements.txt
+bun.lock
+package-lock.json
+publish.sh
+tsconfig.json
+types.d.ts

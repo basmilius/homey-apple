@@ -1,9 +1,9 @@
-"""Apple TV pairing — PIN-based AirPlay pairing via pyatv."""
+"""Apple TV pairing — AirPlay + Companion Link PIN-based pairing via pyatv."""
 
 from __future__ import annotations
 
 import asyncio
-import logging
+import re
 from typing import TYPE_CHECKING
 
 import pyatv
@@ -12,11 +12,9 @@ from pyatv.const import Protocol
 if TYPE_CHECKING:
     import homey
 
-logger = logging.getLogger(__name__)
-
 DISCOVER_RETRIES = 5
 DISCOVER_RETRY_INTERVAL = 1.0  # seconds
-APPLE_TV_MODEL_PATTERN = r'AppleTV\d+,\d+'
+APPLE_TV_MODEL_PATTERN = re.compile(r'AppleTV\d+,\d+')
 
 
 class AppleTVPairing:
@@ -25,16 +23,22 @@ class AppleTVPairing:
         session: homey.Driver.PairSession,
         known_devices: list,
         homey: homey.Homey,
+        repair_device_id: str | None = None,
     ) -> None:
         self._session = session
         self._known_devices = known_devices
         self._homey = homey
+        self._repair_device_id = repair_device_id
         self._devices: list = []
         self._selected_device = None
         self._pairing = None
+        # Two-step pairing: AirPlay first, then Companion
+        self._pairing_step = 'airplay'
+        self._airplay_credentials: str | None = None
+        self._companion_credentials: str | None = None
 
     async def start(self) -> None:
-        self._session.set_handler('show_view', self._on_show_view)
+        self._session.set_handler('showView', self._on_show_view)
         self._session.set_handler('list_devices', self._on_list_devices)
         self._session.set_handler('list_devices_selection', self._on_list_devices_selection)
         self._session.set_handler('pincode', self._on_pincode)
@@ -52,65 +56,84 @@ class AppleTVPairing:
                 await self._on_show_view_discover()
             elif view == 'authenticate':
                 await self._on_show_view_authenticate()
-        except Exception as err:
-            logger.error(f'Error in pairing view {view}: {err}')
+        except Exception:
+            pass
 
-    async def _on_list_devices(self) -> list:
-        import re
+    async def _on_list_devices(self, data=None) -> list:
         known_ids = {d.get_data().get('id') for d in self._known_devices}
-        pattern = re.compile(APPLE_TV_MODEL_PATTERN)
-        return sorted(
-            [
-                d for d in self._devices
-                if d.identifier not in known_ids
-                and pattern.search(d.properties.get('model', ''))
-            ],
-            key=lambda d: d.name,
-        )
+
+        result = []
+        for d in self._devices:
+            airplay_props = d.properties.get('_airplay._tcp.local', {})
+            model = airplay_props.get('model', '')
+            if not APPLE_TV_MODEL_PATTERN.search(model):
+                continue
+
+            if self._repair_device_id:
+                if d.identifier != self._repair_device_id:
+                    continue
+            else:
+                if d.identifier in known_ids:
+                    continue
+
+            result.append({
+                'name': d.name,
+                'data': {'id': d.identifier},
+            })
+
+        return sorted(result, key=lambda d: d['name'])
 
     async def _on_list_devices_selection(self, devices: list) -> None:
-        if devices:
-            self._selected_device = devices[-1]
+        if not devices:
+            return
+        selected = devices[-1]
+        selected_id = selected.get('data', {}).get('id') if isinstance(selected, dict) else None
+        for d in self._devices:
+            if d.identifier == selected_id:
+                self._selected_device = d
+                break
 
     async def _on_pincode(self, code) -> None:
-        """Receive the 4-digit PIN entered by the user and complete pairing."""
+        """Receive the PIN and complete the current pairing step."""
         if self._pairing is None:
-            logger.error('PIN received but pairing object is not initialized.')
             return
 
-        # code may arrive as a list of ints or a string
         if isinstance(code, (list, tuple)):
             pin = ''.join(str(c) for c in code)
         else:
             pin = str(code)
 
-        logger.info('Finishing pairing with Apple TV: %s', self._selected_device.name)
         try:
             self._pairing.pin(pin)
             await self._pairing.finish()
 
-            if self._pairing.has_paired:
-                credentials = self._pairing.service.credentials
-                self._selected_device._credentials = credentials
-                logger.info(f'Successfully paired with Apple TV: {self._selected_device.name}')
-                await self._session.show_view('add_my_device')
-            else:
-                logger.error('Pairing did not complete successfully — wrong PIN?')
-                # Restart the authenticate view so the user can try again
+            if not self._pairing.has_paired:
                 await self._session.show_view('authenticate')
-        finally:
-            if self._pairing is not None:
-                try:
-                    await self._pairing.close()
-                except Exception:
-                    pass
-                self._pairing = None
+                return
 
-    async def _on_get_device(self) -> dict | None:
+            credentials = self._pairing.service.credentials
+
+            if self._pairing_step == 'airplay':
+                self._airplay_credentials = credentials
+                # Now pair Companion Link for remote control
+                self._pairing_step = 'companion'
+                await self._close_pairing()
+                # Show the PIN screen again for Companion pairing
+                await self._session.show_view('authenticate')
+
+            elif self._pairing_step == 'companion':
+                self._companion_credentials = credentials
+                await self._close_pairing()
+                await self._session.show_view('add_my_device')
+
+        except Exception:
+            await self._close_pairing()
+            # Retry this step
+            await self._session.show_view('authenticate')
+
+    async def _on_get_device(self, data=None) -> dict | None:
         if not self._selected_device:
             return None
-
-        credentials = getattr(self._selected_device, '_credentials', None)
 
         return {
             'name': self._selected_device.name,
@@ -119,7 +142,8 @@ class AppleTVPairing:
             },
             'store': {
                 'id': self._selected_device.identifier,
-                'credentials': credentials,
+                'credentials': self._airplay_credentials,
+                'companion_credentials': self._companion_credentials,
             },
         }
 
@@ -128,7 +152,7 @@ class AppleTVPairing:
     # ------------------------------------------------------------------
 
     async def _on_show_view_discover(self) -> None:
-        for _ in range(DISCOVER_RETRIES):
+        for attempt in range(DISCOVER_RETRIES):
             if self._devices:
                 break
             await asyncio.sleep(DISCOVER_RETRY_INTERVAL)
@@ -141,16 +165,48 @@ class AppleTVPairing:
             await self._session.show_view('list_devices')
             return
 
+        protocol = Protocol.AirPlay if self._pairing_step == 'airplay' else Protocol.Companion
+
         loop = asyncio.get_running_loop()
-        self._pairing = await pyatv.pair(self._selected_device, Protocol.AirPlay, loop)
+        self._pairing = await pyatv.pair(self._selected_device, protocol, loop)
         await self._pairing.begin()
-        # The PIN will be entered by the user; _on_pincode will finish the pairing.
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
 
+    async def _close_pairing(self) -> None:
+        if self._pairing is not None:
+            try:
+                await self._pairing.close()
+            except Exception:
+                pass
+            self._pairing = None
+
     async def _load_devices(self) -> None:
         loop = asyncio.get_running_loop()
-        results = await pyatv.scan(loop, timeout=5)
-        self._devices = results
+        hosts = self._get_discovery_hosts()
+        try:
+            if hosts:
+                results = await pyatv.scan(loop, timeout=5, hosts=hosts)
+            else:
+                results = await pyatv.scan(loop, timeout=5)
+            self._devices = results
+        except Exception:
+            pass
+
+    def _get_discovery_hosts(self) -> list[str]:
+        """Return known host IPs from Homey's discovery."""
+        seen: set[str] = set()
+        hosts: list[str] = []
+        for strategy_id in ('airplay', 'companion-link'):
+            try:
+                strategy = self._homey.discovery.get_strategy(strategy_id)
+                for result in strategy.get_discovery_results().values():
+                    ip = str(result.address)
+                    if ip not in seen:
+                        seen.add(ip)
+                        hosts.append(ip)
+            except Exception:
+                pass
+        return hosts

@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 import pyatv
 from pyatv.const import Protocol
 
-from lib.airplay_logic import AirPlayLogic
-from lib.discoverable_device import DiscoverableDevice
+from .airplay_logic import AirPlayLogic
+from .discoverable_device import DiscoverableDevice
 
 if TYPE_CHECKING:
     from pyatv.interface import AppleTV, BaseConfig
@@ -42,11 +41,10 @@ CAPABILITIES = [
 class HomePodBaseDevice(DiscoverableDevice):
     """Base class shared by HomePod and HomePod Mini devices."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._atv: AppleTV | None = None
         self._airplay_logic: AirPlayLogic | None = None
-        self._connected_once = False
         self._is_reconnecting = False
 
     @property
@@ -76,48 +74,40 @@ class HomePodBaseDevice(DiscoverableDevice):
         self.log('Uninitialized.')
 
     # ------------------------------------------------------------------
-    # Discovery
+    # Discovery callback → connect
     # ------------------------------------------------------------------
 
-    async def on_service_found(self, service: str, config: BaseConfig) -> None:
-        await super().on_service_found(service, config)
-
-        if self._connected_once:
-            return
-
-        self._connected_once = True
+    async def _on_device_found(self, config: BaseConfig) -> None:
+        """Called by DiscoverableDevice when the pyatv config is ready."""
+        if self._atv is not None:
+            return  # Already connected
         await self._connect()
-        # If _connect() failed (atv is still None), allow retries from future discovery callbacks
-        if self._atv is None:
-            self._connected_once = False
 
     # ------------------------------------------------------------------
     # Connection
     # ------------------------------------------------------------------
 
     async def _connect(self) -> None:
-        try:
-            config = self._discovery_results.get(AIRPLAY_SERVICE)
-            if config is None:
-                await self.set_unavailable('Cannot find device on network.')
-                return
+        """Connect to the HomePod using stored discovery results.
 
-            credentials = self._get_credentials()
-            if credentials is not None:
-                service = config.get_service(Protocol.AirPlay)
-                if service:
-                    service.credentials = credentials
+        Raises on failure so callers can handle it appropriately.
+        """
+        config = self._discovery_results.get(AIRPLAY_SERVICE)
+        if config is None:
+            raise RuntimeError('Cannot find device on network.')
 
-            loop = asyncio.get_running_loop()
-            self._atv = await pyatv.connect(config, loop)
-            self._atv.listener = self
-            self._airplay_logic.set_protocol(self._atv)
+        credentials = self._get_credentials()
+        if credentials is not None:
+            service = config.get_service(Protocol.AirPlay)
+            if service:
+                service.credentials = credentials
 
-            await self.set_available()
-            self.log('Connected to HomePod.')
-        except Exception as err:
-            self.error(f'Failed to connect to HomePod: {err}')
-            await self.set_unavailable(f'Cannot connect to HomePod: {err}')
+        loop = asyncio.get_running_loop()
+        self._atv = await pyatv.connect(config, loop)
+        self._atv.listener = self
+        self._airplay_logic.set_protocol(self._atv)
+
+        self.log('Connected to HomePod.')
 
     async def _disconnect(self) -> None:
         if self._airplay_logic:
@@ -151,9 +141,10 @@ class HomePodBaseDevice(DiscoverableDevice):
             await self.set_unavailable('Disconnected from HomePod, reconnecting...')
             await asyncio.sleep(RECONNECT_DELAY)
             await self._disconnect()
-
-            await self.find_service(AIRPLAY_SERVICE)
-            await self._connect()
+            await self._reconnect()
+        except Exception as err:
+            self.error(f'Reconnection failed: {err}')
+            await self.set_unavailable(f'Cannot reconnect: {err}')
         finally:
             self._is_reconnecting = False
 
@@ -215,7 +206,7 @@ class HomePodBaseDevice(DiscoverableDevice):
             await self._disconnect()
             if self._airplay_logic:
                 await self._airplay_logic.clear_now_playing()
-            await self._connect()
+            await self._reconnect()
         except Exception as err:
             self.error(err)
 
@@ -229,9 +220,8 @@ class HomePodBaseDevice(DiscoverableDevice):
             raise RuntimeError('Not connected.')
 
         if volume is not None:
-            await self._atv.audio.set_volume(volume)  # flow card provides 0–100, pyatv expects 0–100
+            await self._atv.audio.set_volume(volume)
 
-        # Stream in the background so the flow action returns immediately
         asyncio.create_task(self._stream_url(url))
 
     async def _stream_url(self, url: str) -> None:
@@ -241,7 +231,7 @@ class HomePodBaseDevice(DiscoverableDevice):
             self.error(f'play_url failed: {err}')
 
     # ------------------------------------------------------------------
-    # Flow trigger hooks (overridden by AppleTVDevice)
+    # Flow trigger hooks
     # ------------------------------------------------------------------
 
     async def trigger_now_playing_app_changed(self, bundle_id: str, display_name: str) -> None:
@@ -259,6 +249,19 @@ class HomePodBaseDevice(DiscoverableDevice):
     # ------------------------------------------------------------------
 
     def _get_credentials(self) -> str | None:
-        """Return stored AirPlay credentials string, or None."""
+        """Return stored AirPlay credentials string, or None.
+
+        Credentials must be a colon-separated hex string as produced by pyatv.
+        If the stored value is a dict (left over from a previous app version),
+        it cannot be used and the device will need to be re-paired.
+        """
         store = self.get_store()
-        return store.get('credentials') if store else None
+        if not store:
+            return None
+        creds = store.get('credentials')
+        if isinstance(creds, dict):
+            self.error(
+                'Stored credentials are in an old format — please re-pair this device.'
+            )
+            return None
+        return creds if isinstance(creds, str) else None

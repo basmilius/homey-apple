@@ -130,9 +130,14 @@ class AirPlayLogic(PushListener, PowerListener):
             if playing.position is not None:
                 await device.set_capability_value('speaker_position', playing.position)
 
-            # Volume
-            if device.has_capability('volume_set') and playing.volume is not None:
-                await device.set_capability_value('volume_set', playing.volume / 100.0)
+            # Volume (pyatv exposes volume on the audio interface, not Playing)
+            if device.has_capability('volume_set') and self._atv is not None:
+                try:
+                    vol = self._atv.audio.volume
+                    if vol is not None:
+                        await device.set_capability_value('volume_set', vol / 100.0)
+                except Exception:
+                    pass
 
             # Media type
             if device.has_capability('media_type'):
@@ -152,14 +157,22 @@ class AirPlayLogic(PushListener, PowerListener):
                 await device.set_capability_value('media_type', media_type_str)
 
             # Now-playing app (debounced)
+            # pyatv 0.17: app info is on the Apps interface, not Playing
+            app_obj = None
+            if is_playing:
+                try:
+                    app_obj = self._atv.metadata.app
+                except Exception:
+                    pass
             await self._update_now_playing_app(
-                playing.app_id if is_playing else None,
-                playing.app if is_playing else None,
+                app_obj.identifier if app_obj else None,
+                app_obj.name if app_obj else None,
             )
 
-            # Artwork
-            if playing.artwork_url:
-                await self._update_artwork(playing.artwork_url)
+            # Artwork — pyatv uses artwork_id to detect changes;
+            # actual artwork is fetched via self._atv.metadata.artwork()
+            if hasattr(playing, 'artwork_id') and playing.artwork_id:
+                await self._update_artwork(playing.artwork_id)
 
         except Exception as err:
             device.error(f'Failed to update now playing info: {err}')
@@ -172,7 +185,7 @@ class AirPlayLogic(PushListener, PowerListener):
             await device.set_capability_value('onoff', is_on)
 
             if device.has_capability('power'):
-                power_label = device.homey.__('capability.power.on' if is_on else 'capability.power.off')
+                power_label = device.homey.translate('capability.power.on' if is_on else 'capability.power.off') or ('On' if is_on else 'Off')
                 await device.set_capability_value('power', power_label)
         except Exception as err:
             device.error(f'Failed to set power state: {err}')

@@ -39,7 +39,7 @@ class HomePodBasePairing:
         self._selected_device = None
 
     async def start(self) -> None:
-        self._session.set_handler('show_view', self._on_show_view)
+        self._session.set_handler('showView', self._on_show_view)
         self._session.set_handler('list_devices', self._on_list_devices)
         self._session.set_handler('list_devices_selection', self._on_list_devices_selection)
         self._session.set_handler('get_device', self._on_get_device)
@@ -59,7 +59,7 @@ class HomePodBasePairing:
         except Exception as err:
             logger.error(f'Error in pairing view {view}: {err}')
 
-    async def _on_list_devices(self) -> list:
+    async def _on_list_devices(self, data=None) -> list:
         known_ids = {d.get_data().get('id') for d in self._known_devices}
         return [
             d for d in self._devices
@@ -71,7 +71,7 @@ class HomePodBasePairing:
         if devices:
             self._selected_device = devices[-1]
 
-    async def _on_get_device(self) -> dict | None:
+    async def _on_get_device(self, data=None) -> dict | None:
         if not self._selected_device:
             return None
 
@@ -132,5 +132,25 @@ class HomePodBasePairing:
 
     async def _load_devices(self) -> None:
         loop = asyncio.get_running_loop()
-        results = await pyatv.scan(loop, timeout=5)
+        hosts = self._get_discovery_hosts()
+        if hosts:
+            results = await pyatv.scan(loop, timeout=5, hosts=hosts)
+        else:
+            results = await pyatv.scan(loop, timeout=5)
         self._devices = results
+
+    def _get_discovery_hosts(self) -> list[str]:
+        """Return known host IPs from Homey's discovery (enables unicast scan in Docker)."""
+        seen: set[str] = set()
+        hosts: list[str] = []
+        for strategy_id in ('airplay', 'companion-link'):
+            try:
+                strategy = self._homey.discovery.get_strategy(strategy_id)
+                for result in strategy.get_discovery_results().values():
+                    ip = str(result.address)
+                    if ip not in seen:
+                        seen.add(ip)
+                        hosts.append(ip)
+            except Exception:
+                pass
+        return hosts

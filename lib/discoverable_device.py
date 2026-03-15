@@ -1,4 +1,4 @@
-"""Base class for devices discovered via mDNS/zeroconf using pyatv."""
+"""Base class for devices discovered via Homey's mDNS discovery + pyatv."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ import logging
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-import homey
+from homey.device import Device as HomeyDevice
+from homey.discovery_result import DiscoveryResult
 import pyatv
 
 if TYPE_CHECKING:
@@ -15,17 +16,18 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-MAX_FIND_RETRIES = 10
-FIND_RETRY_INTERVAL = 1.0  # seconds
+MAX_SCAN_RETRIES = 5
+SCAN_RETRY_INTERVAL = 2.0  # seconds
 
 
-class DiscoverableDevice(homey.Device):
-    """Base device that locates itself on the LAN via pyatv.scan()."""
+class DiscoverableDevice(HomeyDevice):
+    """Base device that uses Homey's built-in mDNS discovery to locate
+    Apple devices, then connects via pyatv using a unicast scan."""
 
-    def __init__(self):
-        super().__init__()
-        # Map of service name -> resolved pyatv config
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._discovery_results: dict[str, BaseConfig] = {}
+        self._discovery_address: str | None = None
 
     @property
     def discovery_id(self) -> str:
@@ -35,67 +37,80 @@ class DiscoverableDevice(homey.Device):
     @property
     @abstractmethod
     def services(self) -> list[str]:
-        """Return the list of service names this device needs to resolve.
+        """Return the list of service names this device needs."""
 
-        Each entry is a pyatv Protocol name or a logical service key that
-        subclasses map to the right pyatv scan call.
-        """
+    # ------------------------------------------------------------------
+    # Lifecycle — on_init no longer scans; we wait for discovery callbacks
+    # ------------------------------------------------------------------
 
     async def on_init(self) -> None:
         await super().on_init()
-        await self._find_services(update=False)
 
-    async def find_service(self, service: str, update: bool = True) -> None:
-        """Scan for this device on the given service, retrying up to MAX_FIND_RETRIES times."""
-        loop = asyncio.get_running_loop()
-        config: BaseConfig | None = None
+    # ------------------------------------------------------------------
+    # Homey SDK discovery callbacks
+    # ------------------------------------------------------------------
 
-        for attempt in range(MAX_FIND_RETRIES):
-            results = await pyatv.scan(loop, timeout=3, identifier=self.discovery_id)
+    async def on_discovery_available(self, discovery_result: DiscoveryResult) -> None:
+        """Called by the Homey SDK when our device is found on the network.
 
-            if results:
-                config = results[0]
-                break
-
-            if attempt < MAX_FIND_RETRIES - 1:
-                await asyncio.sleep(FIND_RETRY_INTERVAL)
-
-        if config is None:
-            raise RuntimeError(
-                f'Cannot find {self.discovery_id} ({service}) on network.'
-            )
-
-        self._discovery_results[service] = config
-        self.log(f'Found {self.discovery_id} on {service} at {config.address}')
-
-        if update:
-            await self.on_service_updated(service, config)
-        else:
-            await self.on_service_found(service, config)
-
-    async def _find_services(self, update: bool = True) -> None:
-        """Find all required services concurrently.
-
-        Uses return_exceptions=True so that a failure on one service does not
-        cancel scans that are still in progress for other services (Finding 7).
+        If this method raises, the SDK marks the device as unavailable.
+        If it returns normally, the SDK marks the device as available.
         """
-        results = await asyncio.gather(
-            *[self.find_service(svc, update) for svc in self.services],
-            return_exceptions=True,
-        )
-        errors = [r for r in results if isinstance(r, BaseException)]
-        if errors:
-            await self.set_unavailable(
-                f'Cannot find {self.discovery_id} on network. '
-                'You might need to pair with the device again.'
-            )
-            for err in errors:
-                self.error(f'Failed to find service: {err}')
+        self._discovery_address = discovery_result.address
+        self.log(f'Discovered at {self._discovery_address}')
 
-    async def on_service_found(self, service: str, config: BaseConfig) -> None:
-        """Called when a service is found for the first time."""
-        self.log(f'[discovery] Found {self.discovery_id} on {service} at {config.address}')
+        config = await self._scan_device(self._discovery_address)
+        for service in self.services:
+            self._discovery_results[service] = config
 
-    async def on_service_updated(self, service: str, config: BaseConfig) -> None:
-        """Called when a previously found service has updated discovery info."""
-        self.log(f'[discovery] Updated {self.discovery_id} on {service} at {config.address}')
+        await self._on_device_found(config)
+
+    async def on_discovery_address_changed(self, discovery_result: DiscoveryResult) -> None:
+        """Called by the Homey SDK when the device's IP address changes."""
+        self._discovery_address = discovery_result.address
+        self.log(f'Address changed to {self._discovery_address}')
+
+    # ------------------------------------------------------------------
+    # pyatv unicast scan
+    # ------------------------------------------------------------------
+
+    async def _scan_device(self, address: str) -> BaseConfig:
+        """Unicast-scan the given IP to get its full pyatv config."""
+        loop = asyncio.get_running_loop()
+
+        for attempt in range(MAX_SCAN_RETRIES):
+            try:
+                results = await pyatv.scan(loop, timeout=5, hosts=[address])
+                if results:
+                    self.log(f'Scanned {address}: found {results[0].name}')
+                    return results[0]
+            except Exception as err:
+                self.error(f'Scan attempt {attempt + 1} failed: {err}')
+
+            if attempt < MAX_SCAN_RETRIES - 1:
+                await asyncio.sleep(SCAN_RETRY_INTERVAL)
+
+        raise RuntimeError(f'Cannot scan device at {address}')
+
+    # ------------------------------------------------------------------
+    # Hooks for subclasses
+    # ------------------------------------------------------------------
+
+    async def _on_device_found(self, config: BaseConfig) -> None:
+        """Override in subclass to establish the pyatv connection."""
+
+    # ------------------------------------------------------------------
+    # Reconnection helper (used by subclass reconnect logic)
+    # ------------------------------------------------------------------
+
+    async def _reconnect(self) -> None:
+        """Re-scan the last known address and reconnect."""
+        if not self._discovery_address:
+            raise RuntimeError('No known address for reconnection.')
+
+        config = await self._scan_device(self._discovery_address)
+        for service in self.services:
+            self._discovery_results[service] = config
+
+        await self._on_device_found(config)
+        await self.set_available()

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import homey
-    from lib.homepod_base_device import HomePodBaseDevice
+    from .homepod_base_device import HomePodBaseDevice
 
 logger = logging.getLogger(__name__)
 

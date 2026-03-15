@@ -6,9 +6,10 @@ import re
 from abc import abstractmethod
 
 import homey
+from homey.driver import Driver as HomeyDriver
 
 
-class HomePodBaseDriver(homey.Driver):
+class HomePodBaseDriver(HomeyDriver):
     """Base driver that handles pairing for both HomePod models."""
 
     @property
@@ -17,7 +18,7 @@ class HomePodBaseDriver(homey.Driver):
         """Regex that matches the `model` mDNS TXT record for this variant."""
 
     async def on_pair(self, session: homey.Driver.PairSession) -> None:
-        from lib.homepod_pairing import HomePodBasePairing
+        from .homepod_pairing import HomePodBasePairing
 
         pairing = HomePodBasePairing(
             session=session,

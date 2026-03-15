@@ -42,8 +42,7 @@
         "now_playing_app",
         "media_type",
         "volume_set",
-        "button.restart",
-        "button.repair"
+        "button.restart"
     ],
     "capabilitiesOptions": {
         "button.restart": {
@@ -159,6 +158,81 @@
         },
         {
             "id": "add_my_device"
+        }
+    ],
+    "repair": [
+        {
+            "id": "discover",
+            "template": "loading"
+        },
+        {
+            "id": "list_devices",
+            "template": "list_devices",
+            "navigation": {
+                "next": "authenticate"
+            },
+            "options": {
+                "singular": true,
+                "title": {
+                    "en": "Select the device to re-pair",
+                    "nl": "Selecteer het apparaat om opnieuw te koppelen",
+                    "da": "Vælg enheden, der skal parres igen",
+                    "de": "Wähle das Gerät zum erneuten Koppeln",
+                    "es": "Selecciona el dispositivo para volver a emparejar",
+                    "fr": "Sélectionnez l'appareil à réassocier",
+                    "it": "Seleziona il dispositivo da riassociare",
+                    "no": "Velg enheten som skal kobles på nytt",
+                    "sv": "Välj enheten att para om",
+                    "pl": "Wybierz urządzenie do ponownego sparowania",
+                    "ru": "Выберите устройство для повторного сопряжения",
+                    "ko": "다시 페어링할 기기를 선택하세요",
+                    "ar": "اختر الجهاز لإعادة الإقران"
+                }
+            }
+        },
+        {
+            "id": "authenticate",
+            "template": "pincode",
+            "options": {
+                "title": {
+                    "en": "Pincode",
+                    "nl": "Pincode",
+                    "da": "Pin-kode",
+                    "de": "Pin-Code",
+                    "es": "Código PIN",
+                    "fr": "Code Pin",
+                    "it": "Codice Pin",
+                    "no": "Pinkode",
+                    "sv": "Pin-kod",
+                    "pl": "Kod PIN",
+                    "ru": "Пин-код",
+                    "ko": "핀 코드",
+                    "ar": "رمز PIN"
+                },
+                "hint": {
+                    "en": "Enter the code displayed on the TV",
+                    "nl": "Vul de code in die op de TV wordt weergegeven",
+                    "da": "Indtast koden, der vises på tv'et",
+                    "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
+                    "es": "Ingrese el código que se muestra en la televisión",
+                    "fr": "Entrez le code affiché sur la télévision",
+                    "it": "Inserisci il codice visualizzato sul televisore",
+                    "no": "Skriv inn koden som vises på TV-en",
+                    "sv": "Ange koden som visas på TV:n",
+                    "pl": "Wprowadź kod wyświetlany na telewizorze",
+                    "ru": "Введите код, отображаемый на телевизоре",
+                    "ko": "TV에 표시된 코드를 입력하세요",
+                    "ar": "أدخل الرمز المعروض على التلفاز"
+                },
+                "type": "number",
+                "length": 4
+            },
+            "navigation": {
+                "prev": "discover"
+            }
+        },
+        {
+            "id": "done"
         }
     ],
     "images": {

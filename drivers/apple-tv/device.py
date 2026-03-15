@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 import pyatv
 from pyatv.const import Protocol
 
-from lib.airplay_logic import AirPlayLogic
-from lib.discoverable_device import DiscoverableDevice
+from app.lib.airplay_logic import AirPlayLogic
+from app.lib.discoverable_device import DiscoverableDevice
 
 if TYPE_CHECKING:
     from pyatv.interface import AppleTV, BaseConfig
@@ -50,18 +50,16 @@ CAPABILITIES = [
     'media_type',
     'volume_set',
     'button.restart',
-    'button.repair',
 ]
 
 
 class AppleTVDevice(DiscoverableDevice):
     """Represents a single Apple TV on the local network."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self._atv: AppleTV | None = None
         self._airplay_logic: AirPlayLogic | None = None
-        self._connected_once = False
         self._is_reconnecting = False
         self._companion_reconnect_task: asyncio.Task | None = None
 
@@ -97,56 +95,49 @@ class AppleTVDevice(DiscoverableDevice):
         self.log('Uninitialized.')
 
     # ------------------------------------------------------------------
-    # Discovery
+    # Discovery callback → connect
     # ------------------------------------------------------------------
 
-    async def on_service_found(self, service: str, config: BaseConfig) -> None:
-        await super().on_service_found(service, config)
-
-        if self._connected_once:
-            return
-
-        # Wait until both services are resolved before connecting
-        if AIRPLAY_SERVICE not in self._discovery_results:
-            return
-        if COMPANION_SERVICE not in self._discovery_results:
-            return
-
-        self._connected_once = True
+    async def _on_device_found(self, config: BaseConfig) -> None:
+        """Called by DiscoverableDevice when the pyatv config is ready."""
+        if self._atv is not None:
+            return  # Already connected
         await self._connect()
-        # If _connect() failed (atv is still None), allow retries from future discovery callbacks
-        if self._atv is None:
-            self._connected_once = False
 
     # ------------------------------------------------------------------
     # Connection
     # ------------------------------------------------------------------
 
     async def _connect(self) -> None:
-        try:
-            config = self._discovery_results.get(AIRPLAY_SERVICE)
-            if config is None:
-                await self.set_unavailable('Cannot find AirPlay service.')
-                return
+        """Connect to the Apple TV using stored discovery results.
 
-            credentials = self._get_credentials()
-            if credentials:
-                service = config.get_service(Protocol.AirPlay)
-                if service:
-                    service.credentials = credentials
+        Raises on failure so callers (SDK discovery callback or _reconnect)
+        can handle it appropriately.
+        """
+        config = self._discovery_results.get(AIRPLAY_SERVICE)
+        if config is None:
+            raise RuntimeError('Cannot find AirPlay service.')
 
-            loop = asyncio.get_running_loop()
-            self._atv = await pyatv.connect(config, loop)
-            self._atv.listener = self
-            self._airplay_logic.set_protocol(self._atv)
+        airplay_creds = self._get_credentials('credentials')
+        if airplay_creds:
+            service = config.get_service(Protocol.AirPlay)
+            if service:
+                service.credentials = airplay_creds
 
-            self._start_companion_reconnect()
+        companion_creds = self._get_credentials('companion_credentials')
+        if companion_creds:
+            service = config.get_service(Protocol.Companion)
+            if service:
+                service.credentials = companion_creds
 
-            await self.set_available()
-            self.log('Connected to Apple TV.')
-        except Exception as err:
-            self.error(f'Failed to connect to Apple TV: {err}')
-            await self.set_unavailable(f'Cannot connect to Apple TV: {err}')
+        loop = asyncio.get_running_loop()
+        self._atv = await pyatv.connect(config, loop)
+        self._atv.listener = self
+        self._airplay_logic.set_protocol(self._atv)
+
+        self._start_companion_reconnect()
+
+        self.log('Connected to Apple TV.')
 
     async def _disconnect(self) -> None:
         self._stop_companion_reconnect()
@@ -181,9 +172,10 @@ class AppleTVDevice(DiscoverableDevice):
             await self.set_unavailable('Disconnected from Apple TV, reconnecting...')
             await asyncio.sleep(RECONNECT_DELAY)
             await self._disconnect()
-
-            await self.find_service(AIRPLAY_SERVICE)
-            await self._connect()
+            await self._reconnect()
+        except Exception as err:
+            self.error(f'Reconnection failed: {err}')
+            await self.set_unavailable(f'Cannot reconnect: {err}')
         finally:
             self._is_reconnecting = False
 
@@ -192,9 +184,6 @@ class AppleTVDevice(DiscoverableDevice):
     # ------------------------------------------------------------------
 
     def _start_companion_reconnect(self) -> None:
-        # If called from within the running reconnect loop (via _connect after a
-        # scheduled reconnect), don't cancel and recreate the loop — the current
-        # iteration will simply continue into the next sleep cycle.
         if self._companion_reconnect_task and asyncio.current_task() is self._companion_reconnect_task:
             return
 
@@ -206,8 +195,7 @@ class AppleTVDevice(DiscoverableDevice):
                 self.log('Scheduled Companion Link reconnect...')
                 try:
                     await self._disconnect()
-                    await self.find_service(AIRPLAY_SERVICE)
-                    await self._connect()
+                    await self._reconnect()
                 except Exception as err:
                     self.error(f'Scheduled reconnect failed: {err}')
 
@@ -217,9 +205,6 @@ class AppleTVDevice(DiscoverableDevice):
         task = self._companion_reconnect_task
         self._companion_reconnect_task = None
         if task and not task.done():
-            # Don't cancel ourselves if we're the reconnect loop task — just clear
-            # the reference so _start_companion_reconnect knows to create a new one
-            # when called from an external context.
             if asyncio.current_task() is not task:
                 task.cancel()
 
@@ -236,13 +221,15 @@ class AppleTVDevice(DiscoverableDevice):
         self.register_capability_listener('volume_down', self._on_volume_down)
         self.register_capability_listener('volume_mute', self._on_volume_mute)
         self.register_capability_listener('volume_set', self._on_volume_set)
-        self.register_multiple_capability_listener(
-            [k for k in CAPABILITIES if k.startswith('remote_')],
-            self._on_remote,
-            delay=0,
-        )
+        self.register_capability_listener('remote_up', self._on_remote_up)
+        self.register_capability_listener('remote_down', self._on_remote_down)
+        self.register_capability_listener('remote_left', self._on_remote_left)
+        self.register_capability_listener('remote_right', self._on_remote_right)
+        self.register_capability_listener('remote_select', self._on_remote_select)
+        self.register_capability_listener('remote_home', self._on_remote_home)
+        self.register_capability_listener('remote_back', self._on_remote_back)
+        self.register_capability_listener('remote_playpause', self._on_remote_playpause)
         self.register_capability_listener('button.restart', self._on_restart)
-        self.register_capability_listener('button.repair', self._on_repair)
 
     async def _on_onoff(self, value: bool, *_) -> None:
         if self._atv is None:
@@ -265,66 +252,67 @@ class AppleTVDevice(DiscoverableDevice):
     async def _on_speaker_playing(self, play: bool, *_) -> None:
         if self._atv is None:
             return
-        if play:
-            await self._atv.remote_control.play()
-        else:
-            await self._atv.remote_control.pause()
+        # Use play_pause() for both — rc.play() can trigger Apple Music
+        # instead of resuming the current media on newer Apple TVs
+        await self._atv.remote_control.play_pause()
 
     async def _on_volume_up(self, *_) -> None:
         if self._atv is None:
             return
-        await self._atv.audio.volume_up()
+        try:
+            await self._atv.audio.volume_up()
+        except Exception as err:
+            self.error(f'Volume up failed: {err}')
 
     async def _on_volume_down(self, *_) -> None:
         if self._atv is None:
             return
-        await self._atv.audio.volume_down()
+        try:
+            await self._atv.audio.volume_down()
+        except Exception as err:
+            self.error(f'Volume down failed: {err}')
 
-    async def _on_volume_mute(self, *_) -> None:
+    async def _on_volume_mute(self, muted, *_) -> None:
         if self._atv is None:
             return
-        # pyatv does not have a dedicated mute; toggle volume to 0
-        await self._atv.audio.set_volume(0)
+        try:
+            if muted:
+                await self._atv.audio.set_volume(0)
+            self.log(f'Volume mute: {muted}')
+        except Exception as err:
+            self.error(f'Volume mute failed: {err}')
 
     async def _on_volume_set(self, volume: float, *_) -> None:
         if self._atv is None:
             return
         await self._atv.audio.set_volume(volume * 100)
 
-    async def _on_remote(self, values: dict, *_) -> None:
+    async def _on_remote_cmd(self, name, coro):
         if self._atv is None:
             return
-        rc = self._atv.remote_control
-        if values.get('remote_up'):
-            await rc.up()
-        if values.get('remote_down'):
-            await rc.down()
-        if values.get('remote_left'):
-            await rc.left()
-        if values.get('remote_right'):
-            await rc.right()
-        if values.get('remote_select'):
-            await rc.select()
-        if values.get('remote_home'):
-            await rc.home()
-        if values.get('remote_back'):
-            await rc.menu()
-        if values.get('remote_playpause'):
-            await rc.play_pause()
+        try:
+            await coro
+        except Exception as err:
+            self.error(f'Remote {name} failed: {err}')
+
+    async def _on_remote_up(self, *_): await self._on_remote_cmd('up', self._atv.remote_control.up())
+    async def _on_remote_down(self, *_): await self._on_remote_cmd('down', self._atv.remote_control.down())
+    async def _on_remote_left(self, *_): await self._on_remote_cmd('left', self._atv.remote_control.left())
+    async def _on_remote_right(self, *_): await self._on_remote_cmd('right', self._atv.remote_control.right())
+    async def _on_remote_select(self, *_): await self._on_remote_cmd('select', self._atv.remote_control.select())
+    async def _on_remote_home(self, *_): await self._on_remote_cmd('home', self._atv.remote_control.home())
+    async def _on_remote_back(self, *_): await self._on_remote_cmd('back', self._atv.remote_control.menu())
+    async def _on_remote_playpause(self, *_): await self._on_remote_cmd('playpause', self._atv.remote_control.play_pause())
 
     async def _on_restart(self, *_) -> None:
         try:
             await self._disconnect()
             if self._airplay_logic:
                 await self._airplay_logic.clear_now_playing()
-            await self._connect()
+            await self._reconnect()
         except Exception as err:
             self.error(err)
 
-    async def _on_repair(self, *_) -> None:
-        await self.set_unavailable(
-            'Please re-pair this device: go to Devices → Apple TV → Settings → Re-pair.'
-        )
 
     # ------------------------------------------------------------------
     # Flow trigger hooks
@@ -351,7 +339,15 @@ class AppleTVDevice(DiscoverableDevice):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _get_credentials(self) -> str | None:
-        """Return stored AirPlay credentials string, or None."""
+    def _get_credentials(self, key: str = 'credentials') -> str | None:
+        """Return stored credentials string from the device store, or None."""
         store = self.get_store()
-        return store.get('credentials') if store else None
+        if not store:
+            return None
+        creds = store.get(key)
+        if isinstance(creds, dict):
+            self.error(f'Stored {key} in old format — please re-pair.')
+            return None
+        return creds if isinstance(creds, str) else None
+
+homey_export = AppleTVDevice
