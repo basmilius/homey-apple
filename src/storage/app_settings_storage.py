@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from homey import Homey
+if TYPE_CHECKING:
+    from homey.homey import Homey
 from pyatv.storage import AbstractStorage, StorageModel
 
 SETTINGS_KEY = "pyatv_storage"
