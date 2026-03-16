@@ -313,5 +313,8 @@
   },
   "1.6.12": {
     "en": "Fixed clearing artworks."
+  },
+  "1.6.13": {
+    "en": "Made connecting more robust."
   }
 }
