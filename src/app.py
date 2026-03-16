@@ -6,6 +6,7 @@ from homey.app import App
 
 from .apple_tv.flow import AppleTVFlow
 from .homepod_base.flow import HomePodFlow
+from .storage.homey_settings_storage import AppSettingsStorage
 
 
 class AppleApp(App):
@@ -19,12 +20,19 @@ class AppleApp(App):
         super().__init__(*args, **kwargs)
         self._apple_tv_flow: AppleTVFlow | None = None
         self._homepod_flow: HomePodFlow | None = None
+        self._storage: AppSettingsStorage | None = None
 
     @property
     def apple_tv_flow(self) -> AppleTVFlow:
         if self._apple_tv_flow is None:
             raise RuntimeError('AppleApp.apple_tv_flow accessed before on_init completed.')
         return self._apple_tv_flow
+
+    @property
+    def storage(self) -> AppSettingsStorage:
+        if self._storage is None:
+            raise RuntimeError('AppleApp.storage accessed before on_init completed.')
+        return self._storage
 
     @property
     def homepod_flow(self) -> HomePodFlow:
@@ -34,6 +42,9 @@ class AppleApp(App):
 
     async def on_init(self) -> None:
         AppleApp._instance = self
+
+        self._storage = AppSettingsStorage(self.homey)
+        await self._storage.load()
 
         self._apple_tv_flow = AppleTVFlow(self)
         self._apple_tv_flow.register()
@@ -83,7 +94,7 @@ class AppleApp(App):
                             'name': name,
                             'description': label,
                             'icon': f'/drivers/{driver_id}/assets/icon.svg',
-                            'data': {'id': device._id, 'driverId': driver_id},
+                            'data': {'id': device.get_id(), 'driverId': driver_id},
                         })
                 except Exception:
                     continue
@@ -101,10 +112,10 @@ class AppleApp(App):
                         'name': name,
                         'description': 'Apple TV',
                         'icon': '/drivers/apple-tv/assets/icon.svg',
-                        'data': {'id': device._id, 'driverId': 'apple-tv'},
+                        'data': {'id': device.get_id(), 'driverId': 'apple-tv'},
                     })
-        except Exception:
-            pass
+        except Exception as err:
+            self.error('Failed to enumerate driver "apple-tv":', err)
         return results
 
     async def on_uninit(self) -> None:

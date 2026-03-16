@@ -7,6 +7,22 @@ import pyatv.interface as pyatv_interface
 from pyatv.const import Protocol
 
 
+async def connect_with_storage(
+    config: pyatv_interface.BaseConfig,
+    storage: pyatv_interface.Storage,
+) -> pyatv_interface.AppleTV:
+    """
+    Connect to a device using pyatv's storage-managed credentials.
+
+    The storage backend handles all credential lookup and persistence
+    automatically.
+
+    Returns the connected :class:`pyatv.interface.AppleTV` instance.
+    """
+    loop = asyncio.get_running_loop()
+    return await pyatv.connect(config, loop, storage=storage)
+
+
 async def connect_with_credentials(
     config: pyatv_interface.BaseConfig,
     airplay_credentials: str | None = None,
@@ -20,6 +36,8 @@ async def connect_with_credentials(
     protocols.  When only *airplay_credentials* is provided, it is also
     applied to the Companion service so that power control and remote
     commands work without a separate pairing step.
+
+    This is a fallback for devices without storage credentials.
 
     Returns the connected :class:`pyatv.interface.AppleTV` instance.
     """

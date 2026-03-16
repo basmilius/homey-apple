@@ -10,9 +10,10 @@ import pyatv.exceptions as pyatv_exceptions
 import pyatv.interface as pyatv_interface
 from homey.device import Device
 
-from ..connection.airplay import connect_with_credentials
+from ..connection.airplay import connect_with_credentials, connect_with_storage
 from ..logic.airplay import AirPlayLogic
 from ..utils.get_credentials_from_device import get_credentials_from_device
+from ..utils.mac_address import extract_mac_from_txt, is_mac_format
 
 MAX_SCAN_RETRIES = 10
 SCAN_RETRY_INTERVAL_S = 1.0
@@ -63,8 +64,27 @@ class DiscoverableDevice(Device):
 
     @property
     def discovery_id(self) -> str:
-        """The mDNS hostname stored in device data during pairing."""
+        """The mDNS hostname or MAC address stored in device data during pairing."""
         return self.get_data().get('id', '')
+
+    @property
+    def device_mac(self) -> str | None:
+        """The MAC address of this device, from data ID or store."""
+        data_id = self.get_data().get('id', '')
+        if is_mac_format(data_id):
+            return data_id
+
+        store = self.get_store()
+        mac = store.get('mac')
+        if mac and isinstance(mac, str) and is_mac_format(mac):
+            return mac
+
+        return None
+
+    @property
+    def is_legacy_device(self) -> bool:
+        """True if this device was paired with a hostname ID instead of a MAC address."""
+        return not is_mac_format(self.get_data().get('id', ''))
 
     @property
     def _expected_name(self) -> str:
@@ -115,13 +135,14 @@ class DiscoverableDevice(Device):
         self.log('Initialized.')
 
     async def on_uninit(self) -> None:
-        if self._initial_connect_task is not None and not self._initial_connect_task.done():
-            self._initial_connect_task.cancel()
+        task = self._initial_connect_task
+        self._initial_connect_task = None
+        if task is not None and not task.done():
+            task.cancel()
             try:
-                await self._initial_connect_task
+                await task
             except (asyncio.CancelledError, Exception):
                 pass
-            self._initial_connect_task = None
 
         if self._airplay_logic is not None:
             await self._airplay_logic.uninitialize()
@@ -150,16 +171,32 @@ class DiscoverableDevice(Device):
             await self._start_scheduled_reconnect()
 
     async def _connect(self, config: pyatv_interface.BaseConfig) -> None:
-        """Connect to the device using a pyatv config."""
-        credentials = get_credentials_from_device(self)
+        """Connect to the device using a pyatv config.
+
+        Prefers storage-based connection (credentials managed by pyatv).
+        Falls back to manual credential injection for devices without
+        storage credentials. Migrates legacy credentials into storage
+        on first connect.
+        """
+        from ..app import AppleApp
+        app = AppleApp._instance
+        storage = app.storage if app is not None else None
+
+        # Migrate legacy credentials into storage on first connect.
+        await self._migrate_credentials_to_storage(config, storage)
 
         for attempt in range(MAX_CONNECT_RETRIES):
             try:
-                atv = await connect_with_credentials(
-                    config,
-                    airplay_credentials=credentials.get('airplay'),
-                    companion_credentials=credentials.get('companion'),
-                )
+                if storage is not None:
+                    atv = await connect_with_storage(config, storage)
+                else:
+                    credentials = get_credentials_from_device(self)
+                    atv = await connect_with_credentials(
+                        config,
+                        airplay_credentials=credentials.get('airplay'),
+                        companion_credentials=credentials.get('companion'),
+                    )
+
                 try:
                     atv.listener = self
                     if self._airplay_logic is not None:
@@ -191,6 +228,57 @@ class DiscoverableDevice(Device):
                 self.error(f'Failed to connect to {self._device_type_name}:', err)
                 await self.set_unavailable(f'Cannot connect to {self._device_type_name}: {err}')
                 return
+
+    async def _migrate_credentials_to_storage(
+        self,
+        config: pyatv_interface.BaseConfig,
+        storage: Any,
+    ) -> None:
+        """Migrate legacy credentials from the device store into pyatv storage.
+
+        This is a one-time operation per device. After migration, pyatv
+        manages credentials automatically via the storage backend.
+        """
+        if storage is None:
+            return
+
+        from pyatv.const import Protocol
+
+        credentials = get_credentials_from_device(self)
+        airplay_cred = credentials.get('airplay')
+        companion_cred = credentials.get('companion')
+
+        if not airplay_cred and not companion_cred:
+            return
+
+        # Check if storage already has settings for this device.
+        try:
+            settings = await storage.get_settings(config)
+            # If AirPlay credentials are already set in storage, skip migration.
+            if settings.protocols.airplay.credentials:
+                return
+        except Exception:
+            pass
+
+        self.log('Migrating legacy credentials to pyatv storage...')
+
+        # Apply credentials to config services so update_settings can pick them up.
+        if airplay_cred:
+            airplay_service = config.get_service(Protocol.AirPlay)
+            if airplay_service is not None:
+                airplay_service.credentials = airplay_cred
+
+        if companion_cred:
+            companion_service = config.get_service(Protocol.Companion)
+            if companion_service is not None:
+                companion_service.credentials = companion_cred
+
+        try:
+            await storage.update_settings(config)
+            await storage.save()
+            self.log('Credentials migrated to pyatv storage.')
+        except Exception as err:
+            self.error('Failed to migrate credentials to storage:', err)
 
     async def _on_connected(self) -> None:
         """Hook called after successful connection. Override for post-connect behavior."""
@@ -345,50 +433,82 @@ class DiscoverableDevice(Device):
         Scan for this device on the local network using pyatv, retrying
         up to :data:`MAX_SCAN_RETRIES` times.
 
-        First attempts to resolve the mDNS hostname to an IP and scan that
-        host directly.  If hostname resolution fails, falls back to a broad
-        network scan to find the device by name, then does a targeted
-        follow-up scan on the discovered IP to ensure all protocols are found.
+        Uses MAC-based scanning when a MAC address is available (preferred),
+        falling back to hostname-based scanning for legacy devices.
+
+        After a successful scan, extracts and stores the MAC address for
+        future use.
 
         Returns the first matching config, or *None* if not found.
         """
+        from ..app import AppleApp
+        app = AppleApp._instance
+        storage = app.storage if app is not None else None
+
         loop = asyncio.get_running_loop()
-        hostname = self.discovery_id
+        mac = self.device_mac
+        device_label = mac or self.discovery_id
 
         for attempt in range(MAX_SCAN_RETRIES):
-            # Fast path: resolve hostname to IP and scan directly.
-            ip = await self._resolve_host()
-            if ip is not None:
-                config = await self._scan_by_host(ip)
-                if config is not None:
-                    self.log(
-                        f'Found {hostname} at '
-                        f'{config.address} (attempt {attempt + 1})'
-                    )
-                    return config
+            config: pyatv_interface.BaseConfig | None = None
 
-            # Slow path: broad scan to find the device IP by name, then do
-            # a targeted scan on that IP for complete protocol discovery.
-            results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
-            for result in results:
-                if self._match_scan_result(result):
-                    self.log(
-                        f'Found {hostname} at {result.address} via broad scan, '
-                        f'performing targeted scan for full protocol discovery...'
-                    )
-                    config = await self._scan_by_host(str(result.address))
-                    if config is not None:
-                        self.log(
-                            f'Found {hostname} at '
-                            f'{config.address} (attempt {attempt + 1})'
-                        )
-                        return config
+            # Primary path: scan by MAC address via pyatv identifier.
+            if mac is not None:
+                results = await pyatv.scan(
+                    loop,
+                    timeout=SCAN_TIMEOUT_S,
+                    identifier=mac,
+                    storage=storage,
+                )
+                if results:
+                    config = results[0]
+
+            # Fallback for legacy devices: resolve hostname → scan by IP.
+            if config is None and self.is_legacy_device:
+                ip = await self._resolve_host()
+                if ip is not None:
+                    config = await self._scan_by_host(ip)
+
+                # Broad scan fallback.
+                if config is None:
+                    results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
+                    for result in results:
+                        if self._match_scan_result(result):
+                            self.log(
+                                f'Found {device_label} at {result.address} via broad scan, '
+                                f'performing targeted scan for full protocol discovery...'
+                            )
+                            config = await self._scan_by_host(str(result.address))
+                            break
+
+            if config is not None:
+                self.log(
+                    f'Found {device_label} at '
+                    f'{config.address} (attempt {attempt + 1})'
+                )
+                await self._store_mac_from_config(config)
+                return config
 
             if attempt < MAX_SCAN_RETRIES - 1:
                 await asyncio.sleep(SCAN_RETRY_INTERVAL_S)
 
-        self.error(f'Cannot find {hostname} on network after {MAX_SCAN_RETRIES} attempts.')
+        self.error(f'Cannot find {device_label} on network after {MAX_SCAN_RETRIES} attempts.')
         return None
+
+    async def _store_mac_from_config(self, config: pyatv_interface.BaseConfig) -> None:
+        """Extract a MAC address from the scan result and persist it in the device store."""
+        if self.device_mac is not None:
+            return
+
+        # Try to extract MAC from service properties (TXT records).
+        for service in config.services:
+            props = service.properties
+            if props:
+                mac = extract_mac_from_txt(props)
+                if mac:
+                    await self.set_store_value('mac', mac)
+                    self.log(f'Stored MAC address {mac} for future scans.')
+                    return
 
     async def sync_capabilities(self, expected: list[str]) -> None:
         """Add missing and remove stale capabilities to match *expected*."""
@@ -482,7 +602,7 @@ class DiscoverableDevice(Device):
                     if self._atv is None:
                         await self._start_scheduled_reconnect()
             except Exception as err:
-                self.error(err)
+                self.error('Restart failed:', err)
 
     async def _on_repair(self, _: Any, **__: Any) -> None:
         self._is_repair_requested = True

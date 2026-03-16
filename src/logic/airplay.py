@@ -209,7 +209,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             return
 
         try:
-            await self._device.set_capability_value('volume_set', new_level / 100.0)
+            clamped = max(0.0, min(100.0, new_level))
+            await self._device.set_capability_value('volume_set', clamped / 100.0)
             await self._emit_mini_player_update()
         except Exception as err:
             self._device.error(self.device_name, 'Failed to update volume:', err)
@@ -490,7 +491,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
         try:
             await self._device.homey.api.realtime('apple-mini-player-update', {
-                'deviceId': self._device._id,
+                'deviceId': self._device.get_id(),
                 'deviceName': self._device.get_name(),
                 'track': cap('speaker_track'),
                 'artist': cap('speaker_artist'),

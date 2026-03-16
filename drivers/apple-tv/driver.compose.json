@@ -128,7 +128,7 @@
             "id": "list_devices",
             "template": "list_devices",
             "navigation": {
-                "next": "authenticate"
+                "next": "connect_device"
             },
             "options": {
                 "singular": true,
@@ -150,7 +150,28 @@
             }
         },
         {
-            "id": "authenticate",
+            "id": "connect_device",
+            "template": "loading",
+            "options": {
+                "title": {
+                    "en": "Connecting...",
+                    "nl": "Verbinden...",
+                    "de": "Verbindung wird hergestellt...",
+                    "fr": "Connexion...",
+                    "it": "Connessione...",
+                    "sv": "Ansluter...",
+                    "no": "Kobler til...",
+                    "es": "Conectando...",
+                    "da": "Forbinder...",
+                    "pl": "Łączenie...",
+                    "ru": "Подключение...",
+                    "ko": "연결 중...",
+                    "ar": "جارٍ الاتصال..."
+                }
+            }
+        },
+        {
+            "id": "pair_protocol_pincode",
             "template": "pincode",
             "options": {
                 "title": {
@@ -185,9 +206,6 @@
                 },
                 "type": "number",
                 "length": 4
-            },
-            "navigation": {
-                "prev": "discover"
             }
         },
         {

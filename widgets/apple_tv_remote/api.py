@@ -23,7 +23,7 @@ def _build_state(device: Any) -> dict:
             return None
 
     return {
-        'deviceId': device._id,
+        'deviceId': device.get_id(),
         'deviceName': device.get_name(),
         'track': cap('speaker_track'),
         'artist': cap('speaker_artist'),

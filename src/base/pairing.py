@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 from typing import Any
 
+from ..utils.mac_address import extract_mac_from_txt, is_mac_format
 from ..utils.wait_for import wait_for
 
 
@@ -80,13 +81,29 @@ class BasePairing(ABC):
         self._session.set_handler("get_device", self._get_device)
 
     async def _list_devices(self) -> list[dict]:
-        """List discovered devices that are not yet paired."""
-        known_ids = set()
+        """List discovered devices that are not yet paired.
+
+        Matches both MAC addresses and hostnames against known devices
+        to prevent already-paired devices from appearing in the list.
+        """
+        known_ids: set[str] = set()
+        known_macs: set[str] = set()
+
         for device in self._known_devices:
             try:
                 data = device.get_data() or {}
-                if data.get("id"):
-                    known_ids.add(data["id"])
+                device_id = data.get("id", "")
+                if device_id:
+                    known_ids.add(device_id)
+                    # If the ID is a MAC, also add it to the MAC set.
+                    if is_mac_format(device_id):
+                        known_macs.add(device_id.upper().replace(":", ""))
+
+                # Check store for MAC address (legacy devices).
+                store = device.get_store() or {}
+                mac = store.get("mac", "")
+                if mac and isinstance(mac, str) and is_mac_format(mac):
+                    known_macs.add(mac.upper().replace(":", ""))
             except Exception as err:
                 if self.on_error:
                     self.on_error(err)
@@ -102,6 +119,11 @@ class BasePairing(ABC):
                 txt = self._txt_to_str_dict(getattr(result, "txt", None))
                 model = txt.get("model")
                 if not self._is_supported_model(model):
+                    continue
+
+                # Check if this device's MAC is already known.
+                result_mac = extract_mac_from_txt(txt)
+                if result_mac and result_mac.upper().replace(":", "") in known_macs:
                     continue
 
                 entries.append({"id": rid, "name": getattr(result, "name", None), "data": {"id": rid}})

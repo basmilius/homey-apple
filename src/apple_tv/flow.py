@@ -258,7 +258,7 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-            shuffle = args['shuffle'] == 'true' or args['shuffle'] is True
+            shuffle = str(args['shuffle']).lower() == 'true'
             state = ShuffleState.Songs if shuffle else ShuffleState.Off
             await atv.remote_control.set_shuffle(state)
 

@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from ..base.pairing import BasePairing
+from ..utils.mac_address import extract_mac_from_txt
 
 
 class HomePodBasePairing(BasePairing):
@@ -24,6 +25,7 @@ class HomePodBasePairing(BasePairing):
         super().__init__(session, strategy, known_devices)
         self._model_filter = model_filter
         self._store: dict[str, Any] = {}
+        self._mac: str | None = None
 
     def _is_supported_model(self, model: str | None) -> bool:
         return model is not None and bool(self._model_filter.search(model))
@@ -32,9 +34,12 @@ class HomePodBasePairing(BasePairing):
         device = self._selected_device
         if device is None:
             return {}
+
+        device_id = self._mac or getattr(device, "id", None)
+
         return {
             "name": getattr(device, "name", None),
-            "data": {"id": getattr(device, "id", None)},
+            "data": {"id": device_id},
             "store": dict(self._store),
         }
 
@@ -49,8 +54,11 @@ class HomePodBasePairing(BasePairing):
         txt = self._txt_to_str_dict(getattr(device, "txt", None))
         model = txt.get("model")
 
+        # Extract MAC address from TXT records.
+        self._mac = extract_mac_from_txt(txt)
+
         if self.on_log:
-            self.on_log(f"Using transient credentials for {getattr(device, 'name', '')} ({model or 'unknown model'}).")
+            self.on_log(f"Using transient credentials for {getattr(device, 'name', '')} ({model or 'unknown model'}, MAC: {self._mac or 'unknown'}).")
 
         address = getattr(device, "address", None)
         if not address:
