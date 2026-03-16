@@ -41,9 +41,10 @@ def _build_state(device: Any) -> dict:
         'duration': cap('speaker_duration'),
         'volume': cap('volume_set'),
         'artworkUrl': cap('artwork_url'),
+        'onoff': cap('onoff'),
         'shuffle': getattr(getattr(device, 'airplay_logic', None), '_shuffle', False),
         'repeat': getattr(getattr(device, 'airplay_logic', None), '_repeat', 'off'),
-        'positionTimestamp': int(getattr(getattr(device, 'airplay_logic', None), '_position_update_time', 0) * 1000) or int(time.time() * 1000),
+        'positionTimestamp': int(getattr(getattr(device, 'airplay_logic', None), '_position_update_time', 0) * 1000),
     }
 
 

@@ -27,7 +27,7 @@ class AppSettingsStorage(AbstractStorage):
         if not self.has_changed(data):
             return
 
-        self._homey.settings.set(SETTINGS_KEY, json.dumps(data))
+        await self._homey.settings.set(SETTINGS_KEY, json.dumps(data))
         self.update_hash(data)
 
     async def load(self) -> None:

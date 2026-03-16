@@ -6,7 +6,7 @@ from homey.app import App
 
 from .apple_tv.flow import AppleTVFlow
 from .homepod_base.flow import HomePodFlow
-from .storage.homey_settings_storage import AppSettingsStorage
+from .storage.app_settings_storage import AppSettingsStorage
 
 
 class AppleApp(App):
