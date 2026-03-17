@@ -284,47 +284,6 @@
         ]
       },
       {
-        "id": "appletv_companion_link_failed",
-        "title": {
-          "en": "Companion Link protocol connection failed",
-          "nl": "Companion Link protocol verbinding mislukt",
-          "da": "Companion Link protokolforbindelse mislykkedes",
-          "de": "Companion Link Protokollverbindung fehlgeschlagen",
-          "es": "Falló la conexión del protocolo Companion Link",
-          "fr": "Échec de la connexion du protocole Companion Link",
-          "it": "Connessione protocollo Companion Link non riuscita",
-          "no": "Companion Link protokolltilkobling mislyktes",
-          "sv": "Companion Link protokollanslutning misslyckades",
-          "pl": "Połączenie protokołu Companion Link nie powiodło się",
-          "ru": "Не удалось подключиться к протоколу Companion Link",
-          "ko": "Companion Link 프로토콜 연결 실패",
-          "ar": "فشل اتصال بروتوكول Companion Link"
-        },
-        "titleFormatted": {
-          "en": "Companion Link protocol connection failed",
-          "nl": "Companion Link protocol verbinding mislukt",
-          "da": "Companion Link protokolforbindelse mislykkedes",
-          "de": "Companion Link Protokollverbindung fehlgeschlagen",
-          "es": "Falló la conexión del protocolo Companion Link",
-          "fr": "Échec de la connexion du protocole Companion Link",
-          "it": "Connessione protocollo Companion Link non riuscita",
-          "no": "Companion Link protokolltilkobling mislyktes",
-          "sv": "Companion Link protokollanslutning misslyckades",
-          "pl": "Połączenie protokołu Companion Link nie powiodło się",
-          "ru": "Не удалось подключиться к протоколу Companion Link",
-          "ko": "Companion Link 프로토콜 연결 실패",
-          "ar": "فشل اتصال بروتوكول Companion Link"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=apple-tv"
-          }
-        ],
-        "tokens": []
-      },
-      {
         "id": "appletv_now_playing_app_changes",
         "title": {
           "en": "Now playing app changes",
