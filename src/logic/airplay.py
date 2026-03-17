@@ -63,10 +63,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         The Python Homey SDK does not support passing None to set_url(),
         unlike the TypeScript SDK. Using set_path with an empty path
         as a workaround to reset the image source."""
-        if self._artwork is None:
-            return
-
-        self._artwork.set_path(None)
+        await self._call_image_method('set_path', None)
 
     async def initialize(self) -> None:
         """Register artwork image with Homey and clear now-playing state."""
