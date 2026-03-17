@@ -51,17 +51,6 @@ class AppleTVFlow:
         self._register_set_shuffle()
         self._register_switch_account()
 
-    async def trigger_companion_link_failed(self, device: AppleTVDevice) -> None:
-        try:
-            card = self._app.homey.flow.get_device_trigger_card(
-                'appletv_companion_link_failed'
-            )
-            await card.trigger(device)
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self._app.log(device.get_name(), 'Failed to trigger companion link failed card.', err)
-
     async def trigger_artwork_url_updated(
         self, device: AppleTVDevice, local_url: str, cloud_url: str
     ) -> None:
