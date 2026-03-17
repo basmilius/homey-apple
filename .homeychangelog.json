@@ -319,5 +319,8 @@
   },
   "1.6.14": {
     "en": "Changes based on a bug hunt of Claude."
+  },
+  "1.6.15": {
+    "en": "Made connections more robust for Apple TV by pairing other protocols as well. Widgets now make use of the proper device picker."
   }
 }
