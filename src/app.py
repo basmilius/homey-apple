@@ -106,7 +106,13 @@ class AppleApp(App):
         results = []
         try:
             driver = self.homey.drivers.get_driver('apple-tv')
-            for device in driver.get_devices():
+            devices = driver.get_devices()
+        except Exception as err:
+            self.error('Failed to enumerate driver "apple-tv":', err)
+            return results
+
+        for device in devices:
+            try:
                 name = device.get_name()
                 if not query or query.lower() in name.lower():
                     results.append({
@@ -115,8 +121,9 @@ class AppleApp(App):
                         'icon': '/drivers/apple-tv/assets/icon.svg',
                         'data': {'id': device.get_id(), 'driverId': 'apple-tv'},
                     })
-        except Exception as err:
-            self.error('Failed to enumerate driver "apple-tv":', err)
+            except Exception as err:
+                self.error('Failed to enumerate device in driver "apple-tv":', err)
+                continue
         return results
 
     async def on_uninit(self) -> None:
