@@ -260,6 +260,11 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
         base_url = cloud_url or local_url
         if not base_url:
+            await self._device.set_capability_value('artwork_url', '')
+            if self._device.has_capability('artwork_url_local'):
+                await self._device.set_capability_value('artwork_url_local', '')
+            if self._device.has_capability('artwork_url_cloud'):
+                await self._device.set_capability_value('artwork_url_cloud', '')
             return
 
         cache_buster = int(time.time() * 1000)
