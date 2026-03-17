@@ -316,5 +316,8 @@
   },
   "1.6.13": {
     "en": "Made connecting more robust."
+  },
+  "1.6.14": {
+    "en": "Changes based on a bug hunt of Claude."
   }
 }
