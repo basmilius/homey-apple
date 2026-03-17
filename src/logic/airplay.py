@@ -243,6 +243,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             self._repeat = 'off'
 
             self._device.log(self.device_name, 'Now playing info cleared.')
+            await self._emit_mini_player_update()
         except Exception as err:
             self._device.log(self.device_name, 'Failed to clear now playing info', err)
 
