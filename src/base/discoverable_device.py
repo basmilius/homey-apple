@@ -283,6 +283,20 @@ class DiscoverableDevice(Device):
     async def _on_connected(self) -> None:
         """Hook called after successful connection. Override for post-connect behavior."""
 
+    async def _sync_initial_volume(self) -> None:
+        """Sync the current volume from the device after connecting."""
+        if self._atv is None or not self.has_capability('volume_set'):
+            return
+
+        try:
+            volume = self._atv.audio.volume
+            if volume is not None:
+                clamped = max(0.0, min(100.0, float(volume)))
+                await self.set_capability_value('volume_set', clamped / 100.0)
+                self.log(f'Initial volume synced: {clamped}%')
+        except Exception as err:
+            self.log('Failed to sync initial volume:', err)
+
     async def _disconnect(self) -> None:
         """Disconnect and clean up."""
         await self._stop_scheduled_reconnect()

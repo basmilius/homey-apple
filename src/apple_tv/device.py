@@ -58,7 +58,7 @@ class AppleTVDevice(DiscoverableDevice):
     # ------------------------------------------------------------------
 
     async def _on_connected(self) -> None:
-        """Fetch and publish initial power state after connecting."""
+        """Fetch and publish initial power and volume state after connecting."""
         if self._atv is None:
             return
 
@@ -72,6 +72,8 @@ class AppleTVDevice(DiscoverableDevice):
         except Exception as err:
             self.error('Failed to fetch initial power state:', err)
             await self._trigger_companion_link_failed()
+
+        await self._sync_initial_volume()
 
     async def _trigger_companion_link_failed(self) -> None:
         """Fire the companion link failed trigger when power/companion is unavailable."""

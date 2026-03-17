@@ -33,6 +33,10 @@ class HomePodBaseDevice(DiscoverableDevice):
     def _device_capabilities(self) -> list[str]:
         return CAPABILITIES
 
+    async def _on_connected(self) -> None:
+        """Sync initial volume after connecting."""
+        await self._sync_initial_volume()
+
     def _get_capability_handlers(self) -> dict[str, Any]:
         handlers = super()._get_capability_handlers()
         handlers['speaker_stop'] = self._on_speaker_stop
