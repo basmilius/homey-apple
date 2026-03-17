@@ -2076,6 +2076,27 @@
           }
         },
         {
+          "id": "pair_protocol_check",
+          "template": "loading",
+          "options": {
+            "title": {
+              "en": "Verifying...",
+              "nl": "Verifiëren...",
+              "da": "Verificerer...",
+              "de": "Überprüfen...",
+              "es": "Verificando...",
+              "fr": "Vérification...",
+              "it": "Verifica...",
+              "no": "Verifiserer...",
+              "sv": "Verifierar...",
+              "pl": "Weryfikowanie...",
+              "ru": "Проверка...",
+              "ko": "확인 중...",
+              "ar": "جارٍ التحقق..."
+            }
+          }
+        },
+        {
           "id": "add_my_device"
         }
       ],

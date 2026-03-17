@@ -193,6 +193,7 @@ class AppleTVPairing(BasePairing):
             try:
                 self._pairing_handler = await pyatv.pair(
                     config, service.protocol, loop, storage=storage,
+                    name=f"Apple TV & HomePod {service.protocol.name}",
                 )
                 await self._pairing_handler.begin()
 
@@ -324,12 +325,14 @@ class AppleTVPairing(BasePairing):
             return {}
 
         device_id = self._mac or getattr(device, "id", None)
+        address = str(self._scan_config.address) if self._scan_config is not None else None
 
         return {
             "name": getattr(device, "name", None),
             "data": {"id": device_id},
             "store": {
                 "id": getattr(device, "id", None),
+                "address": address,
                 "airplay_credentials": self._credentials,
             },
         }

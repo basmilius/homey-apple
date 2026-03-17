@@ -82,6 +82,12 @@ class DiscoverableDevice(Device):
         return None
 
     @property
+    def device_address(self) -> str | None:
+        """The last known IP address of this device, from the store."""
+        address = self.get_store().get('address')
+        return address if address and isinstance(address, str) else None
+
+    @property
     def is_legacy_device(self) -> bool:
         """True if this device was paired with a hostname ID instead of a MAC address."""
         return not is_mac_format(self.get_data().get('id', ''))
@@ -473,6 +479,24 @@ class DiscoverableDevice(Device):
 
             # Primary path: scan by MAC address via pyatv identifier.
             if mac is not None:
+                scan_kwargs: dict[str, Any] = {
+                    "timeout": SCAN_TIMEOUT_S,
+                    "identifier": mac,
+                }
+                if storage is not None:
+                    scan_kwargs["storage"] = storage
+
+                # Use the last known IP for a targeted unicast scan.
+                address = self.device_address
+                if address is not None:
+                    scan_kwargs["hosts"] = [address]
+
+                results = await pyatv.scan(loop, **scan_kwargs)
+                if results:
+                    config = results[0]
+
+            # Fallback: scan by MAC without hosts (broad multicast).
+            if config is None and mac is not None:
                 results = await pyatv.scan(
                     loop,
                     timeout=SCAN_TIMEOUT_S,
@@ -506,6 +530,15 @@ class DiscoverableDevice(Device):
                     f'{config.address} (attempt {attempt + 1})'
                 )
                 await self._store_mac_from_config(config)
+
+                # Keep the stored address up to date for future scans.
+                new_address = str(config.address)
+                if new_address != self.device_address:
+                    try:
+                        await self.set_store_value('address', new_address)
+                    except Exception:
+                        pass
+
                 return config
 
             if attempt < MAX_SCAN_RETRIES - 1:
