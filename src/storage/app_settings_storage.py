@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
+from pydantic import ValidationError
+
 if TYPE_CHECKING:
     from homey.homey import Homey
 from pyatv.storage import AbstractStorage, StorageModel
@@ -41,7 +43,7 @@ class AppSettingsStorage(AbstractStorage):
         try:
             parsed = json.loads(raw) if isinstance(raw, str) else raw
             self.storage_model = StorageModel.model_validate(parsed)
-        except Exception as err:
+        except (json.JSONDecodeError, ValidationError) as err:
             self._homey.log('pyatv storage data is corrupt, starting fresh:', err)
             return
 
