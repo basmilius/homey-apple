@@ -149,6 +149,8 @@
         const track = document.getElementById('track');
         const meta = document.getElementById('meta');
         const controls = document.getElementById('controls');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
         const btnShuffle = document.getElementById('btn-shuffle');
         const btnRepeat = document.getElementById('btn-repeat');
         const btnPlay = document.getElementById('btn-play');
@@ -234,8 +236,12 @@
                 artworkImg.src = '';
                 artwork.className = 'player-artwork empty';
                 btnPlay.innerHTML = SVG_PLAY;
+                btnPrev.disabled = false;
+                btnNext.disabled = false;
                 btnShuffle.classList.remove('active');
+                btnShuffle.style.display = '';
                 btnRepeat.classList.remove('active');
+                btnRepeat.style.display = '';
                 btnRepeat.innerHTML = SVG_REPEAT_ALL;
                 isPlaying = false;
                 currentPosition = 0;
@@ -287,6 +293,12 @@
                 btnRepeat.innerHTML = SVG_REPEAT_ALL;
                 btnRepeat.classList.remove('active');
             }
+
+            const features = state.features || {};
+            btnShuffle.style.display = features.shuffle === false ? 'none' : '';
+            btnRepeat.style.display = features.repeat === false ? 'none' : '';
+            btnPrev.disabled = features.previous === false;
+            btnNext.disabled = features.next === false;
 
             if (state.volume != null) {
                 volumeFill.style.setProperty('--volume', `${Math.round(state.volume * 100)}%`);
@@ -350,8 +362,8 @@
             await Homey.api('POST', `/${deviceId}/repeat`);
         });
 
-        document.getElementById('btn-prev').addEventListener('click', async function () {
-            if (!deviceId) {
+        btnPrev.addEventListener('click', async function () {
+            if (!deviceId || btnPrev.disabled) {
                 return;
             }
 
@@ -379,8 +391,8 @@
             await Homey.api('POST', `/${deviceId}/playing`);
         });
 
-        document.getElementById('btn-next').addEventListener('click', async function () {
-            if (!deviceId) {
+        btnNext.addEventListener('click', async function () {
+            if (!deviceId || btnNext.disabled) {
                 return;
             }
 

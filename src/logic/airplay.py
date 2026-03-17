@@ -6,7 +6,7 @@ import time
 from typing import TYPE_CHECKING, Any
 
 import pyatv.interface as pyatv_interface
-from pyatv.const import DeviceState, PowerState, RepeatState, ShuffleState
+from pyatv.const import DeviceState, FeatureName, FeatureState, PowerState, RepeatState, ShuffleState
 from pyatv.exceptions import NotSupportedError
 
 if TYPE_CHECKING:
@@ -43,6 +43,25 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         self._shuffle: bool = False
         self._repeat: str = 'off'
         self._position_update_time: float = 0.0
+
+    # ------------------------------------------------------------------
+    # Feature availability
+    # ------------------------------------------------------------------
+
+    def get_feature_availability(self) -> dict:
+        """Return feature availability flags for the mini player widget."""
+        if self._atv is None:
+            return {'previous': False, 'next': False, 'shuffle': False, 'repeat': False}
+
+        features = self._atv.features
+        check = lambda f: features.in_state(FeatureState.Available, f)
+
+        return {
+            'previous': check(FeatureName.Previous),
+            'next': check(FeatureName.Next),
+            'shuffle': check(FeatureName.SetShuffle),
+            'repeat': check(FeatureName.SetRepeat),
+        }
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -513,6 +532,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
                 'shuffle': self._shuffle,
                 'repeat': self._repeat,
                 'positionTimestamp': int(self._position_update_time * 1000),
+                'features': self.get_feature_availability(),
             })
         except Exception as err:
             self._device.error(self.device_name, 'Failed to emit mini player update:', err)

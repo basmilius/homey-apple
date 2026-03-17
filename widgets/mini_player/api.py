@@ -35,6 +35,8 @@ def _build_state(device: Any) -> dict:
         except Exception:
             return None
 
+    logic = getattr(device, 'airplay_logic', None)
+
     return {
         'deviceId': device.get_id(),
         'deviceName': device.get_name(),
@@ -47,9 +49,12 @@ def _build_state(device: Any) -> dict:
         'volume': cap('volume_set'),
         'artworkUrl': cap('artwork_url'),
         'onoff': cap('onoff'),
-        'shuffle': getattr(getattr(device, 'airplay_logic', None), '_shuffle', False),
-        'repeat': getattr(getattr(device, 'airplay_logic', None), '_repeat', 'off'),
-        'positionTimestamp': int(getattr(getattr(device, 'airplay_logic', None), '_position_update_time', 0) * 1000),
+        'shuffle': getattr(logic, '_shuffle', False),
+        'repeat': getattr(logic, '_repeat', 'off'),
+        'positionTimestamp': int(getattr(logic, '_position_update_time', 0) * 1000),
+        'features': logic.get_feature_availability() if logic is not None else {
+            'previous': False, 'next': False, 'shuffle': False, 'repeat': False,
+        },
     }
 
 

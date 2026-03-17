@@ -148,6 +148,12 @@ body {
     opacity: 0.4;
 }
 
+.control-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
+
 .control-btn svg {
     height: 1em;
     width: 1em;
