@@ -7,6 +7,12 @@ from pyatv.const import RepeatState, ShuffleState
 
 DRIVER_IDS = ('apple-tv', 'homepod', 'homepod-mini')
 
+_REPEAT_CYCLE: dict[str, RepeatState] = {
+    'off': RepeatState.All,
+    'all': RepeatState.Track,
+    'one': RepeatState.Off,
+}
+
 
 def _find_device(homey: Any, device_id: str) -> Any | None:
     """Find a device by ID across all Apple TV and HomePod drivers."""
@@ -156,8 +162,7 @@ async def set_repeat(homey: Any, query: dict | None = None, **kwargs: Any) -> bo
     logic = getattr(device, 'airplay_logic', None)
     current_repeat = getattr(logic, '_repeat', 'off')
 
-    _CYCLE = {'off': RepeatState.All, 'all': RepeatState.Track, 'one': RepeatState.Off}
-    new_state = _CYCLE.get(current_repeat, RepeatState.Off)
+    new_state = _REPEAT_CYCLE.get(current_repeat, RepeatState.Off)
 
     try:
         await atv.remote_control.set_repeat(new_state)
