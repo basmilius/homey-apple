@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import TYPE_CHECKING, Any
 
 from pyatv.const import InputAction, RepeatState, ShuffleState
 
+from ..base.discoverable_device import _guarded_task
+
 if TYPE_CHECKING:
     from ..app import AppleApp
     from .device import AppleTVDevice
+
+_LOGGER = logging.getLogger(__name__)
 
 # Maps flow command names to remote_control method names.
 _REPEAT_MAP: dict[str, RepeatState] = {
@@ -134,7 +139,14 @@ class AppleTVFlow:
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-            await atv.stream.play_url(url)
+
+            async def _play_stream() -> None:
+                try:
+                    await atv.stream.play_url(url)
+                except Exception as err:
+                    _LOGGER.error(f'play_url failed on {device.get_name()}: {err}')
+
+            _guarded_task(_play_stream(), device)
 
         card.register_run_listener(run)
 
