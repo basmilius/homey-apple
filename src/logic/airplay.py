@@ -462,6 +462,8 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             self._artwork_hash = artwork_hash
         except Exception as err:
             self._device.error(self.device_name, 'Failed to fetch artwork:', err)
+            # Store the hash to prevent re-fetching the same failed artwork on every update.
+            self._artwork_hash = artwork_hash
 
     async def _update_artwork_data(self, data: bytes | None) -> None:
         """Push raw artwork bytes (or None) into the Homey Image."""
