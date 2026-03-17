@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from pyatv.const import Protocol
 from pyatv.exceptions import NotSupportedError
+from pyatv.protocols.mrp import messages
 
 from ..base.discoverable_device import DiscoverableDevice
 
@@ -48,10 +50,6 @@ class AppleTVDevice(DiscoverableDevice):
     @property
     def _device_type_name(self) -> str:
         return 'Apple TV'
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self._last_volume_before_mute: float | None = None
 
     # ------------------------------------------------------------------
     # Hooks
@@ -110,34 +108,19 @@ class AppleTVDevice(DiscoverableDevice):
         await self.toggle_mute()
 
     async def toggle_mute(self) -> None:
-        """Toggle mute on the Apple TV."""
-        audio = getattr(self._require_atv(), 'audio', None)
-        if audio is None:
-            raise RuntimeError('Apple TV audio interface not available.')
+        """Toggle mute on the Apple TV via MRP HID event."""
+        atv = self._require_atv()
 
-        is_muting = False
-        try:
-            current = float(getattr(audio, 'volume', None) or 0.0)
-            is_muting = current > 0.0
+        mrp_interface = atv.remote_control._interfaces.get(Protocol.MRP, None)  # pyright: ignore[reportAttributeAccessIssue]
+        if mrp_interface is None:
+            raise RuntimeError('MRP interface not available.')
 
-            if is_muting:
-                self._last_volume_before_mute = current
-                await audio.set_volume(0.0)
-            else:
-                restore = self._last_volume_before_mute
-                if restore is None or restore <= 0.0:
-                    restore = 20.0
-                await audio.set_volume(float(restore))
-        except Exception as err:
-            self.error('Mute toggle via set_volume failed, falling back to volume steps:', err)
-            try:
-                for _ in range(10):
-                    if is_muting:
-                        await audio.volume_down()
-                    else:
-                        await audio.volume_up()
-            except Exception as fallback_err:
-                self.error('Mute fallback failed:', fallback_err)
+        mrp_protocol = getattr(mrp_interface, 'protocol', None)
+        if mrp_protocol is None:
+            raise RuntimeError('MRP protocol not available.')
+
+        await mrp_protocol.send(messages.send_hid_event(12, 0xE2, True))  # pyright: ignore[reportAttributeAccessIssue]
+        await mrp_protocol.send(messages.send_hid_event(12, 0xE2, False))  # pyright: ignore[reportAttributeAccessIssue]
 
     # -- Remote --
 

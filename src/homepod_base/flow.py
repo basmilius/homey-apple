@@ -44,7 +44,7 @@ class HomePodFlow:
     def _register_play_url(self) -> None:
         card = self._app.homey.flow.get_action_card('homepod_play_url')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: HomePodBaseDevice = args['device']
             url: str = args['url']
             await device.play_url(url)
@@ -54,7 +54,7 @@ class HomePodFlow:
     def _register_play_url_at_volume(self) -> None:
         card = self._app.homey.flow.get_action_card('homepod_play_url_at_volume')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: HomePodBaseDevice = args['device']
             url: str = args['url']
             volume: float = args['volume']
@@ -65,7 +65,7 @@ class HomePodFlow:
     def _register_set_position(self) -> None:
         card = self._app.homey.flow.get_action_card('homepod_set_position')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: HomePodBaseDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -77,7 +77,7 @@ class HomePodFlow:
     def _register_skip_forward(self) -> None:
         card = self._app.homey.flow.get_action_card('homepod_skip_forward')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: HomePodBaseDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -89,7 +89,7 @@ class HomePodFlow:
     def _register_skip_backward(self) -> None:
         card = self._app.homey.flow.get_action_card('homepod_skip_backward')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: HomePodBaseDevice = args['device']
             atv = device.atv
             if atv is None:

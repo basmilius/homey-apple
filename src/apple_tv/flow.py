@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING, Any
 
 from pyatv.const import InputAction, RepeatState, ShuffleState
 
-from ..base.discoverable_device import _guarded_task
 
 if TYPE_CHECKING:
     from ..app import AppleApp
     from .device import AppleTVDevice
-
-_LOGGER = logging.getLogger(__name__)
 
 # Maps flow command names to remote_control method names.
 _REPEAT_MAP: dict[str, RepeatState] = {
@@ -97,7 +93,7 @@ class AppleTVFlow:
     def _register_launch_app(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_launch_app')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             app_arg: Any = args.get('app')
             atv = device.atv
@@ -107,8 +103,8 @@ class AppleTVFlow:
                 raise ValueError('No app selected')
             await atv.apps.launch_app(app_arg['id'])
 
-        async def autocomplete(query: str, args: dict[str, Any]) -> list[dict]:
-            device: AppleTVDevice = args['device']
+        async def autocomplete(query: str, **kwargs: Any) -> list[dict]:
+            device: AppleTVDevice = kwargs['device']
             atv = device.atv
             if atv is None:
                 return []
@@ -133,27 +129,20 @@ class AppleTVFlow:
     def _register_launch_url(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_launch_url')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             url: str = args['url']
             atv = device.atv
             if atv is None:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
-
-            async def _play_stream() -> None:
-                try:
-                    await atv.stream.play_url(url)
-                except Exception as err:
-                    _LOGGER.error(f'play_url failed on {device.get_name()}: {err}')
-
-            _guarded_task(_play_stream(), device)
+            await atv.apps.launch_app(url)
 
         card.register_run_listener(run)
 
     def _register_remote(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_remote')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             command: str = args['command']
             atv = device.atv
@@ -206,7 +195,7 @@ class AppleTVFlow:
     def _register_set_position(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_set_position')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -218,7 +207,7 @@ class AppleTVFlow:
     def _register_skip_forward(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_skip_forward')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -230,7 +219,7 @@ class AppleTVFlow:
     def _register_skip_backward(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_skip_backward')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -242,7 +231,7 @@ class AppleTVFlow:
     def _register_set_repeat(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_set_repeat')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -257,7 +246,7 @@ class AppleTVFlow:
     def _register_set_shuffle(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_set_shuffle')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             atv = device.atv
             if atv is None:
@@ -271,7 +260,7 @@ class AppleTVFlow:
     def _register_switch_account(self) -> None:
         card = self._app.homey.flow.get_action_card('appletv_switch_account')
 
-        async def run(args: dict[str, Any]) -> None:
+        async def run(args: dict[str, Any], **kwargs: Any) -> None:
             device: AppleTVDevice = args['device']
             account: Any = args.get('account')
             atv = device.atv
@@ -279,10 +268,11 @@ class AppleTVFlow:
                 raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
             if not isinstance(account, dict) or 'id' not in account:
                 raise ValueError('No account selected')
+
             await atv.user_accounts.switch_account(account['id'])
 
-        async def autocomplete(query: str, args: dict[str, Any]) -> list[dict]:
-            device: AppleTVDevice = args['device']
+        async def autocomplete(query: str, **kwargs: Any) -> list[dict]:
+            device: AppleTVDevice = kwargs['device']
             atv = device.atv
             if atv is None:
                 return []
@@ -291,7 +281,7 @@ class AppleTVFlow:
             except Exception:
                 return []
             results = [
-                {'id': a.account_id, 'name': a.name}
+                {'id': a.identifier, 'name': a.name}
                 for a in accounts
                 if not query.strip() or query.lower() in (a.name or '').lower()
             ]
