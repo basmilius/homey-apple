@@ -252,23 +252,28 @@ class DiscoverableDevice(Device):
             return
 
         # Check if storage already has settings for this device.
+        has_airplay = False
+        has_companion = False
         try:
             settings = await storage.get_settings(config)
-            # If AirPlay credentials are already set in storage, skip migration.
-            if settings.protocols.airplay.credentials:
-                return
+            has_airplay = bool(settings.protocols.airplay.credentials)
+            has_companion = bool(settings.protocols.companion.credentials)
         except Exception:
             pass
+
+        # Skip only if everything we could migrate is already present.
+        if (not airplay_cred or has_airplay) and (not companion_cred or has_companion):
+            return
 
         self.log('Migrating legacy credentials to pyatv storage...')
 
         # Apply credentials to config services so update_settings can pick them up.
-        if airplay_cred:
+        if airplay_cred and not has_airplay:
             airplay_service = config.get_service(Protocol.AirPlay)
             if airplay_service is not None:
                 airplay_service.credentials = airplay_cred
 
-        if companion_cred:
+        if companion_cred and not has_companion:
             companion_service = config.get_service(Protocol.Companion)
             if companion_service is not None:
                 companion_service.credentials = companion_cred
