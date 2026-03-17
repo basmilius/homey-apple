@@ -10,6 +10,15 @@
 
 <body class="homey-widget">
 
+<div
+    class="player-background"
+    id="background">
+    <img
+        id="background-img"
+        src=""
+        alt="">
+</div>
+
 <div class="player">
     <div class="player-top">
         <div
@@ -144,6 +153,8 @@
         const deviceIds = Homey.getDeviceIds();
         const deviceId = deviceIds.length > 0 ? deviceIds[0] : null;
 
+        const background = document.getElementById('background');
+        const backgroundImg = document.getElementById('background-img');
         const artwork = document.getElementById('artwork');
         const artworkImg = document.getElementById('artwork-img');
         const track = document.getElementById('track');
@@ -167,6 +178,11 @@
         let currentDuration = 0;
         let progressInterval = null;
         let ready = false;
+        let currentArtworkUrl = '';
+
+        if (!settings.show_blurred_artwork) {
+            background.style.display = 'none';
+        }
 
         if (!settings.show_controls) {
             controls.style.display = 'none';
@@ -226,6 +242,22 @@
             }
         }
 
+        function updateBackground(url) {
+            if (url === currentArtworkUrl) {
+                return;
+            }
+
+            currentArtworkUrl = url;
+
+            if (url) {
+                backgroundImg.src = url;
+                background.classList.add('has-image');
+            } else {
+                backgroundImg.src = '';
+                background.classList.remove('has-image');
+            }
+        }
+
         function render(state) {
             clearInterval(progressInterval);
             progressInterval = null;
@@ -234,6 +266,7 @@
                 track.textContent = '—';
                 meta.textContent = deviceId ? '—' : Homey.__('widget.mini_player.no_device');
                 artworkImg.src = '';
+                updateBackground('');
                 artwork.className = 'player-artwork empty';
                 btnPlay.innerHTML = SVG_PLAY;
                 btnPrev.disabled = false;
@@ -266,9 +299,11 @@
             if (state.artworkUrl) {
                 artworkImg.src = state.artworkUrl;
                 artwork.className = 'player-artwork';
+                updateBackground(state.artworkUrl);
             } else {
                 artworkImg.src = '';
                 artwork.className = 'player-artwork empty';
+                updateBackground('');
             }
 
             isPlaying = Boolean(state.playing);

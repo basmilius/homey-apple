@@ -22,6 +22,26 @@
     },
     "settings": [
         {
+            "id": "show_blurred_artwork",
+            "type": "checkbox",
+            "title": {
+                "en": "Show blurred artwork background",
+                "nl": "Wazige artwork achtergrond tonen",
+                "da": "Vis sløret kunstværk baggrund",
+                "de": "Unscharfen Artwork-Hintergrund anzeigen",
+                "es": "Mostrar fondo de arte difuminado",
+                "fr": "Afficher l'arrière-plan flou de l'artwork",
+                "it": "Mostra sfondo artwork sfocato",
+                "no": "Vis uskarp kunstverkbakgrunn",
+                "sv": "Visa suddig bakgrundsbild",
+                "pl": "Pokaż rozmyte tło okładki",
+                "ru": "Показать размытый фон обложки",
+                "ko": "흐린 아트워크 배경 표시",
+                "ar": "إظهار خلفية ضبابية للغلاف"
+            },
+            "value": false
+        },
+        {
             "id": "show_controls",
             "type": "checkbox",
             "title": {

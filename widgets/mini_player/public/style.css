@@ -9,11 +9,37 @@ body {
 }
 
 .player {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-flow: column;
     gap: var(--homey-su-3);
     -webkit-user-select: none;
     user-select: none;
+}
+
+.player-background {
+    position: fixed;
+    inset: -30px;
+    filter: blur(15px) saturate(180%);
+    opacity: 0;
+    transition: opacity 300ms ease;
+    z-index: 0;
+}
+
+.player-background.has-image {
+    opacity: 0.3;
+}
+
+.player-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.homey-dark-mode .player-background.has-image {
+    opacity: 0.2;
 }
 
 .player-top {
