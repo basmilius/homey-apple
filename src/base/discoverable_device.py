@@ -584,10 +584,12 @@ class DiscoverableDevice(Device):
 
     async def _on_restart(self, _: Any, **__: Any) -> None:
         if self._reconnect_lock.locked():
+            self.log('Restart requested but reconnect already in progress, skipping.')
             return
 
         async with self._reconnect_lock:
             try:
+                await self.set_unavailable('Restarting...')
                 await self._disconnect()
                 if self._airplay_logic is not None:
                     await self._airplay_logic.clear_now_playing()
