@@ -120,7 +120,7 @@ class AppleTVFlow:
                 for a in app_list
                 if not query.strip() or query.lower() in (a.name or '').lower()
             ]
-            return sorted(results, key=lambda x: x['name'])
+            return sorted(results, key=lambda x: x['name'] or '')
 
         card.register_run_listener(run)
         card.get_argument('app').register_autocomplete_listener(autocomplete)
@@ -283,7 +283,7 @@ class AppleTVFlow:
                 for a in accounts
                 if not query.strip() or query.lower() in (a.name or '').lower()
             ]
-            return sorted(results, key=lambda x: x['name'])
+            return sorted(results, key=lambda x: x['name'] or '')
 
         card.register_run_listener(run)
         card.get_argument('account').register_autocomplete_listener(autocomplete)
