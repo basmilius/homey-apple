@@ -133,7 +133,10 @@ class AppleTVPairing(BasePairing):
             if storage is not None:
                 await storage.save()
 
-        # Clear stale storage config for this device before pairing.
+        # Clear stale storage config and credentials for this device
+        # before pairing. The scan may have populated service credentials
+        # from storage; these must be cleared so _pair_all_protocols()
+        # does not skip protocols that need re-pairing.
         if storage is not None:
             try:
                 settings = await storage.get_settings(config)
@@ -141,6 +144,9 @@ class AppleTVPairing(BasePairing):
                 await storage.save()
             except Exception:
                 pass
+
+        for service in config.services:
+            service.credentials = None
 
         self._scan_config = config
 
