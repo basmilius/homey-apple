@@ -39,6 +39,7 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
         self._update_task: asyncio.Task | None = None
         self._pending_playing: pyatv_interface.Playing | None = None
         self._atv: pyatv_interface.AppleTV | None = None
+        self._background_tasks: set[asyncio.Task] = set()
         self._shuffle: bool = False
         self._repeat: str = 'off'
         self._position_update_time: float = 0.0
@@ -109,12 +110,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             self._device.log('Audio listener not available:', err)
 
     def _create_guarded_task(self, coro: Any) -> asyncio.Task:
-        """Create a task that logs exceptions instead of leaving them unhandled."""
+        """Create a tracked task that logs exceptions instead of leaving them unhandled."""
         task = asyncio.create_task(coro)
+        self._background_tasks.add(task)
         task.add_done_callback(self._on_task_done)
         return task
 
     def _on_task_done(self, task: asyncio.Task) -> None:
+        self._background_tasks.discard(task)
         if task.cancelled():
             return
         exc = task.exception()
@@ -126,13 +129,13 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
     def stop(self) -> None:
         """Stop push updates (called on disconnect / uninit)."""
-        if self._debounce_task is not None and not self._debounce_task.done():
-            self._debounce_task.cancel()
-            self._debounce_task = None
+        for task in self._background_tasks:
+            if not task.done():
+                task.cancel()
+        self._background_tasks.clear()
 
-        if self._update_task is not None and not self._update_task.done():
-            self._update_task.cancel()
-            self._update_task = None
+        self._debounce_task = None
+        self._update_task = None
 
         if self._atv is not None:
             try:
