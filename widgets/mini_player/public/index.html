@@ -141,9 +141,8 @@
         const SVG_REPEAT_ONE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M534.6 137.4a32.05 32.05 0 0 1 0 45.3l-64 64a31.9 31.9 0 0 1-34.9 6.9c-12-5-19.7-16.7-19.7-29.6v-32H256c-70.7 0-128 57.3-128 128 0 17.7-14.3 32-32 32s-32-14.3-32-32c0-106 86-192 192-192h160V96c0-12.9 7.8-24.6 19.8-29.6s25.7-2.2 34.9 6.9l64 64zM105.4 502.6a32.05 32.05 0 0 1 0-45.3l64-64c9.2-9.2 22.9-11.9 34.9-6.9S224 403.1 224 416v32h160c70.7 0 128-57.3 128-128 0-17.7 14.3-32 32-32s32 14.3 32 32c0 106-86 192-192 192H224v32c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-64-64zM352 280v80c0 13.3-10.7 24-24 24s-24-10.7-24-24v-48c-10 0-19.4-6.4-22.8-16.4a24 24 0 0 1 15.2-30.4l24-8c7.3-2.4 15.4-1.2 21.6 3.3s10 11.8 10 19.5"/></svg>`;
 
         const settings = Homey.getSettings();
-        const deviceId = settings.device && settings.device.data && settings.device.data.id
-            ? settings.device.data.id
-            : null;
+        const deviceIds = Homey.getDeviceIds();
+        const deviceId = deviceIds.length > 0 ? deviceIds[0] : null;
 
         const artwork = document.getElementById('artwork');
         const artworkImg = document.getElementById('artwork-img');
@@ -321,7 +320,7 @@
                 }
             });
 
-            const state = await Homey.api('GET', `/?deviceId=${encodeURIComponent(deviceId)}`);
+            const state = await Homey.api('GET', `/${deviceId}`);
             render(state);
         }
 
@@ -335,7 +334,7 @@
             } catch (_) {
             }
 
-            await Homey.api('POST', `/shuffle?deviceId=${encodeURIComponent(deviceId)}`);
+            await Homey.api('POST', `/${deviceId}/shuffle`);
         });
 
         btnRepeat.addEventListener('click', async function () {
@@ -348,7 +347,7 @@
             } catch (_) {
             }
 
-            await Homey.api('POST', `/repeat?deviceId=${encodeURIComponent(deviceId)}`);
+            await Homey.api('POST', `/${deviceId}/repeat`);
         });
 
         document.getElementById('btn-prev').addEventListener('click', async function () {
@@ -361,7 +360,7 @@
             } catch (_) {
             }
 
-            await Homey.api('POST', `/previous?deviceId=${encodeURIComponent(deviceId)}`);
+            await Homey.api('POST', `/${deviceId}/previous`);
         });
 
         btnPlay.addEventListener('click', async function () {
@@ -377,7 +376,7 @@
             isPlaying = !isPlaying;
             btnPlay.innerHTML = isPlaying ? SVG_PAUSE : SVG_PLAY;
 
-            await Homey.api('POST', `/playing?deviceId=${encodeURIComponent(deviceId)}`);
+            await Homey.api('POST', `/${deviceId}/playing`);
         });
 
         document.getElementById('btn-next').addEventListener('click', async function () {
@@ -390,7 +389,7 @@
             } catch (_) {
             }
 
-            await Homey.api('POST', `/next?deviceId=${encodeURIComponent(deviceId)}`);
+            await Homey.api('POST', `/${deviceId}/next`);
         });
 
         if (settings.show_volume !== false) {
@@ -427,7 +426,7 @@
                 if (deviceId) {
                     await Homey.api(
                         'POST',
-                        `/volume?deviceId=${encodeURIComponent(deviceId)}`,
+                        `/${deviceId}/volume`,
                         {volume: currentVolume}
                     );
                 }

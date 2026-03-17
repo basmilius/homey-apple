@@ -34,9 +34,9 @@ def _build_state(device: Any) -> dict:
     }
 
 
-async def _send(homey: Any, query: dict | None, capability_id: str, value: Any = True) -> bool:
-    """Find the Apple TV device from query and send a capability value."""
-    device_id = (query or {}).get('deviceId')
+async def _send(homey: Any, params: dict | None, capability_id: str, value: Any = True) -> bool:
+    """Find the Apple TV device from params and send a capability value."""
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -51,9 +51,9 @@ async def _send(homey: Any, query: dict | None, capability_id: str, value: Any =
         return False
 
 
-async def get(homey: Any, query: dict | None = None, **kwargs: Any) -> dict | None:
+async def get(homey: Any, params: dict | None = None, **kwargs: Any) -> dict | None:
     """Return the current now playing state for the selected Apple TV."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return None
 
@@ -64,69 +64,69 @@ async def get(homey: Any, query: dict | None = None, **kwargs: Any) -> dict | No
     return _build_state(device)
 
 
-async def remote_up(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_up(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send D-pad Up."""
-    return await _send(homey, query, 'remote_up')
+    return await _send(homey, params, 'remote_up')
 
 
-async def remote_down(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_down(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send D-pad Down."""
-    return await _send(homey, query, 'remote_down')
+    return await _send(homey, params, 'remote_down')
 
 
-async def remote_left(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_left(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send D-pad Left."""
-    return await _send(homey, query, 'remote_left')
+    return await _send(homey, params, 'remote_left')
 
 
-async def remote_right(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_right(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send D-pad Right."""
-    return await _send(homey, query, 'remote_right')
+    return await _send(homey, params, 'remote_right')
 
 
-async def remote_select(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_select(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send D-pad Select/OK."""
-    return await _send(homey, query, 'remote_select')
+    return await _send(homey, params, 'remote_select')
 
 
-async def remote_home(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_home(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send Home button."""
-    return await _send(homey, query, 'remote_home')
+    return await _send(homey, params, 'remote_home')
 
 
-async def remote_back(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_back(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send Back/Menu button."""
-    return await _send(homey, query, 'remote_back')
+    return await _send(homey, params, 'remote_back')
 
 
-async def remote_playpause(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_playpause(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Send Play/Pause button."""
-    return await _send(homey, query, 'remote_playpause')
+    return await _send(homey, params, 'remote_playpause')
 
 
-async def remote_previous(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_previous(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Skip to previous track."""
-    return await _send(homey, query, 'speaker_prev')
+    return await _send(homey, params, 'speaker_prev')
 
 
-async def remote_next(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def remote_next(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Skip to next track."""
-    return await _send(homey, query, 'speaker_next')
+    return await _send(homey, params, 'speaker_next')
 
 
-async def volume_up(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def volume_up(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Increase volume."""
-    return await _send(homey, query, 'volume_up')
+    return await _send(homey, params, 'volume_up')
 
 
-async def volume_down(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def volume_down(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Decrease volume."""
-    return await _send(homey, query, 'volume_down')
+    return await _send(homey, params, 'volume_down')
 
 
-async def mute(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def mute(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle mute."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -142,9 +142,9 @@ async def mute(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
         return False
 
 
-async def power(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def power(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle power on the selected Apple TV."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 

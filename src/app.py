@@ -52,79 +52,7 @@ class AppleApp(App):
         self._homepod_flow = HomePodFlow(self)
         self._homepod_flow.register()
 
-        self._register_widget_autocomplete()
-
         self.log('Apple TV & HomePod has been initialized')
-
-    def _register_widget_autocomplete(self) -> None:
-        """Register autocomplete listeners for widget settings."""
-        try:
-            widget = self.homey.dashboards.get_widget('mini_player')
-            widget.register_setting_autocomplete_listener('device', self._autocomplete_mini_player_device)
-        except Exception as err:
-            self.error('Failed to register mini_player widget autocomplete:', err)
-
-        try:
-            widget = self.homey.dashboards.get_widget('apple_tv_remote')
-            widget.register_setting_autocomplete_listener('device', self._autocomplete_apple_tv_remote_device)
-        except Exception as err:
-            self.error('Failed to register apple_tv_remote widget autocomplete:', err)
-
-    async def _autocomplete_mini_player_device(self, query: str, settings: dict) -> list:
-        """Return all Apple TV and HomePod devices for the device autocomplete setting."""
-        _driver_labels = {
-            'apple-tv': 'Apple TV',
-            'homepod': 'HomePod',
-            'homepod-mini': 'HomePod Mini',
-        }
-        results = []
-        for driver_id, label in _driver_labels.items():
-            try:
-                driver = self.homey.drivers.get_driver(driver_id)
-                devices = driver.get_devices()
-            except Exception as err:
-                self.error(f'Failed to enumerate driver "{driver_id}":', err)
-                continue
-
-            for device in devices:
-                try:
-                    name = device.get_name()
-                    if not query or query.lower() in name.lower():
-                        results.append({
-                            'name': name,
-                            'description': label,
-                            'icon': f'/drivers/{driver_id}/assets/icon.svg',
-                            'data': {'id': device.get_id(), 'driverId': driver_id},
-                        })
-                except Exception as err:
-                    self.error(f'Failed to enumerate device in driver "{driver_id}":', err)
-                    continue
-        return results
-
-    async def _autocomplete_apple_tv_remote_device(self, query: str, settings: dict) -> list:
-        """Return all Apple TV devices for the apple_tv_remote widget device autocomplete setting."""
-        results = []
-        try:
-            driver = self.homey.drivers.get_driver('apple-tv')
-            devices = driver.get_devices()
-        except Exception as err:
-            self.error('Failed to enumerate driver "apple-tv":', err)
-            return results
-
-        for device in devices:
-            try:
-                name = device.get_name()
-                if not query or query.lower() in name.lower():
-                    results.append({
-                        'name': name,
-                        'description': 'Apple TV',
-                        'icon': '/drivers/apple-tv/assets/icon.svg',
-                        'data': {'id': device.get_id(), 'driverId': 'apple-tv'},
-                    })
-            except Exception as err:
-                self.error('Failed to enumerate device in driver "apple-tv":', err)
-                continue
-        return results
 
     async def on_uninit(self) -> None:
         AppleApp._instance = None

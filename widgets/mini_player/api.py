@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from pyatv.const import RepeatState, ShuffleState
@@ -54,9 +53,9 @@ def _build_state(device: Any) -> dict:
     }
 
 
-async def get(homey: Any, query: dict | None = None, **kwargs: Any) -> dict | None:
+async def get(homey: Any, params: dict | None = None, **kwargs: Any) -> dict | None:
     """Return the current playback state for the selected device."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return None
 
@@ -67,9 +66,9 @@ async def get(homey: Any, query: dict | None = None, **kwargs: Any) -> dict | No
     return _build_state(device)
 
 
-async def set_playing(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def set_playing(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle play/pause on the selected device."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -85,9 +84,9 @@ async def set_playing(homey: Any, query: dict | None = None, **kwargs: Any) -> b
         return False
 
 
-async def set_next(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def set_next(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Skip to the next track on the selected device."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -102,9 +101,9 @@ async def set_next(homey: Any, query: dict | None = None, **kwargs: Any) -> bool
         return False
 
 
-async def set_previous(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def set_previous(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Skip to the previous track on the selected device."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -119,9 +118,9 @@ async def set_previous(homey: Any, query: dict | None = None, **kwargs: Any) -> 
         return False
 
 
-async def set_shuffle(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def set_shuffle(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle shuffle on the selected device (Apple TV only)."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -145,9 +144,9 @@ async def set_shuffle(homey: Any, query: dict | None = None, **kwargs: Any) -> b
     return True
 
 
-async def set_repeat(homey: Any, query: dict | None = None, **kwargs: Any) -> bool:
+async def set_repeat(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Cycle repeat mode on the selected device (Apple TV only): off → all → one → off."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     if not device_id:
         return False
 
@@ -172,9 +171,9 @@ async def set_repeat(homey: Any, query: dict | None = None, **kwargs: Any) -> bo
     return True
 
 
-async def set_volume(homey: Any, body: dict | None = None, query: dict | None = None, **kwargs: Any) -> bool:
+async def set_volume(homey: Any, body: dict | None = None, params: dict | None = None, **kwargs: Any) -> bool:
     """Set the volume on the selected device (0.0–1.0)."""
-    device_id = (query or {}).get('deviceId')
+    device_id = (params or {}).get('deviceId')
     volume = (body or {}).get('volume')
     if not device_id or volume is None:
         return False

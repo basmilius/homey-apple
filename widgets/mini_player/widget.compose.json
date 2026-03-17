@@ -15,26 +15,12 @@
         "ar": "مشغل مصغر"
     },
     "height": 160,
+    "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {}
+    },
     "settings": [
-        {
-            "id": "device",
-            "type": "autocomplete",
-            "title": {
-                "en": "Device",
-                "nl": "Apparaat",
-                "da": "Enhed",
-                "de": "Gerät",
-                "es": "Dispositivo",
-                "fr": "Appareil",
-                "it": "Dispositivo",
-                "no": "Enhet",
-                "sv": "Enhet",
-                "pl": "Urządzenie",
-                "ru": "Устройство",
-                "ko": "기기",
-                "ar": "الجهاز"
-            }
-        },
         {
             "id": "show_controls",
             "type": "checkbox",
@@ -99,31 +85,31 @@
     "api": {
         "get": {
             "method": "GET",
-            "path": "/"
+            "path": "/:deviceId"
         },
         "set_playing": {
             "method": "POST",
-            "path": "/playing"
+            "path": "/:deviceId/playing"
         },
         "set_next": {
             "method": "POST",
-            "path": "/next"
+            "path": "/:deviceId/next"
         },
         "set_previous": {
             "method": "POST",
-            "path": "/previous"
+            "path": "/:deviceId/previous"
         },
         "set_volume": {
             "method": "POST",
-            "path": "/volume"
+            "path": "/:deviceId/volume"
         },
         "set_shuffle": {
             "method": "POST",
-            "path": "/shuffle"
+            "path": "/:deviceId/shuffle"
         },
         "set_repeat": {
             "method": "POST",
-            "path": "/repeat"
+            "path": "/:deviceId/repeat"
         }
     }
 }

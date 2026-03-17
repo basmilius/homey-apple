@@ -217,9 +217,8 @@
         const REALTIME_EVENT = 'apple-mini-player-update';
 
         const settings = Homey.getSettings();
-        const deviceId = settings.device && settings.device.data && settings.device.data.id
-            ? settings.device.data.id
-            : null;
+        const deviceIds = Homey.getDeviceIds();
+        const deviceId = deviceIds.length > 0 ? deviceIds[0] : null;
 
         const nowPlayingEl = document.getElementById('now-playing');
         const artwork = document.getElementById('artwork');
@@ -313,7 +312,7 @@
                 }
             });
 
-            const state = await apiSafe('GET', `/?deviceId=${encodeURIComponent(deviceId)}`);
+            const state = await apiSafe('GET', `/${deviceId}`);
             render(state);
         }
 
@@ -328,7 +327,7 @@
                 } catch (_) {
                 }
 
-                await apiSafe('POST', `/${endpoint}?deviceId=${encodeURIComponent(deviceId)}`);
+                await apiSafe('POST', `/${deviceId}/${endpoint}`);
             };
         }
 
@@ -358,7 +357,7 @@
 
             isPlaying = !isPlaying;
 
-            await apiSafe('POST', `/playpause?deviceId=${encodeURIComponent(deviceId)}`);
+            await apiSafe('POST', `/${deviceId}/playpause`);
         });
 
         init();

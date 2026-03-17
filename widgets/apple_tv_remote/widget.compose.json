@@ -15,26 +15,14 @@
         "ar": "جهاز التحكم عن بُعد Apple TV"
     },
     "height": 160,
+    "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {
+            "class": "settopbox"
+        }
+    },
     "settings": [
-        {
-            "id": "device",
-            "type": "autocomplete",
-            "title": {
-                "en": "Apple TV",
-                "nl": "Apple TV",
-                "da": "Apple TV",
-                "de": "Apple TV",
-                "es": "Apple TV",
-                "fr": "Apple TV",
-                "it": "Apple TV",
-                "no": "Apple TV",
-                "sv": "Apple TV",
-                "pl": "Apple TV",
-                "ru": "Apple TV",
-                "ko": "Apple TV",
-                "ar": "Apple TV"
-            }
-        },
         {
             "id": "show_now_playing",
             "type": "checkbox",
@@ -79,63 +67,63 @@
     "api": {
         "get": {
             "method": "GET",
-            "path": "/"
+            "path": "/:deviceId"
         },
         "remote_up": {
             "method": "POST",
-            "path": "/up"
+            "path": "/:deviceId/up"
         },
         "remote_down": {
             "method": "POST",
-            "path": "/down"
+            "path": "/:deviceId/down"
         },
         "remote_left": {
             "method": "POST",
-            "path": "/left"
+            "path": "/:deviceId/left"
         },
         "remote_right": {
             "method": "POST",
-            "path": "/right"
+            "path": "/:deviceId/right"
         },
         "remote_select": {
             "method": "POST",
-            "path": "/select"
+            "path": "/:deviceId/select"
         },
         "remote_home": {
             "method": "POST",
-            "path": "/home"
+            "path": "/:deviceId/home"
         },
         "remote_back": {
             "method": "POST",
-            "path": "/back"
+            "path": "/:deviceId/back"
         },
         "remote_playpause": {
             "method": "POST",
-            "path": "/playpause"
+            "path": "/:deviceId/playpause"
         },
         "remote_previous": {
             "method": "POST",
-            "path": "/previous"
+            "path": "/:deviceId/previous"
         },
         "remote_next": {
             "method": "POST",
-            "path": "/next"
+            "path": "/:deviceId/next"
         },
         "volume_up": {
             "method": "POST",
-            "path": "/volume_up"
+            "path": "/:deviceId/volume_up"
         },
         "volume_down": {
             "method": "POST",
-            "path": "/volume_down"
+            "path": "/:deviceId/volume_down"
         },
         "mute": {
             "method": "POST",
-            "path": "/mute"
+            "path": "/:deviceId/mute"
         },
         "power": {
             "method": "POST",
-            "path": "/power"
+            "path": "/:deviceId/power"
         }
     }
 }
