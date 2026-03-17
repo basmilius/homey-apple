@@ -182,6 +182,9 @@ class AppleTVFlow:
             elif command == 'channelDown':
                 await rc.channel_down()
             elif command == 'siri':
+                # NOTE: Siri uses internal pyatv API (rc.api / HidCommand.Siri) as
+                # there is no public/stable Siri interface in pyatv as of 0.17.x.
+                # This may break with future pyatv updates.
                 if hasattr(rc, 'api'):
                     from pyatv.protocols.companion.api import HidCommand
                     await rc.api.hid_command(True, HidCommand.Siri)
