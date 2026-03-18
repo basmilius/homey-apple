@@ -322,5 +322,8 @@
   },
   "1.6.15": {
     "en": "Made connections more robust for Apple TV by pairing other protocols as well. Widgets now make use of the proper device picker."
+  },
+  "1.6.16": {
+    "en": "Changes to migration from older app versions."
   }
 }
