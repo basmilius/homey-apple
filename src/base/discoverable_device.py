@@ -107,8 +107,11 @@ class DiscoverableDevice(Device):
     def _device_type_name(self) -> str:
         """Human-readable device type name for log messages."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+
+    async def on_init(self) -> None:
         self._atv: pyatv_interface.AppleTV | None = None
         self._airplay_logic: AirPlayLogic | None = None
         self._connected_once = False
@@ -118,11 +121,6 @@ class DiscoverableDevice(Device):
         self._initial_connect_task: asyncio.Task | None = None
         self._scheduled_reconnect_task: asyncio.Task | None = None
 
-    # ------------------------------------------------------------------
-    # Lifecycle
-    # ------------------------------------------------------------------
-
-    async def on_init(self) -> None:
         await self.set_unavailable('Connecting...')
 
         from ..app import AppleApp
@@ -221,6 +219,10 @@ class DiscoverableDevice(Device):
                     atv.close()
                     raise
             except pyatv_exceptions.ProtocolError as err:
+                cause = err.__cause__
+                if cause is not None:
+                    self.error(f'Connection attempt {attempt + 1}/{MAX_CONNECT_RETRIES} cause: {type(cause).__name__}: {cause}')
+
                 if attempt < MAX_CONNECT_RETRIES - 1:
                     self.log(
                         f'Connection attempt {attempt + 1}/{MAX_CONNECT_RETRIES} failed '

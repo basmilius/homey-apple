@@ -17,13 +17,6 @@ class AppleApp(App):
     # without a direct `self.app` property in the Homey Python SDK.
     _instance: AppleApp | None = None
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self._apple_tv_flow: AppleTVFlow | None = None
-        self._homepod_flow: HomePodFlow | None = None
-        self._storage: AppSettingsStorage | None = None
-        self._default_exception_handler: Any = None
-
     @property
     def apple_tv_flow(self) -> AppleTVFlow:
         if self._apple_tv_flow is None:
@@ -44,6 +37,10 @@ class AppleApp(App):
 
     async def on_init(self) -> None:
         AppleApp._instance = self
+
+        self._apple_tv_flow: AppleTVFlow | None = None
+        self._homepod_flow: HomePodFlow | None = None
+        self._storage: AppSettingsStorage | None = None
 
         loop = asyncio.get_running_loop()
         self._default_exception_handler = loop.get_exception_handler()
