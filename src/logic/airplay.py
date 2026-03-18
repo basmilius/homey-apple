@@ -30,6 +30,21 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
     def device_name(self) -> str:
         return self._device.get_name()
 
+    @property
+    def shuffle(self) -> bool:
+        """Whether shuffle is currently enabled."""
+        return self._shuffle
+
+    @property
+    def repeat(self) -> str:
+        """Current repeat mode: 'off', 'one', or 'all'."""
+        return self._repeat
+
+    @property
+    def position_update_time(self) -> float:
+        """Timestamp (seconds since epoch) of the last position update."""
+        return self._position_update_time
+
     def __init__(self, device: Device, app: AppleApp) -> None:
         self._device = device
         self._app = app
@@ -54,13 +69,14 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             return {'previous': False, 'next': False, 'shuffle': False, 'repeat': False}
 
         features = self._atv.features
-        check = lambda f: features.in_state(FeatureState.Available, f)
+        def is_available(feature: FeatureName) -> bool:
+            return features.in_state(FeatureState.Available, feature)
 
         return {
-            'previous': check(FeatureName.Previous),
-            'next': check(FeatureName.Next),
-            'shuffle': check(FeatureName.SetShuffle),
-            'repeat': check(FeatureName.SetRepeat),
+            'previous': is_available(FeatureName.Previous),
+            'next': is_available(FeatureName.Next),
+            'shuffle': is_available(FeatureName.SetShuffle),
+            'repeat': is_available(FeatureName.SetRepeat),
         }
 
     # ------------------------------------------------------------------
@@ -409,11 +425,10 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             await self._device.set_capability_value('speaker_position', playing.position if playing.position is not None else -1)
 
             # Shuffle / repeat state
-            shuffle_state = getattr(playing, 'shuffle', None)
-            if shuffle_state is not None:
-                self._shuffle = shuffle_state != ShuffleState.Off
+            if playing.shuffle is not None:
+                self._shuffle = playing.shuffle != ShuffleState.Off
 
-            repeat_state = getattr(playing, 'repeat', None)
+            repeat_state = playing.repeat
             if repeat_state == RepeatState.Track:
                 self._repeat = 'one'
             elif repeat_state == RepeatState.All:
@@ -428,22 +443,18 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
 
             # Now-playing app — resolve before artist fallback.
             app_name: str | None = None
+            app_identifier: str | None = None
+
             if is_playing and self._atv is not None:
                 try:
                     app = self._atv.metadata.app
+                    if app is not None:
+                        app_name = app.name
+                        app_identifier = app.identifier
                 except Exception:
-                    app = None
+                    pass
 
-                if app is not None:
-                    app_name = getattr(app, 'name', None)
-                    await self._update_now_playing_app(
-                        getattr(app, 'identifier', None),
-                        app_name,
-                    )
-                else:
-                    await self._update_now_playing_app(None, None)
-            else:
-                await self._update_now_playing_app(None, None)
+            await self._update_now_playing_app(app_identifier, app_name)
 
             # Artist — fall back to app name when artist is not available
             # (e.g. video content on Netflix, YouTube, etc.).
@@ -464,30 +475,26 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
             artwork_info = await self._atv.metadata.artwork()
 
             if artwork_info is None or artwork_info.bytes is None:
-                self._artwork_hash = artwork_hash
                 await self._update_artwork_data(None)
                 return
 
             # Skip HEIC artwork — Homey cannot display it.
-            mimetype = getattr(artwork_info, 'mimetype', '') or ''
+            mimetype = artwork_info.mimetype or ''
             if 'heic' in mimetype.lower() or 'heif' in mimetype.lower():
                 self._device.log(
                     self.device_name,
                     f'Skipping HEIC artwork (mimetype={mimetype})',
                 )
-                # Still store the hash to avoid re-fetching on every update.
-                self._artwork_hash = artwork_hash
                 return
 
             await self._update_artwork_data(artwork_info.bytes)
-            self._artwork_hash = artwork_hash
         except NotSupportedError:
-            # Artwork/metadata not supported for this protocol configuration.
-            # Store the hash to prevent re-fetching on every update.
-            self._artwork_hash = artwork_hash
+            pass
         except Exception as err:
             self._device.error(self.device_name, 'Failed to fetch artwork:', err)
-            # Store the hash to prevent re-fetching the same failed artwork on every update.
+        finally:
+            # Always store the hash to prevent re-fetching on every update,
+            # regardless of whether the fetch succeeded, failed, or was skipped.
             self._artwork_hash = artwork_hash
 
     async def _update_artwork_data(self, data: bytes | None) -> None:
@@ -529,9 +536,9 @@ class AirPlayLogic(pyatv_interface.PushListener, pyatv_interface.PowerListener, 
                 'volume': cap('volume_set'),
                 'artworkUrl': cap('artwork_url'),
                 'onoff': cap('onoff'),
-                'shuffle': self._shuffle,
-                'repeat': self._repeat,
-                'positionTimestamp': int(self._position_update_time * 1000),
+                'shuffle': self.shuffle,
+                'repeat': self.repeat,
+                'positionTimestamp': int(self.position_update_time * 1000),
                 'features': self.get_feature_availability(),
             })
         except Exception as err:

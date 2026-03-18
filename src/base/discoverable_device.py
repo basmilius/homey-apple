@@ -157,13 +157,10 @@ class DiscoverableDevice(Device):
     # Connection management
     # ------------------------------------------------------------------
 
-    async def _initial_connect(self) -> None:
-        """Scan for the device and connect."""
-        config = await self.scan()
+    async def _connect_or_schedule(self, config: pyatv_interface.BaseConfig | None, unavailable_msg: str) -> None:
+        """Connect to a config, or schedule reconnect if config is None or connection fails."""
         if config is None:
-            await self.set_unavailable(
-                'Cannot find device on network. You might need to re-pair.'
-            )
+            await self.set_unavailable(unavailable_msg)
             await self._start_scheduled_reconnect()
             return
 
@@ -173,6 +170,13 @@ class DiscoverableDevice(Device):
         # Schedule periodic retries so the device recovers without manual intervention.
         if self._atv is None:
             await self._start_scheduled_reconnect()
+
+    async def _initial_connect(self) -> None:
+        """Scan for the device and connect."""
+        config = await self.scan()
+        await self._connect_or_schedule(
+            config, 'Cannot find device on network. You might need to re-pair.'
+        )
 
     async def _connect(self, config: pyatv_interface.BaseConfig) -> None:
         """Connect to the device using a pyatv config.
@@ -328,19 +332,9 @@ class DiscoverableDevice(Device):
         await self._disconnect()
 
         config = await self.scan()
-        if config is None:
-            await self.set_unavailable(
-                'Cannot find device on network after reconnect attempt.'
-            )
-            await self._start_scheduled_reconnect()
-            return
-
-        await self._connect(config)
-
-        # If _connect() failed (e.g. protocol error), self._atv is still None.
-        # Schedule periodic retries so the device recovers without manual intervention.
-        if self._atv is None:
-            await self._start_scheduled_reconnect()
+        await self._connect_or_schedule(
+            config, 'Cannot find device on network after reconnect attempt.'
+        )
 
     # ------------------------------------------------------------------
     # pyatv DeviceListener
@@ -455,6 +449,62 @@ class DiscoverableDevice(Device):
         results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S, hosts=[ip])
         return results[0] if results else None
 
+    async def _scan_by_mac(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        mac: str,
+        storage: Any,
+    ) -> pyatv_interface.BaseConfig | None:
+        """MAC-based unicast scan with broad multicast fallback."""
+        scan_kwargs: dict[str, Any] = {
+            "timeout": SCAN_TIMEOUT_S,
+            "identifier": mac,
+        }
+        if storage is not None:
+            scan_kwargs["storage"] = storage
+
+        # Use the last known IP for a targeted unicast scan.
+        address = self.device_address
+        if address is not None:
+            scan_kwargs["hosts"] = [address]
+
+        results = await pyatv.scan(loop, **scan_kwargs)
+        if results:
+            return results[0]
+
+        # Fallback: scan by MAC without hosts (broad multicast).
+        results = await pyatv.scan(
+            loop,
+            timeout=SCAN_TIMEOUT_S,
+            identifier=mac,
+            storage=storage,
+        )
+        return results[0] if results else None
+
+    async def _scan_by_hostname(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        device_label: str,
+    ) -> pyatv_interface.BaseConfig | None:
+        """Hostname-based scan: resolve hostname, then broad scan fallback."""
+        ip = await self._resolve_host()
+        if ip is not None:
+            config = await self._scan_by_host(ip)
+            if config is not None:
+                return config
+
+        # Broad scan fallback.
+        results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
+        for result in results:
+            if self._match_scan_result(result):
+                self.log(
+                    f'Found {device_label} at {result.address} via broad scan, '
+                    f'performing targeted scan for full protocol discovery...'
+                )
+                return await self._scan_by_host(str(result.address))
+
+        return None
+
     async def scan(self) -> pyatv_interface.BaseConfig | None:
         """
         Scan for this device on the local network using pyatv, retrying
@@ -479,52 +529,11 @@ class DiscoverableDevice(Device):
         for attempt in range(MAX_SCAN_RETRIES):
             config: pyatv_interface.BaseConfig | None = None
 
-            # Primary path: scan by MAC address via pyatv identifier.
             if mac is not None:
-                scan_kwargs: dict[str, Any] = {
-                    "timeout": SCAN_TIMEOUT_S,
-                    "identifier": mac,
-                }
-                if storage is not None:
-                    scan_kwargs["storage"] = storage
+                config = await self._scan_by_mac(loop, mac, storage)
 
-                # Use the last known IP for a targeted unicast scan.
-                address = self.device_address
-                if address is not None:
-                    scan_kwargs["hosts"] = [address]
-
-                results = await pyatv.scan(loop, **scan_kwargs)
-                if results:
-                    config = results[0]
-
-            # Fallback: scan by MAC without hosts (broad multicast).
-            if config is None and mac is not None:
-                results = await pyatv.scan(
-                    loop,
-                    timeout=SCAN_TIMEOUT_S,
-                    identifier=mac,
-                    storage=storage,
-                )
-                if results:
-                    config = results[0]
-
-            # Fallback for legacy devices: resolve hostname → scan by IP.
             if config is None and self.is_legacy_device:
-                ip = await self._resolve_host()
-                if ip is not None:
-                    config = await self._scan_by_host(ip)
-
-                # Broad scan fallback.
-                if config is None:
-                    results = await pyatv.scan(loop, timeout=SCAN_TIMEOUT_S)
-                    for result in results:
-                        if self._match_scan_result(result):
-                            self.log(
-                                f'Found {device_label} at {result.address} via broad scan, '
-                                f'performing targeted scan for full protocol discovery...'
-                            )
-                            config = await self._scan_by_host(str(result.address))
-                            break
+                config = await self._scan_by_hostname(loop, device_label)
 
             if config is not None:
                 self.log(
@@ -648,15 +657,9 @@ class DiscoverableDevice(Device):
                 if self._airplay_logic is not None:
                     await self._airplay_logic.clear_now_playing()
                 config = await self.scan()
-                if config is None:
-                    await self.set_unavailable(
-                        'Cannot find device on network after restart attempt.'
-                    )
-                    await self._start_scheduled_reconnect()
-                else:
-                    await self._connect(config)
-                    if self._atv is None:
-                        await self._start_scheduled_reconnect()
+                await self._connect_or_schedule(
+                    config, 'Cannot find device on network after restart attempt.'
+                )
             except Exception as err:
                 self.error('Restart failed:', err)
 

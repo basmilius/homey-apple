@@ -27,6 +27,14 @@ def _find_device(homey: Any, device_id: str) -> Any | None:
     return None
 
 
+def _get_device(homey: Any, params: dict | None) -> Any | None:
+    """Extract device_id from params and look up the device."""
+    device_id = (params or {}).get('deviceId')
+    if not device_id:
+        return None
+    return _find_device(homey, device_id)
+
+
 def _build_state(device: Any) -> dict:
     """Build the playback state dict from a device's current capability values."""
     def cap(name: str) -> Any:
@@ -35,7 +43,7 @@ def _build_state(device: Any) -> dict:
         except Exception:
             return None
 
-    logic = getattr(device, 'airplay_logic', None)
+    logic = device.airplay_logic
 
     return {
         'deviceId': device.get_id(),
@@ -49,9 +57,9 @@ def _build_state(device: Any) -> dict:
         'volume': cap('volume_set'),
         'artworkUrl': cap('artwork_url'),
         'onoff': cap('onoff'),
-        'shuffle': getattr(logic, '_shuffle', False),
-        'repeat': getattr(logic, '_repeat', 'off'),
-        'positionTimestamp': int(getattr(logic, '_position_update_time', 0) * 1000),
+        'shuffle': logic.shuffle if logic is not None else False,
+        'repeat': logic.repeat if logic is not None else 'off',
+        'positionTimestamp': int(logic.position_update_time * 1000) if logic is not None else 0,
         'features': logic.get_feature_availability() if logic is not None else {
             'previous': False, 'next': False, 'shuffle': False, 'repeat': False,
         },
@@ -60,11 +68,7 @@ def _build_state(device: Any) -> dict:
 
 async def get(homey: Any, params: dict | None = None, **kwargs: Any) -> dict | None:
     """Return the current playback state for the selected device."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return None
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return None
 
@@ -73,11 +77,7 @@ async def get(homey: Any, params: dict | None = None, **kwargs: Any) -> dict | N
 
 async def set_playing(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle play/pause on the selected device."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
@@ -91,11 +91,7 @@ async def set_playing(homey: Any, params: dict | None = None, **kwargs: Any) -> 
 
 async def set_next(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Skip to the next track on the selected device."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
@@ -108,11 +104,7 @@ async def set_next(homey: Any, params: dict | None = None, **kwargs: Any) -> boo
 
 async def set_previous(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Skip to the previous track on the selected device."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
@@ -125,24 +117,18 @@ async def set_previous(homey: Any, params: dict | None = None, **kwargs: Any) ->
 
 async def set_shuffle(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle shuffle on the selected device (Apple TV only)."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
-    atv = getattr(device, 'atv', None)
-    if atv is None:
+    if device.atv is None:
         return False
 
-    logic = getattr(device, 'airplay_logic', None)
-    current_shuffle = getattr(logic, '_shuffle', False)
+    current_shuffle = device.airplay_logic.shuffle if device.airplay_logic is not None else False
     new_state = ShuffleState.Off if current_shuffle else ShuffleState.Songs
 
     try:
-        await atv.remote_control.set_shuffle(new_state)
+        await device.atv.remote_control.set_shuffle(new_state)
     except Exception:
         return False
 
@@ -151,25 +137,19 @@ async def set_shuffle(homey: Any, params: dict | None = None, **kwargs: Any) -> 
 
 async def set_repeat(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Cycle repeat mode on the selected device (Apple TV only): off → all → one → off."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
-    atv = getattr(device, 'atv', None)
-    if atv is None:
+    if device.atv is None:
         return False
 
-    logic = getattr(device, 'airplay_logic', None)
-    current_repeat = getattr(logic, '_repeat', 'off')
+    current_repeat = device.airplay_logic.repeat if device.airplay_logic is not None else 'off'
 
     new_state = _REPEAT_CYCLE.get(current_repeat, RepeatState.Off)
 
     try:
-        await atv.remote_control.set_repeat(new_state)
+        await device.atv.remote_control.set_repeat(new_state)
     except Exception:
         return False
 
@@ -178,16 +158,12 @@ async def set_repeat(homey: Any, params: dict | None = None, **kwargs: Any) -> b
 
 async def set_volume(homey: Any, body: dict | None = None, params: dict | None = None, **kwargs: Any) -> bool:
     """Set the volume on the selected device (0.0–1.0)."""
-    device_id = (params or {}).get('deviceId')
     volume = (body or {}).get('volume')
-    if not device_id or volume is None:
+    device = _get_device(homey, params)
+    if device is None or volume is None:
         return False
 
-    device = _find_device(homey, device_id)
-    if device is None:
-        return False
-
-    if not getattr(device, 'has_capability', lambda _: False)('volume_set'):
+    if not device.has_capability('volume_set'):
         return False
 
     try:

@@ -53,17 +53,15 @@ class AppleTVPairing(BasePairing):
 
     async def _on_show_view(self, view: str) -> None:
         """Dispatch view events, including the connect_device view."""
-        try:
-            if view == "connect_device":
+        if view == "connect_device":
+            try:
                 await self._on_show_view_connect_device()
-            elif view == "authenticate":
-                await self._on_show_view_authenticate()
-            elif view == "discover":
-                await self._on_show_view_discover()
-        except Exception as err:
-            if self.on_error:
-                self.on_error(err)
-            raise
+            except Exception as err:
+                if self.on_error:
+                    self.on_error(err)
+                raise
+        else:
+            await super()._on_show_view(view)
 
     # ------------------------------------------------------------------
     # Connect & scan
@@ -210,26 +208,18 @@ class AppleTVPairing(BasePairing):
                     self._pairing_handler.pin(DEFAULT_PAIRING_PIN)
                     await self._pairing_handler.finish()
 
-                # Capture AirPlay credentials for backward-compatible store.
-                if service.protocol == Protocol.AirPlay:
-                    self._credentials = getattr(
-                        getattr(self._pairing_handler, "service", None),
-                        "credentials", None,
-                    )
-
                 if self.on_log:
                     self.on_log(f"Paired {service.protocol.name} successfully.")
             except Exception as err:
                 if self.on_log:
                     self.on_log(f"Failed to pair {service.protocol.name}: {err}")
-
-                # Capture AirPlay credentials even on error (pyatv may have produced them).
+            finally:
+                # Capture AirPlay credentials (pyatv may have produced them even on error).
                 if service.protocol == Protocol.AirPlay:
                     self._credentials = getattr(
                         getattr(self._pairing_handler, "service", None),
                         "credentials", None,
                     )
-            finally:
                 await self._close_pairing_handler()
 
             # Save storage after each protocol.

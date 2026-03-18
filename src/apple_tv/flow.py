@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any
 from pyatv.const import InputAction, RepeatState, ShuffleState
 
 
+import pyatv.interface as pyatv_interface
+
 if TYPE_CHECKING:
     from ..app import AppleApp
     from .device import AppleTVDevice
@@ -33,6 +35,15 @@ _REMOTE_COMMAND_METHODS: dict[str, str] = {
     'volumeUp': 'volume_up',
     'volumeDown': 'volume_down',
 }
+
+
+def _require_atv(args: dict[str, Any], label: str) -> tuple[AppleTVDevice, pyatv_interface.AppleTV]:
+    """Extract device and active pyatv connection from flow args, or raise."""
+    device: AppleTVDevice = args['device']
+    atv = device.atv
+    if atv is None:
+        raise RuntimeError(f'{label} "{device.get_name()}" is not connected')
+    return device, atv
 
 
 class AppleTVFlow:
@@ -94,11 +105,8 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_launch_app')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
+            device, atv = _require_atv(args, 'Apple TV')
             app_arg: Any = args.get('app')
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
             if not isinstance(app_arg, dict) or 'id' not in app_arg:
                 raise ValueError('No app selected')
             await atv.apps.launch_app(app_arg['id'])
@@ -130,11 +138,8 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_launch_url')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
+            _, atv = _require_atv(args, 'Apple TV')
             url: str = args['url']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
             await atv.apps.launch_app(url)
 
         card.register_run_listener(run)
@@ -143,11 +148,8 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_remote')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
+            device, atv = _require_atv(args, 'Apple TV')
             command: str = args['command']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
 
             rc = atv.remote_control
 
@@ -196,10 +198,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_set_position')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'Apple TV')
             await atv.remote_control.set_position(int(float(args['position'])))
 
         card.register_run_listener(run)
@@ -208,10 +207,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_skip_forward')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'Apple TV')
             await atv.remote_control.skip_forward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
@@ -220,10 +216,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_skip_backward')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'Apple TV')
             await atv.remote_control.skip_backward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
@@ -232,10 +225,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_set_repeat')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'Apple TV')
             mode = args['mode']
             if mode not in _REPEAT_MAP:
                 raise ValueError(f'Unsupported repeat mode: {mode!r}')
@@ -247,10 +237,7 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_set_shuffle')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'Apple TV')
             shuffle = str(args['shuffle']).lower() == 'true'
             state = ShuffleState.Songs if shuffle else ShuffleState.Off
             await atv.remote_control.set_shuffle(state)
@@ -261,11 +248,8 @@ class AppleTVFlow:
         card = self._app.homey.flow.get_action_card('appletv_switch_account')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: AppleTVDevice = args['device']
+            _, atv = _require_atv(args, 'Apple TV')
             account: Any = args.get('account')
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'Apple TV "{device.get_name()}" is not connected')
             if not isinstance(account, dict) or 'id' not in account:
                 raise ValueError('No account selected')
 

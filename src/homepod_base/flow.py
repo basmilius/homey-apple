@@ -3,9 +3,20 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING, Any
 
+import pyatv.interface as pyatv_interface
+
 if TYPE_CHECKING:
     from ..app import AppleApp
     from .device import HomePodBaseDevice
+
+
+def _require_atv(args: dict[str, Any], label: str) -> tuple[HomePodBaseDevice, pyatv_interface.AppleTV]:
+    """Extract device and active pyatv connection from flow args, or raise."""
+    device: HomePodBaseDevice = args['device']
+    atv = device.atv
+    if atv is None:
+        raise RuntimeError(f'{label} "{device.get_name()}" is not connected')
+    return device, atv
 
 
 class HomePodFlow:
@@ -66,10 +77,7 @@ class HomePodFlow:
         card = self._app.homey.flow.get_action_card('homepod_set_position')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: HomePodBaseDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'HomePod "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'HomePod')
             await atv.remote_control.set_position(int(float(args['position'])))
 
         card.register_run_listener(run)
@@ -78,10 +86,7 @@ class HomePodFlow:
         card = self._app.homey.flow.get_action_card('homepod_skip_forward')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: HomePodBaseDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'HomePod "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'HomePod')
             await atv.remote_control.skip_forward(int(float(args['seconds'])))
 
         card.register_run_listener(run)
@@ -90,10 +95,7 @@ class HomePodFlow:
         card = self._app.homey.flow.get_action_card('homepod_skip_backward')
 
         async def run(args: dict[str, Any], **kwargs: Any) -> None:
-            device: HomePodBaseDevice = args['device']
-            atv = device.atv
-            if atv is None:
-                raise RuntimeError(f'HomePod "{device.get_name()}" is not connected')
+            _, atv = _require_atv(args, 'HomePod')
             await atv.remote_control.skip_backward(int(float(args['seconds'])))
 
         card.register_run_listener(run)

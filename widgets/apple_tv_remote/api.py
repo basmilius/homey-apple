@@ -14,6 +14,14 @@ def _find_device(homey: Any, device_id: str) -> Any | None:
         return None
 
 
+def _get_device(homey: Any, params: dict | None) -> Any | None:
+    """Extract device_id from params and look up the device."""
+    device_id = (params or {}).get('deviceId')
+    if not device_id:
+        return None
+    return _find_device(homey, device_id)
+
+
 def _build_state(device: Any) -> dict:
     """Build the now playing state dict from a device's current capability values."""
     def cap(name: str) -> Any:
@@ -36,11 +44,7 @@ def _build_state(device: Any) -> dict:
 
 async def _send(homey: Any, params: dict | None, capability_id: str, value: Any = True) -> bool:
     """Find the Apple TV device from params and send a capability value."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
@@ -53,11 +57,7 @@ async def _send(homey: Any, params: dict | None, capability_id: str, value: Any 
 
 async def get(homey: Any, params: dict | None = None, **kwargs: Any) -> dict | None:
     """Return the current now playing state for the selected Apple TV."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return None
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return None
 
@@ -126,11 +126,7 @@ async def volume_down(homey: Any, params: dict | None = None, **kwargs: Any) -> 
 
 async def mute(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle mute."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
@@ -144,11 +140,7 @@ async def mute(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
 
 async def power(homey: Any, params: dict | None = None, **kwargs: Any) -> bool:
     """Toggle power on the selected Apple TV."""
-    device_id = (params or {}).get('deviceId')
-    if not device_id:
-        return False
-
-    device = _find_device(homey, device_id)
+    device = _get_device(homey, params)
     if device is None:
         return False
 
