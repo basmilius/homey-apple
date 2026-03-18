@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from homey.app import App
@@ -21,6 +22,7 @@ class AppleApp(App):
         self._apple_tv_flow: AppleTVFlow | None = None
         self._homepod_flow: HomePodFlow | None = None
         self._storage: AppSettingsStorage | None = None
+        self._default_exception_handler: Any = None
 
     @property
     def apple_tv_flow(self) -> AppleTVFlow:
@@ -43,6 +45,10 @@ class AppleApp(App):
     async def on_init(self) -> None:
         AppleApp._instance = self
 
+        loop = asyncio.get_running_loop()
+        self._default_exception_handler = loop.get_exception_handler()
+        loop.set_exception_handler(self._handle_async_exception)
+
         self._storage = AppSettingsStorage(self.homey)
         await self._storage.load()
 
@@ -55,7 +61,47 @@ class AppleApp(App):
         self.log('Apple TV & HomePod has been initialized')
 
     async def on_uninit(self) -> None:
+        loop = asyncio.get_running_loop()
+        if self._default_exception_handler is not None:
+            loop.set_exception_handler(self._default_exception_handler)
+        else:
+            loop.set_exception_handler(None)
+
         AppleApp._instance = None
+
+    def _handle_async_exception(self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]) -> None:
+        """Global handler for unhandled asyncio task exceptions.
+
+        Suppresses known pyatv internal errors (e.g. knock failures) that
+        cannot be caught at the application level, and forwards everything
+        else to the default handler.
+        """
+        exception = context.get('exception')
+
+        if exception is not None and self._is_pyatv_exception(exception):
+            self.log(f'Suppressed pyatv internal error: {exception}')
+            return
+
+        if self._default_exception_handler is not None:
+            self._default_exception_handler(loop, context)
+        else:
+            loop.default_exception_handler(context)
+
+    @staticmethod
+    def _is_pyatv_exception(exception: BaseException) -> bool:
+        """Check if an exception originated from pyatv internals."""
+        module = getattr(type(exception), '__module__', '') or ''
+        if module.startswith('pyatv'):
+            return True
+
+        tb = exception.__traceback__
+        while tb is not None:
+            filename = tb.tb_frame.f_code.co_filename
+            if 'pyatv' in filename:
+                return True
+            tb = tb.tb_next
+
+        return False
 
 
 homey_export = AppleApp

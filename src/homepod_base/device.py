@@ -61,13 +61,19 @@ class HomePodBaseDevice(DiscoverableDevice):
 
         _guarded_task(self._stream_url(url), self)
 
-    async def _stream_url(self, url: str) -> None:
+    async def _stream_url(self, url: str, retries: int = 3) -> None:
         atv = self._atv
         if atv is None:
             self.error('play_url failed: not connected')
             return
 
-        try:
-            await atv.stream.play_url(url)
-        except Exception as err:
-            self.error(f'play_url failed: {err}')
+        for attempt in range(retries):
+            try:
+                await atv.stream.stream_file(url)
+                return
+            except Exception as err:
+                if attempt < retries - 1:
+                    self.log(f'play_url attempt {attempt + 1} failed ({err}), retrying...')
+                    await asyncio.sleep(1.0)
+                else:
+                    self.error(f'play_url failed after {retries} attempts: {err}')
