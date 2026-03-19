@@ -325,5 +325,8 @@
   },
   "1.6.16": {
     "en": "Changes to migration from older app versions."
+  },
+  "1.6.17": {
+    "en": "Prevent reconnecting when the connection is stable."
   }
 }
