@@ -20,7 +20,7 @@ SCAN_RETRY_INTERVAL_S = 1.0
 SCAN_TIMEOUT_S = 3
 DNS_RESOLVE_TIMEOUT_S = 5.0
 RECONNECT_DELAY_S = 1.0
-SCHEDULED_RECONNECT_INTERVAL_S = 5 * 60
+SCHEDULED_RECONNECT_INTERVAL_S = 15 * 60
 MAX_CONNECT_RETRIES = 3
 CONNECT_RETRY_DELAY_S = 3.0
 
@@ -214,7 +214,7 @@ class DiscoverableDevice(Device):
 
                     await self._on_connected()
 
-                    await self._start_scheduled_reconnect()
+                    await self._stop_scheduled_reconnect()
                     await self.set_available()
                     self.log(f'Connected to {self._device_type_name}.')
                     return
