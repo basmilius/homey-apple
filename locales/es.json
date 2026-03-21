@@ -8,5 +8,10 @@
       "off": "Apagado",
       "on": "Encendido"
     }
+  },
+  "widget": {
+    "apple_tv_remote": {
+      "no_device": "Ningún Apple TV seleccionado"
+    }
   }
 }

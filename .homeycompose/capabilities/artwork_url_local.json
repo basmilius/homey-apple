@@ -1,0 +1,22 @@
+{
+    "type": "string",
+    "title": {
+        "en": "Artwork URL (local)",
+        "nl": "Albumhoes URL (lokaal)",
+        "da": "Kunstværk URL (lokal)",
+        "de": "Artwork-URL (lokal)",
+        "es": "URL de la ilustración (local)",
+        "fr": "URL de l'illustration (locale)",
+        "it": "URL dell'artwork (locale)",
+        "no": "Kunstverk URL (lokal)",
+        "sv": "Konstverk URL (lokal)",
+        "pl": "URL grafiki (lokalna)",
+        "ru": "URL обложки (локальный)",
+        "ko": "아트워크 URL (로컬)",
+        "ar": "رابط الصورة الفنية (محلي)"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": null,
+    "icon": "assets/capabilities/artwork.svg"
+}

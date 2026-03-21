@@ -17,6 +17,8 @@ const CAPABILITIES = [
     'speaker_prev',
     'speaker_track',
     'artwork_url',
+    'artwork_url_cloud',
+    'artwork_url_local',
     'onoff',
     'power',
     'volume_down',
@@ -86,7 +88,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#companionLink.on('disconnected', this.#onCompanionLinkDisconnected.bind(this));
         this.#companionLink.on('failed', this.#onCompanionLinkFailed.bind(this));
 
-        await this.removeOldCapabilities(CAPABILITIES);
+        await this.syncCapabilities(CAPABILITIES);
         this.#registerCapabilities();
         this.#registerMaintenance();
 

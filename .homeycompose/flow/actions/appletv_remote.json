@@ -114,17 +114,17 @@
                     "label": {
                         "en": "Right",
                         "nl": "Rechts",
-                        "da": "Rigtigt",
-                        "de": "Richtig",
-                        "es": "Correcto",
-                        "fr": "D'accord",
-                        "it": "Giusto",
-                        "no": "Riktig",
-                        "sv": "Rätt",
-                        "pl": "Dobrze",
-                        "ru": "Верно",
-                        "ko": "맞아요",
-                        "ar": "صحيح"
+                        "da": "Højre",
+                        "de": "Rechts",
+                        "es": "Derecha",
+                        "fr": "Droite",
+                        "it": "Destra",
+                        "no": "Høyre",
+                        "sv": "Höger",
+                        "pl": "Prawo",
+                        "ru": "Право",
+                        "ko": "오른쪽",
+                        "ar": "يمين"
                     }
                 },
                 {
@@ -308,6 +308,78 @@
                     }
                 },
                 {
+                    "id": "stop",
+                    "label": {
+                        "en": "Stop",
+                        "nl": "Stoppen",
+                        "da": "Stop",
+                        "de": "Stopp",
+                        "es": "Detener",
+                        "fr": "Arrêter",
+                        "it": "Ferma",
+                        "no": "Stopp",
+                        "sv": "Stoppa",
+                        "pl": "Zatrzymaj",
+                        "ru": "Стоп",
+                        "ko": "중지",
+                        "ar": "إيقاف"
+                    }
+                },
+                {
+                    "id": "screensaver",
+                    "label": {
+                        "en": "Screensaver",
+                        "nl": "Schermbeveiliging",
+                        "da": "Pauseskærm",
+                        "de": "Bildschirmschoner",
+                        "es": "Salvapantallas",
+                        "fr": "Économiseur d'écran",
+                        "it": "Salvaschermo",
+                        "no": "Skjermsparer",
+                        "sv": "Skärmsläckare",
+                        "pl": "Wygaszacz ekranu",
+                        "ru": "Заставка",
+                        "ko": "화면 보호기",
+                        "ar": "شاشة التوقف"
+                    }
+                },
+                {
+                    "id": "topMenu",
+                    "label": {
+                        "en": "Top Menu",
+                        "nl": "Hoofdmenu",
+                        "da": "Topmenu",
+                        "de": "Hauptmenü",
+                        "es": "Menú principal",
+                        "fr": "Menu principal",
+                        "it": "Menu principale",
+                        "no": "Toppmeny",
+                        "sv": "Toppmeny",
+                        "pl": "Menu główne",
+                        "ru": "Главное меню",
+                        "ko": "상위 메뉴",
+                        "ar": "القائمة الرئيسية"
+                    }
+                },
+                {
+                    "id": "homeHold",
+                    "label": {
+                        "en": "Home (long press)",
+                        "nl": "Home (lang indrukken)",
+                        "da": "Hjem (langt tryk)",
+                        "de": "Home (langer Druck)",
+                        "es": "Inicio (pulsación larga)",
+                        "fr": "Accueil (appui long)",
+                        "it": "Home (pressione lunga)",
+                        "no": "Hjem (langt trykk)",
+                        "sv": "Hem (långt tryck)",
+                        "pl": "Home (długie naciśnięcie)",
+                        "ru": "Домой (долгое нажатие)",
+                        "ko": "홈 (길게 누르기)",
+                        "ar": "الرئيسية (ضغطة طويلة)"
+                    }
+                },
+                {
                     "id": "mute",
                     "label": {
                         "en": "Mute",
@@ -359,6 +431,78 @@
                         "ru": "Сон",
                         "ko": "수면",
                         "ar": "نوم"
+                    }
+                },
+                {
+                    "id": "doubleTapSelect",
+                    "label": {
+                        "en": "Select (double tap)",
+                        "nl": "Selecteer (dubbeltik)",
+                        "da": "Vælg (dobbelttryk)",
+                        "de": "Auswählen (Doppeltippen)",
+                        "es": "Seleccionar (doble toque)",
+                        "fr": "Sélectionner (double appui)",
+                        "it": "Seleziona (doppio tocco)",
+                        "no": "Velg (dobbelttrykk)",
+                        "sv": "Välj (dubbelknacka)",
+                        "pl": "Wybierz (podwójne stuknięcie)",
+                        "ru": "Выбрать (двойное касание)",
+                        "ko": "선택 (두 번 탭)",
+                        "ar": "اختر (نقرة مزدوجة)"
+                    }
+                },
+                {
+                    "id": "channelUp",
+                    "label": {
+                        "en": "Channel Up",
+                        "nl": "Kanaal omhoog",
+                        "da": "Kanal op",
+                        "de": "Kanal hoch",
+                        "es": "Canal arriba",
+                        "fr": "Chaîne suivante",
+                        "it": "Canale su",
+                        "no": "Kanal opp",
+                        "sv": "Kanal upp",
+                        "pl": "Kanał w górę",
+                        "ru": "Канал вверх",
+                        "ko": "채널 올리기",
+                        "ar": "القناة التالية"
+                    }
+                },
+                {
+                    "id": "channelDown",
+                    "label": {
+                        "en": "Channel Down",
+                        "nl": "Kanaal omlaag",
+                        "da": "Kanal ned",
+                        "de": "Kanal runter",
+                        "es": "Canal abajo",
+                        "fr": "Chaîne précédente",
+                        "it": "Canale giù",
+                        "no": "Kanal ned",
+                        "sv": "Kanal ner",
+                        "pl": "Kanał w dół",
+                        "ru": "Канал вниз",
+                        "ko": "채널 내리기",
+                        "ar": "القناة السابقة"
+                    }
+                },
+                {
+                    "id": "siri",
+                    "label": {
+                        "en": "Siri",
+                        "nl": "Siri",
+                        "da": "Siri",
+                        "de": "Siri",
+                        "es": "Siri",
+                        "fr": "Siri",
+                        "it": "Siri",
+                        "no": "Siri",
+                        "sv": "Siri",
+                        "pl": "Siri",
+                        "ru": "Siri",
+                        "ko": "Siri",
+                        "ar": "Siri"
                     }
                 }
             ]

@@ -8,5 +8,13 @@
       "off": "Off",
       "on": "On"
     }
+  },
+  "widget": {
+    "mini_player": {
+      "no_device": "No device selected"
+    },
+    "apple_tv_remote": {
+      "no_device": "No Apple TV selected"
+    }
   }
 }

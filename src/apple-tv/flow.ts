@@ -1,3 +1,4 @@
+import { Proto } from '@basmilius/apple-airplay';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, AppleTVDevice } from '../types';
 import type Homey from 'homey';
@@ -7,6 +8,11 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         this.#registerLaunchApp();
         this.#registerLaunchUrl();
         this.#registerRemote();
+        this.#registerSetPosition();
+        this.#registerSetRepeat();
+        this.#registerSetShuffle();
+        this.#registerSkipBackward();
+        this.#registerSkipForward();
         this.#registerSwitchAccount();
     }
 
@@ -154,6 +160,38 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                     await device.airplay.remote.mute();
                     break;
 
+                case 'stop':
+                    await device.airplay.remote.commandStop();
+                    break;
+
+                case 'screensaver':
+                    await device.companionLink.protocol.pressButton('Screensaver');
+                    break;
+
+                case 'topMenu':
+                    await device.companionLink.protocol.pressButton('Guide');
+                    break;
+
+                case 'homeHold':
+                    await device.companionLink.protocol.pressButton('Home', 'Hold');
+                    break;
+
+                case 'doubleTapSelect':
+                    await device.companionLink.protocol.pressButton('Select', 'DoubleTap');
+                    break;
+
+                case 'channelUp':
+                    await device.companionLink.protocol.pressButton('ChannelIncrement');
+                    break;
+
+                case 'channelDown':
+                    await device.companionLink.protocol.pressButton('ChannelDecrement');
+                    break;
+
+                case 'siri':
+                    await device.companionLink.protocol.pressButton('Siri');
+                    break;
+
                 case 'wake':
                     await device.airplay.remote.wake();
                     break;
@@ -162,6 +200,81 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                     await device.airplay.remote.suspend();
                     break;
             }
+        });
+    }
+
+    #registerSetPosition(): void {
+        const card = this.flow.getActionCard('appletv_set_position');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly position: number;
+        };
+
+        card.registerRunListener(async ({device, position}: RunArguments) => {
+            await device.airplay.remote.commandSeekToPosition(Math.floor(position));
+        });
+    }
+
+    #registerSetRepeat(): void {
+        const card = this.flow.getActionCard('appletv_set_repeat');
+
+        const modeMap: Record<string, Proto.RepeatMode_Enum> = {
+            off: Proto.RepeatMode_Enum.Off,
+            one: Proto.RepeatMode_Enum.One,
+            all: Proto.RepeatMode_Enum.All,
+        };
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly mode: string;
+        };
+
+        card.registerRunListener(async ({device, mode}: RunArguments) => {
+            const repeatMode = modeMap[mode] ?? Proto.RepeatMode_Enum.Off;
+            await device.airplay.remote.commandSetRepeatMode(repeatMode);
+        });
+    }
+
+    #registerSetShuffle(): void {
+        const card = this.flow.getActionCard('appletv_set_shuffle');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly shuffle: string;
+        };
+
+        card.registerRunListener(async ({device, shuffle}: RunArguments) => {
+            const mode = shuffle === 'true'
+                ? Proto.ShuffleMode_Enum.Songs
+                : Proto.ShuffleMode_Enum.Off;
+            await device.airplay.remote.commandSetShuffleMode(mode);
+        });
+    }
+
+    #registerSkipBackward(): void {
+        const card = this.flow.getActionCard('appletv_skip_backward');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.remote.commandSkipBackward(Math.floor(seconds));
+        });
+    }
+
+    #registerSkipForward(): void {
+        const card = this.flow.getActionCard('appletv_skip_forward');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.remote.commandSkipForward(Math.floor(seconds));
         });
     }
 

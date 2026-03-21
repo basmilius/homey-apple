@@ -1,0 +1,62 @@
+{
+    "id": "appletv_skip_forward",
+    "title": {
+        "en": "Skip forward",
+        "nl": "Snel vooruitspoelen",
+        "da": "Spring fremad",
+        "de": "Vorwärts springen",
+        "es": "Saltar adelante",
+        "fr": "Avancer",
+        "it": "Salta in avanti",
+        "no": "Hopp fremover",
+        "sv": "Hoppa framåt",
+        "pl": "Przewiń do przodu",
+        "ru": "Перемотать вперёд",
+        "ko": "앞으로 건너뛰기",
+        "ar": "التخطي للأمام"
+    },
+    "titleFormatted": {
+        "en": "Skip forward [[seconds]] seconds",
+        "nl": "Snel [[seconds]] seconden vooruitspoelen",
+        "da": "Spring [[seconds]] sekunder fremad",
+        "de": "[[seconds]] Sekunden vorwärts springen",
+        "es": "Saltar [[seconds]] segundos adelante",
+        "fr": "Avancer de [[seconds]] secondes",
+        "it": "Salta avanti di [[seconds]] secondi",
+        "no": "Hopp [[seconds]] sekunder fremover",
+        "sv": "Hoppa [[seconds]] sekunder framåt",
+        "pl": "Przewiń o [[seconds]] sekund do przodu",
+        "ru": "Перемотать вперёд на [[seconds]] секунд",
+        "ko": "[[seconds]]초 앞으로 건너뛰기",
+        "ar": "التخطي [[seconds]] ثانية للأمام"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "name": "seconds",
+            "type": "number",
+            "min": 1,
+            "step": 1,
+            "placeholder": "15",
+            "title": {
+                "en": "Seconds",
+                "nl": "Seconden",
+                "da": "Sekunder",
+                "de": "Sekunden",
+                "es": "Segundos",
+                "fr": "Secondes",
+                "it": "Secondi",
+                "no": "Sekunder",
+                "sv": "Sekunder",
+                "pl": "Sekundy",
+                "ru": "Секунды",
+                "ko": "초",
+                "ar": "ثواني"
+            }
+        }
+    ]
+}

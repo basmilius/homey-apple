@@ -1,0 +1,97 @@
+{
+    "id": "appletv_set_shuffle",
+    "title": {
+        "en": "Set shuffle",
+        "nl": "Willekeurig afspelen instellen",
+        "da": "Indstil shuffle",
+        "de": "Zufallswiedergabe festlegen",
+        "es": "Establecer aleatorio",
+        "fr": "Définir la lecture aléatoire",
+        "it": "Imposta riproduzione casuale",
+        "no": "Angi tilfeldig avspilling",
+        "sv": "Ange blandning",
+        "pl": "Ustaw losowe odtwarzanie",
+        "ru": "Установить перемешивание",
+        "ko": "셔플 설정",
+        "ar": "تعيين التشغيل العشوائي"
+    },
+    "titleFormatted": {
+        "en": "Turn shuffle [[shuffle]]",
+        "nl": "Willekeurig afspelen [[shuffle]]",
+        "da": "Shuffle [[shuffle]]",
+        "de": "Zufallswiedergabe [[shuffle]]",
+        "es": "Aleatorio [[shuffle]]",
+        "fr": "Lecture aléatoire [[shuffle]]",
+        "it": "Casuale [[shuffle]]",
+        "no": "Tilfeldig avspilling [[shuffle]]",
+        "sv": "Blandning [[shuffle]]",
+        "pl": "Losowe odtwarzanie [[shuffle]]",
+        "ru": "Перемешивание [[shuffle]]",
+        "ko": "셔플 [[shuffle]]",
+        "ar": "التشغيل العشوائي [[shuffle]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "name": "shuffle",
+            "type": "dropdown",
+            "title": {
+                "en": "Shuffle",
+                "nl": "Willekeurig",
+                "da": "Shuffle",
+                "de": "Zufällig",
+                "es": "Aleatorio",
+                "fr": "Aléatoire",
+                "it": "Casuale",
+                "no": "Tilfeldig",
+                "sv": "Blanda",
+                "pl": "Losowo",
+                "ru": "Перемешать",
+                "ko": "셔플",
+                "ar": "عشوائي"
+            },
+            "values": [
+                {
+                    "id": "true",
+                    "label": {
+                        "en": "On",
+                        "nl": "Aan",
+                        "da": "Til",
+                        "de": "Ein",
+                        "es": "Activado",
+                        "fr": "Activé",
+                        "it": "Attivato",
+                        "no": "På",
+                        "sv": "På",
+                        "pl": "Włączone",
+                        "ru": "Вкл",
+                        "ko": "켜기",
+                        "ar": "تشغيل"
+                    }
+                },
+                {
+                    "id": "false",
+                    "label": {
+                        "en": "Off",
+                        "nl": "Uit",
+                        "da": "Fra",
+                        "de": "Aus",
+                        "es": "Desactivado",
+                        "fr": "Désactivé",
+                        "it": "Disattivato",
+                        "no": "Av",
+                        "sv": "Av",
+                        "pl": "Wyłączone",
+                        "ru": "Выкл",
+                        "ko": "끄기",
+                        "ar": "إيقاف"
+                    }
+                }
+            ]
+        }
+    ]
+}

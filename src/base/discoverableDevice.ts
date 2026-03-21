@@ -1,4 +1,4 @@
-import type { DiscoveryResult } from '@basmilius/apple-common';
+import { type DiscoveryResult, mdnsUnicast, type MdnsService } from '@basmilius/apple-common';
 import { Device, type Driver } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import { convertDiscoveryResult, waitFor } from '../utils';
@@ -23,42 +23,13 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
     }
 
     async findService(service: string, update: boolean = true): Promise<void> {
-        const discovery = this.services[service];
+        const discoveryResult = await this.#findViaHomey(service)
+            ?? await this.#findViaUnicast(service);
 
-        if (!discovery) {
-            throw new Error(`Service ${service} not found`);
-        }
-
-        let result: Homey.DiscoveryResultMDNSSD | undefined;
-        let retries = 0;
-        const maxRetries = 3;
-
-        while (retries < maxRetries) {
-            const results = discovery.getDiscoveryResults();
-
-            for (const [id, r] of Object.entries(results)) {
-                if (id !== this.discoveryId) {
-                    continue;
-                }
-
-                result = r as Homey.DiscoveryResultMDNSSD;
-                break;
-            }
-
-            if (result) {
-                break;
-            }
-
-            retries++;
-
-            await waitFor(500);
-        }
-
-        if (!result) {
+        if (!discoveryResult) {
             throw new Error(`Cannot find ${this.discoveryId} (${service}) on network.`);
         }
 
-        const discoveryResult = convertDiscoveryResult(result as Homey.DiscoveryResultMDNSSD);
         this.#discoveryResults[service] = discoveryResult;
 
         this.log(`Found ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
@@ -78,7 +49,6 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
                     .map(async service => this.findService(service, update))
             );
         } catch (err) {
-            // todo(Bas): translate.
             await this.setUnavailable(`Cannot find ${this.discoveryId} on network. You might need to pair with the device again.`);
         }
     }
@@ -88,6 +58,72 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
     }
 
     async onServiceUpdated(service: string, discoveryResult: DiscoveryResult): Promise<void> {
-        this.log('[discovery]', `Updated ${this.discoveryId}, now on on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
+        this.log('[discovery]', `Updated ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
+    }
+
+    async #findViaHomey(service: string): Promise<DiscoveryResult | null> {
+        const discovery = this.services[service];
+
+        if (!discovery) {
+            return null;
+        }
+
+        let result: Homey.DiscoveryResultMDNSSD | undefined;
+        let retries = 0;
+
+        while (retries < 3) {
+            const results = discovery.getDiscoveryResults();
+
+            for (const [id, r] of Object.entries(results)) {
+                if (id === this.discoveryId) {
+                    result = r as Homey.DiscoveryResultMDNSSD;
+                    break;
+                }
+            }
+
+            if (result) {
+                break;
+            }
+
+            retries++;
+            await waitFor(500);
+        }
+
+        return result ? convertDiscoveryResult(result) : null;
+    }
+
+    async #findViaUnicast(service: string): Promise<DiscoveryResult | null> {
+        const existing = this.#discoveryResults[service];
+
+        if (!existing?.address) {
+            return null;
+        }
+
+        this.log('[discovery]', `Homey mDNS cache miss for ${service}, trying unicast to ${existing.address}...`);
+
+        const results = await mdnsUnicast([existing.address], [service], 4);
+        const match = results.find((s: MdnsService) => s.address === existing.address);
+
+        if (!match) {
+            return null;
+        }
+
+        const txt = match.properties;
+        const hostname = match.name.replace(/\s+/g, '-');
+
+        return {
+            id: `${hostname}.local`,
+            fqdn: `${hostname}.local`,
+            address: match.address,
+            modelName: txt?.model ?? '',
+            familyName: null,
+            txt,
+            service: {
+                port: match.port,
+                protocol: 'tcp',
+                type: service
+            },
+            packet: null
+        } as unknown as DiscoveryResult;
     }
 }

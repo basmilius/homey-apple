@@ -20,6 +20,8 @@ const CAPABILITIES = [
     'speaker_stop',
     'speaker_track',
     'artwork_url',
+    'artwork_url_cloud',
+    'artwork_url_local',
     'volume_down',
     'volume_set',
     'volume_up',
@@ -62,7 +64,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         this.#airplay.on('connected', () => this.#onConnected());
         this.#airplay.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
 
-        await this.removeOldCapabilities(CAPABILITIES);
+        await this.syncCapabilities(CAPABILITIES);
         this.#registerCapabilities();
         this.#registerMaintenance();
 

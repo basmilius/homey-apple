@@ -1,0 +1,129 @@
+{
+    "name": {
+        "en": "Apple TV Remote",
+        "nl": "Apple TV Afstandsbediening",
+        "da": "Apple TV Fjernbetjening",
+        "de": "Apple TV Fernbedienung",
+        "es": "Mando de Apple TV",
+        "fr": "Télécommande Apple TV",
+        "it": "Telecomando Apple TV",
+        "no": "Apple TV Fjernkontroll",
+        "sv": "Apple TV Fjärrkontroll",
+        "pl": "Pilot Apple TV",
+        "ru": "Пульт Apple TV",
+        "ko": "Apple TV 리모컨",
+        "ar": "جهاز التحكم عن بُعد Apple TV"
+    },
+    "height": 160,
+    "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {
+            "class": "settopbox"
+        }
+    },
+    "settings": [
+        {
+            "id": "show_now_playing",
+            "type": "checkbox",
+            "title": {
+                "en": "Show now playing",
+                "nl": "Nu afspelend tonen",
+                "da": "Vis nu afspilles",
+                "de": "Gerade gespieltes anzeigen",
+                "es": "Mostrar reproducción actual",
+                "fr": "Afficher la lecture en cours",
+                "it": "Mostra in riproduzione",
+                "no": "Vis avspilles nå",
+                "sv": "Visa nu spelas",
+                "pl": "Pokaż teraz odtwarzane",
+                "ru": "Показать текущее воспроизведение",
+                "ko": "현재 재생 중 표시",
+                "ar": "إظهار ما يُشغَّل الآن"
+            },
+            "value": false
+        },
+        {
+            "id": "show_volume",
+            "type": "checkbox",
+            "title": {
+                "en": "Show volume controls",
+                "nl": "Volumeknoppen tonen",
+                "da": "Vis lydstyrkeknapper",
+                "de": "Lautstärketasten anzeigen",
+                "es": "Mostrar controles de volumen",
+                "fr": "Afficher les contrôles de volume",
+                "it": "Mostra controlli volume",
+                "no": "Vis lydstyrkeknapper",
+                "sv": "Visa volymsknapper",
+                "pl": "Pokaż przyciski głośności",
+                "ru": "Показать кнопки громкости",
+                "ko": "볼륨 컨트롤 표시",
+                "ar": "إظهار أدوات التحكم في الصوت"
+            },
+            "value": true
+        }
+    ],
+    "api": {
+        "get": {
+            "method": "GET",
+            "path": "/:deviceId"
+        },
+        "remote_up": {
+            "method": "POST",
+            "path": "/:deviceId/up"
+        },
+        "remote_down": {
+            "method": "POST",
+            "path": "/:deviceId/down"
+        },
+        "remote_left": {
+            "method": "POST",
+            "path": "/:deviceId/left"
+        },
+        "remote_right": {
+            "method": "POST",
+            "path": "/:deviceId/right"
+        },
+        "remote_select": {
+            "method": "POST",
+            "path": "/:deviceId/select"
+        },
+        "remote_home": {
+            "method": "POST",
+            "path": "/:deviceId/home"
+        },
+        "remote_back": {
+            "method": "POST",
+            "path": "/:deviceId/back"
+        },
+        "remote_playpause": {
+            "method": "POST",
+            "path": "/:deviceId/playpause"
+        },
+        "remote_previous": {
+            "method": "POST",
+            "path": "/:deviceId/previous"
+        },
+        "remote_next": {
+            "method": "POST",
+            "path": "/:deviceId/next"
+        },
+        "volume_up": {
+            "method": "POST",
+            "path": "/:deviceId/volume_up"
+        },
+        "volume_down": {
+            "method": "POST",
+            "path": "/:deviceId/volume_down"
+        },
+        "mute": {
+            "method": "POST",
+            "path": "/:deviceId/mute"
+        },
+        "power": {
+            "method": "POST",
+            "path": "/:deviceId/power"
+        }
+    }
+}

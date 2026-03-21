@@ -44,7 +44,8 @@ export default class extends EventEmitter<EventMap> {
 
         try {
             await this.#protocol.connect();
-            this.#startReconnectInterval();
+            // note(backport): Scheduled reconnect disabled — was causing instability.
+            // this.#startReconnectInterval();
         } catch (err) {
             this.#device.error('Failed to connect to Companion Link device:', err);
             await this.#device.setUnavailable(`Failed to connect to Companion Link device. Please file a diagnostics report. ${(err as Error).message}`);

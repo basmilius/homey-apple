@@ -5,6 +5,9 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
     register(): void {
         this.#registerPlayUrl();
         this.#registerPlayUrlAtVolume();
+        this.#registerSetPosition();
+        this.#registerSkipBackward();
+        this.#registerSkipForward();
     }
 
     async triggerArtworkUrlUpdated(device: HomePodBaseDevice<HomePodBaseDriver>, localUrl: string, cloudUrl: string): Promise<void> {
@@ -40,6 +43,45 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
 
         playUrl.registerRunListener(async ({device, url, volume}: RunArguments) => {
             await device.playUrl(url, volume);
+        });
+    }
+
+    #registerSetPosition(): void {
+        const card = this.flow.getActionCard('homepod_set_position');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly position: number;
+        };
+
+        card.registerRunListener(async ({device, position}: RunArguments) => {
+            await device.airplay.remote.commandSeekToPosition(Math.floor(position));
+        });
+    }
+
+    #registerSkipBackward(): void {
+        const card = this.flow.getActionCard('homepod_skip_backward');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.remote.commandSkipBackward(Math.floor(seconds));
+        });
+    }
+
+    #registerSkipForward(): void {
+        const card = this.flow.getActionCard('homepod_skip_forward');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, seconds}: RunArguments) => {
+            await device.airplay.remote.commandSkipForward(Math.floor(seconds));
         });
     }
 }

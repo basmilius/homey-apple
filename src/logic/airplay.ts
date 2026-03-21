@@ -12,6 +12,44 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         return this.#device.name;
     }
 
+    get position(): number {
+        return this.#protocol?.state?.nowPlayingClient?.elapsedTime ?? 0;
+    }
+
+    get positionTimestamp(): number {
+        return Date.now();
+    }
+
+    get features(): { previous: boolean; next: boolean; shuffle: boolean; repeat: boolean } {
+        return this.#getFeatureAvailability();
+    }
+
+    get repeat(): string {
+        const client = this.#protocol?.state?.nowPlayingClient;
+        if (!client) {
+            return 'off';
+        }
+
+        switch (client.repeatMode) {
+            case Proto.RepeatMode_Enum.One:
+                return 'one';
+            case Proto.RepeatMode_Enum.All:
+                return 'all';
+            default:
+                return 'off';
+        }
+    }
+
+    get shuffle(): boolean {
+        const client = this.#protocol?.state?.nowPlayingClient;
+        if (!client) {
+            return false;
+        }
+
+        return client.shuffleMode !== Proto.ShuffleMode_Enum.Off
+            && client.shuffleMode !== Proto.ShuffleMode_Enum.Unknown;
+    }
+
     readonly #device: Device<AppleApp, any>;
 
     #artwork!: Homey.Image;
@@ -30,10 +68,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async initialize(): Promise<void> {
+        await this.clearNowPlaying();
+
         this.#artwork = await this.#device.homey.images.createImage();
         await this.#device.setAlbumArtImage(this.#artwork);
 
-        await this.clearNowPlaying();
         await this.updateArtworkUrl();
     }
 
@@ -56,6 +95,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#device.setCapabilityValue('speaker_playing', false);
 
             this.log(this.deviceName, 'Now playing info cleared.');
+            await this.#emitMiniPlayerUpdate();
         } catch (err) {
             this.log(this.deviceName, 'Failed to clear now playing info', err);
         }
@@ -82,11 +122,21 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         const localUrl = this.#artwork.localUrl;
         const localUrlWithCacheBuster = localUrl ? `${localUrl}?v=${cacheBuster}` : '';
 
+        if (this.#device.hasCapability('artwork_url_cloud')) {
+            await this.#device.setCapabilityValue('artwork_url_cloud', artworkUrl);
+        }
+
+        if (this.#device.hasCapability('artwork_url_local')) {
+            await this.#device.setCapabilityValue('artwork_url_local', localUrlWithCacheBuster);
+        }
+
         if (this.#device instanceof AppleTVDevice) {
             await this.app.appleTvFlow.triggerArtworkUrlUpdated(this.#device, localUrlWithCacheBuster, artworkUrl);
         } else if (this.#device instanceof HomePodBaseDevice) {
             await this.app.homePodFlow.triggerArtworkUrlUpdated(this.#device, localUrlWithCacheBuster, artworkUrl);
         }
+
+        await this.#emitMiniPlayerUpdate();
     }
 
     setProtocol(protocol: AirPlayDevice): void {
@@ -137,6 +187,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
             this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
             await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
+            await this.#emitMiniPlayerUpdate();
         } catch (err) {
             this.log(this.deviceName, 'Failed to update volume:', err);
         }
@@ -220,53 +271,99 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         const client = this.#protocol.state.nowPlayingClient;
         const device = this.#device;
-        const item = client?.playbackQueue?.contentItems?.[0] ?? null;
+        const item = client?.currentItem ?? null;
 
-        this.log(this.deviceName, 'Now playing info updated.', client?.bundleIdentifier, item?.metadata?.title);
+        this.log(this.deviceName, 'Now playing info updated.', client?.bundleIdentifier, client?.title);
 
-        if (!item) {
+        if (!client) {
             return;
         }
 
         try {
-            if (client) {
-                const hasSpeakerNext = device.hasCapability('speaker_next');
-                const hasSpeakerPrev = device.hasCapability('speaker_prev');
-                const isNextSupported = client.isCommandSupported(Proto.Command.NextTrack);
-                const isPrevSupported = client.isCommandSupported(Proto.Command.PreviousTrack);
+            const hasSpeakerNext = device.hasCapability('speaker_next');
+            const hasSpeakerPrev = device.hasCapability('speaker_prev');
+            const isNextSupported = client.isCommandSupported(Proto.Command.NextTrack);
+            const isPrevSupported = client.isCommandSupported(Proto.Command.PreviousTrack);
 
-                if (isNextSupported && !hasSpeakerNext) {
-                    await device.addCapability('speaker_next');
-                } else if (!isNextSupported && hasSpeakerNext) {
-                    await device.removeCapability('speaker_next');
-                }
-
-                if (isPrevSupported && !hasSpeakerPrev) {
-                    await device.addCapability('speaker_prev');
-                } else if (!isPrevSupported && hasSpeakerPrev) {
-                    await device.removeCapability('speaker_prev');
-                }
+            if (isNextSupported && !hasSpeakerNext) {
+                await device.addCapability('speaker_next');
+            } else if (!isNextSupported && hasSpeakerNext) {
+                await device.removeCapability('speaker_next');
             }
 
-            await device.setCapabilityValue('speaker_playing', client?.playbackState === Proto.PlaybackState_Enum.Playing);
-            await device.setCapabilityValue('speaker_album', item.metadata?.albumName);
-            await device.setCapabilityValue('speaker_artist', item.metadata?.trackArtistName || client?.displayName || '-');
-            await device.setCapabilityValue('speaker_track', item.metadata?.title);
-            await device.setCapabilityValue('speaker_duration', item.metadata?.duration);
-            await device.setCapabilityValue('speaker_position', item.metadata?.elapsedTime);
+            if (isPrevSupported && !hasSpeakerPrev) {
+                await device.addCapability('speaker_prev');
+            } else if (!isPrevSupported && hasSpeakerPrev) {
+                await device.removeCapability('speaker_prev');
+            }
 
-            const nowPlayingAppBundleIdentifier = client?.playbackState === Proto.PlaybackState_Enum.Playing
-                ? client.bundleIdentifier
-                : null;
+            await device.setCapabilityValue('speaker_playing', client.isPlaying);
+            await device.setCapabilityValue('speaker_album', client.album);
+            await device.setCapabilityValue('speaker_artist', client.artist || client.displayName || '-');
+            await device.setCapabilityValue('speaker_track', client.title);
+            await device.setCapabilityValue('speaker_duration', client.duration);
 
-            const nowPlayingAppDisplayName = client?.playbackState === Proto.PlaybackState_Enum.Playing
-                ? client.displayName
-                : null;
+            await device.setCapabilityValue('speaker_position', client.elapsedTime);
+
+            const nowPlayingAppBundleIdentifier = client.isPlaying ? client.bundleIdentifier : null;
+            const nowPlayingAppDisplayName = client.isPlaying ? client.displayName : null;
 
             await this.#updateNowPlayingApp(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
-            await this.#setArtwork(item.metadata?.artworkIdentifier || item.metadata?.contentIdentifier || item.identifier, item);
+
+            if (item) {
+                await this.#setArtwork(item.metadata?.artworkIdentifier || item.metadata?.contentIdentifier || item.identifier, item);
+            }
+
+            await this.#emitMiniPlayerUpdate();
         } catch (err) {
             this.log(this.deviceName, 'Failed to update now playing info', err);
+        }
+    }
+
+    #getFeatureAvailability(): { previous: boolean; next: boolean; shuffle: boolean; repeat: boolean } {
+        const client = this.#protocol?.state?.nowPlayingClient;
+
+        if (!client) {
+            return {previous: false, next: false, shuffle: false, repeat: false};
+        }
+
+        return {
+            previous: client.isCommandSupported(Proto.Command.PreviousTrack),
+            next: client.isCommandSupported(Proto.Command.NextTrack),
+            shuffle: client.isCommandSupported(Proto.Command.ChangeShuffleMode),
+            repeat: client.isCommandSupported(Proto.Command.ChangeRepeatMode),
+        };
+    }
+
+    async #emitMiniPlayerUpdate(): Promise<void> {
+        const cap = (name: string): any => {
+            try {
+                return this.#device.getCapabilityValue(name);
+            } catch {
+                return null;
+            }
+        };
+
+        try {
+            await this.#device.homey.api.realtime('apple-mini-player-update', {
+                deviceId: this.#device.id,
+                deviceName: this.#device.getName(),
+                track: cap('speaker_track'),
+                artist: cap('speaker_artist'),
+                album: cap('speaker_album'),
+                playing: cap('speaker_playing'),
+                position: this.position,
+                duration: cap('speaker_duration'),
+                volume: cap('volume_set'),
+                artworkUrl: cap('artwork_url'),
+                onoff: cap('onoff'),
+                shuffle: this.shuffle,
+                repeat: this.repeat,
+                positionTimestamp: Date.now(),
+                features: this.#getFeatureAvailability(),
+            });
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to emit mini player update:', err);
         }
     }
 
