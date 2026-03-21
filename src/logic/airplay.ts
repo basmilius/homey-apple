@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
-import type { AirPlayDevice } from '@basmilius/apple-devices';
+import type { AirPlayClient, AirPlayDevice, AirPlayPlayer } from '@basmilius/apple-devices';
 import { debounce, type Device, Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import Homey from 'homey';
@@ -144,39 +144,17 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     setProtocol(protocol: AirPlayDevice): void {
         this.#protocol = protocol;
 
-        // this.#protocol.state.on('setArtwork', (message: Proto.SetArtworkMessage) => this.log('setArtwork', message));
-        // this.#protocol.state.on('updateContentItemArtwork', (message: Proto.UpdateContentItemArtworkMessage) => this.log('updateContentItemArtwork', message.contentItems[0]));
-
-        this.#protocol.state.on('setNowPlayingClient', this.#onSetNowPlayingClient.bind(this));
-        this.#protocol.state.on('setState', this.#onSetState.bind(this));
-        this.#protocol.state.on('updateContentItem', this.#onUpdateContentItem.bind(this));
+        this.#protocol.state.on('nowPlayingChanged', this.#onNowPlayingChanged.bind(this));
         this.#protocol.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
     }
 
-    async #onSetNowPlayingClient(message: Proto.SetNowPlayingClientMessage): Promise<void> {
-        this.log(this.deviceName, `Now playing client updated to ${message.client?.bundleIdentifier}.`);
+    async #onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
+        this.log(this.deviceName, `Now playing changed.`, client?.bundleIdentifier, client?.title);
 
-        if (!message.client?.bundleIdentifier) {
+        if (!client) {
             await this.clearNowPlaying();
-        }
-    }
-
-    async #onSetState(message: Proto.SetStateMessage): Promise<void> {
-        const client = this.#protocol.state.nowPlayingClient;
-
-        this.log(this.deviceName, 'State received', message.playbackState, message.playbackStateTimestamp, message.playerPath?.client?.bundleIdentifier);
-
-        if (message.playerPath?.client?.bundleIdentifier !== client?.bundleIdentifier) {
             return;
         }
-
-        this.log(this.deviceName, 'State update', message.playerPath?.client?.bundleIdentifier, message.playbackState, message.playbackStateTimestamp);
-
-        await this.#updateNowPlaying();
-    }
-
-    async #onUpdateContentItem(message: Proto.UpdateContentItemMessage): Promise<void> {
-        this.log(this.deviceName, 'Content item update', message.playerPath?.client?.bundleIdentifier, message.contentItems.length);
 
         await this.#updateNowPlaying();
     }
