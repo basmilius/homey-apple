@@ -97,6 +97,10 @@ export default class extends EventEmitter<EventMap> {
         }
     }
 
+    resetConnectAttempts(): void {
+        this.#connectAttempts = 0;
+    }
+
     #onConnected(): void {
         this.#connectAttempts = 0;
         this.emit('connected');

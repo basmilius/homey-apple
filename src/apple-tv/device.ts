@@ -65,6 +65,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #airplayLogic!: AirPlayLogic;
     #companionLink!: CompanionLinkConnection;
     #companionLinkFailed = false;
+    #companionLinkRetried = false;
     #connectedOnce = false;
     #services!: Record<string, Homey.DiscoveryStrategy>;
 
@@ -232,6 +233,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async #onCompanionLinkConnected(): Promise<void> {
+        this.#companionLinkRetried = false;
         this.log('Connected to Apple TV (Companion Link).');
         await this.#onConnected();
     }
@@ -252,6 +254,23 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     async #onCompanionLinkFailed(): Promise<void> {
         if (this.#companionLinkFailed) {
             return;
+        }
+
+        if (!this.#companionLinkRetried) {
+            this.#companionLinkRetried = true;
+
+            this.log('Companion Link failed, attempting re-discovery before giving up...');
+            await this.setUnavailable('Reconnecting to Apple TV...');
+
+            try {
+                await this.findService(COMPANION_LINK_SERVICE);
+                this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
+                this.#companionLink.resetConnectAttempts();
+                await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+                return;
+            } catch {
+                this.log('Re-discovery of Companion Link service failed.');
+            }
         }
 
         this.#companionLinkFailed = true;
