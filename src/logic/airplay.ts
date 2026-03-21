@@ -83,9 +83,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async clearNowPlaying(): Promise<void> {
         try {
-            this.#artworkIdentifier = undefined;
-            await this.#updateArtwork(null);
-            await this.#updateNowPlayingApp(null, null);
+            if (this.#artwork) {
+                this.#artworkIdentifier = undefined;
+                await this.#updateArtwork(null);
+                await this.#updateNowPlayingApp(null, null);
+            }
 
             await this.#device.setCapabilityValue('speaker_album', '');
             await this.#device.setCapabilityValue('speaker_artist', '');

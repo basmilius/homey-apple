@@ -5,14 +5,14 @@
         "build": "tsc && rm -rf .homeybuild/node_modules/**/*.js.map && rm -rf .homeybuild/node_modules/**/*.mjs.map"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.9.11",
-        "@basmilius/apple-audio-source": "^0.9.11",
-        "@basmilius/apple-common": "^0.9.11",
-        "@basmilius/apple-companion-link": "^0.9.11",
-        "@basmilius/apple-devices": "^0.9.11",
-        "@basmilius/apple-encoding": "^0.9.11",
-        "@basmilius/apple-encryption": "^0.9.11",
-        "@basmilius/apple-raop": "^0.9.11",
+        "@basmilius/apple-airplay": "^0.9.13",
+        "@basmilius/apple-audio-source": "^0.9.13",
+        "@basmilius/apple-common": "^0.9.13",
+        "@basmilius/apple-companion-link": "^0.9.13",
+        "@basmilius/apple-devices": "^0.9.13",
+        "@basmilius/apple-encoding": "^0.9.13",
+        "@basmilius/apple-encryption": "^0.9.13",
+        "@basmilius/apple-raop": "^0.9.13",
         "@basmilius/homey-common": "^1.20.0"
     },
     "devDependencies": {
