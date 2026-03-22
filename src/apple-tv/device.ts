@@ -3,7 +3,7 @@ import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type DiscoveryResult } from '@
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import { getAccessoryCredentialsFromDevice, waitFor } from '../utils';
+import { getAccessoryCredentialsFromDevice } from '../utils';
 import type AppleTVDriver from './driver';
 import type Homey from 'homey';
 
@@ -236,10 +236,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
         await this.#notify('AirPlay disconnected unexpectedly, reconnecting...');
         await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
-        await waitFor(1000);
-
-        await this.findService(AIRPLAY_SERVICE);
-        await this.#airplay.reconnect(this.discoveryResultAirPlay);
     }
 
     async #onCompanionLinkConnected(): Promise<void> {
@@ -257,10 +253,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
         await this.#notify('Companion Link disconnected unexpectedly, reconnecting...');
         await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
-        await waitFor(1000);
-
-        await this.findService(COMPANION_LINK_SERVICE);
-        await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
     }
 
     async #onCompanionLinkFailed(): Promise<void> {

@@ -5,7 +5,7 @@ import { RaopClient } from '@basmilius/apple-raop';
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import { getAccessoryCredentialsFromDevice, waitFor } from '../utils';
+import { getAccessoryCredentialsFromDevice } from '../utils';
 import type HomePodBaseDriver from './driver';
 import type Homey from 'homey';
 
@@ -108,10 +108,6 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         this.log('Disconnected from HomePod, reconnecting...');
         await this.setUnavailable('Disconnected from HomePod, reconnecting...');
-        await waitFor(1000);
-
-        await this.findService(AIRPLAY_SERVICE);
-        await this.#airplay.reconnect(this.discoveryResult);
     }
 
     #registerCapabilities(): void {

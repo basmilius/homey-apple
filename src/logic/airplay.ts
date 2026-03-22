@@ -5,6 +5,7 @@ import type { AppleApp } from '../types';
 import Homey from 'homey';
 import AppleTVDevice from '../apple-tv/device';
 import HomePodBaseDevice from '../homepod-base/device';
+import { getFallbackArtworkUrl } from '../utils';
 
 export default class AirPlayLogic extends Shortcuts<AppleApp> {
     get deviceName(): string {
@@ -247,10 +248,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        // No artwork evidence at all — clear it.
+        // No artwork evidence at all — use fallback or clear it.
         if (!artworkId) {
+            const fallbackUrl = getFallbackArtworkUrl(client.bundleIdentifier);
             this.#artworkIdentifier = undefined;
-            await this.#updateArtwork(null);
+            await this.#updateArtwork(fallbackUrl);
             return;
         }
 

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import type { AccessoryCredentials, DiscoveryResult } from '@basmilius/apple-common';
+import { AIRPLAY_SERVICE, ConnectionRecovery, type AccessoryCredentials, type DiscoveryResult } from '@basmilius/apple-common';
 import { AirPlayDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice, HomePodBaseDevice } from '../types';
 
@@ -29,9 +29,8 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
 
     readonly #device!: AppleTVDevice | HomePodBaseDevice<any>;
     #credentials: AccessoryCredentials | null = null;
-    #isReconnecting = false;
     #protocol!: AirPlayDevice;
-    #reconnectInterval?: NodeJS.Timeout;
+    #recovery?: ConnectionRecovery;
 
     constructor(device: AppleTVDevice | HomePodBaseDevice<any>) {
         super();
@@ -49,31 +48,46 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
             this.#protocol.timingServer = this.#device.app.timingServer;
         }
 
-        try {
-            await this.#protocol.connect();
-            this.#startReconnectInterval();
-        } catch (err) {
-            this.#device.error('Failed to connect to AirPlay device:', err);
-            await this.#device.setUnavailable(`Failed to connect to AirPlay device. Please file a diagnostics report. ${(err as Error).message}`);
-        }
+        await this.#protocol.connect();
     }
 
     createInstance(credentials: AccessoryCredentials | null, discoveryResult: DiscoveryResult): void {
         this.#credentials = credentials;
+        this.#recovery?.dispose();
 
         this.#protocol = new AirPlayDevice(discoveryResult);
         this.#protocol.on('connected', this.#onConnected.bind(this));
         this.#protocol.on('disconnected', this.#onDisconnected.bind(this));
 
         this.#device.airplayLogic.setProtocol(this.#protocol);
+
+        this.#recovery = new ConnectionRecovery({
+            maxAttempts: 3,
+            baseDelay: 1000,
+            reconnectInterval: RECONNECT_INTERVAL,
+            onReconnect: async () => {
+                this.#protocol.disconnectSafely();
+                await this.#device.findService(AIRPLAY_SERVICE);
+                this.#protocol.discoveryResult = this.#device.discoveryResults[AIRPLAY_SERVICE];
+                await this.connect();
+            }
+        });
+
+        this.#recovery.on('recovering', (attempt) => {
+            this.#device.log(`AirPlay recovery attempt ${attempt}...`);
+        });
+
+        this.#recovery.on('failed', () => {
+            this.#device.error('AirPlay recovery failed after max attempts.');
+        });
     }
 
     async disconnect(): Promise<void> {
-        this.#stopReconnectInterval();
+        this.#recovery?.dispose();
         await this.#protocol?.disconnect();
     }
 
-    async reconnect(discoveryResult: DiscoveryResult): Promise<void> {
+    async reconnect(discoveryResult?: DiscoveryResult): Promise<void> {
         if (discoveryResult) {
             this.#protocol.discoveryResult = discoveryResult;
         }
@@ -81,42 +95,13 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
         await this.connect();
     }
 
-    #startReconnectInterval(): void {
-        this.#stopReconnectInterval();
-
-        this.#reconnectInterval = setInterval(async () => {
-            if (this.#isReconnecting) {
-                return;
-            }
-
-            this.#isReconnecting = true;
-            this.#device.log('Scheduled AirPlay reconnection...');
-
-            try {
-                await this.#protocol.disconnect();
-                await this.#device.findServices();
-                await this.connect();
-            } catch (err) {
-                this.#device.error('Failed scheduled AirPlay reconnection:', err);
-            } finally {
-                this.#isReconnecting = false;
-            }
-        }, RECONNECT_INTERVAL);
-    }
-
-    #stopReconnectInterval(): void {
-        if (this.#reconnectInterval) {
-            clearInterval(this.#reconnectInterval);
-            this.#reconnectInterval = undefined;
-        }
-    }
-
     #onConnected(): void {
+        this.#recovery?.reset();
         this.emit('connected');
     }
 
     #onDisconnected(unexpected: boolean): void {
-        this.#stopReconnectInterval();
         this.emit('disconnected', unexpected);
+        this.#recovery?.handleDisconnect(unexpected);
     }
 }

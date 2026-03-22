@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { type AccessoryCredentials, COMPANION_LINK_SERVICE, type DiscoveryResult } from '@basmilius/apple-common';
+import { COMPANION_LINK_SERVICE, ConnectionRecovery, type AccessoryCredentials, type DiscoveryResult } from '@basmilius/apple-common';
 import { CompanionLinkDevice } from '@basmilius/apple-devices';
 import type { AppleTVDevice } from '../types';
 
@@ -16,7 +16,6 @@ type EventMap = {
     failed: [];
 };
 
-const MAX_CONNECT_ATTEMPTS = 3;
 const RECONNECT_INTERVAL = 15 * 60 * 1000;
 
 export default class CompanionLinkConnection extends EventEmitter<EventMap> {
@@ -30,10 +29,8 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
 
     readonly #device: AppleTVDevice;
     #credentials!: AccessoryCredentials;
-    #isReconnecting = false;
     #protocol!: CompanionLinkDevice;
-    #connectAttempts = 0;
-    #reconnectInterval?: NodeJS.Timeout;
+    #recovery?: ConnectionRecovery;
 
     constructor(device: AppleTVDevice) {
         super();
@@ -42,27 +39,42 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
 
     async connect(): Promise<void> {
         await this.#protocol.setCredentials(this.#credentials);
-
-        try {
-            await this.#protocol.connect();
-            this.#startReconnectInterval();
-        } catch (err) {
-            this.#device.error('Failed to connect to Companion Link device:', err);
-            await this.#device.setUnavailable(`Failed to connect to Companion Link device. Please file a diagnostics report. ${(err as Error).message}`);
-        }
+        await this.#protocol.connect();
     }
 
     createInstance(credentials: AccessoryCredentials, discoveryResult: DiscoveryResult): void {
         this.#credentials = credentials;
+        this.#recovery?.dispose();
 
         this.#protocol = new CompanionLinkDevice(discoveryResult);
         this.#protocol.on('connected', () => this.#onConnected());
         this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
         this.#protocol.on('power', (state: AttentionState) => this.#onPower(state));
+
+        this.#recovery = new ConnectionRecovery({
+            maxAttempts: 3,
+            baseDelay: 1000,
+            reconnectInterval: RECONNECT_INTERVAL,
+            onReconnect: async () => {
+                await this.#protocol.disconnectSafely();
+                await this.#device.findService(COMPANION_LINK_SERVICE);
+                this.#protocol.discoveryResult = this.#device.discoveryResultCompanionLink;
+                await this.connect();
+            }
+        });
+
+        this.#recovery.on('recovering', (attempt) => {
+            this.#device.log(`Companion Link recovery attempt ${attempt}...`);
+        });
+
+        this.#recovery.on('failed', () => {
+            this.#device.error('Companion Link recovery failed after max attempts.');
+            this.emit('failed');
+        });
     }
 
     async disconnect(): Promise<void> {
-        this.#stopReconnectInterval();
+        this.#recovery?.dispose();
         await this.#protocol?.disconnect();
     }
 
@@ -74,53 +86,18 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
         await this.connect();
     }
 
-    #startReconnectInterval(): void {
-        this.#stopReconnectInterval();
-
-        this.#reconnectInterval = setInterval(async () => {
-            if (this.#isReconnecting) {
-                return;
-            }
-
-            this.#isReconnecting = true;
-            this.#device.log('Scheduled Companion Link reconnection...');
-
-            try {
-                await this.#protocol.disconnect();
-                await this.#device.findService(COMPANION_LINK_SERVICE);
-                await this.reconnect(this.#device.discoveryResultCompanionLink);
-            } catch (err) {
-                this.#device.error('Failed scheduled Companion Link reconnection:', err);
-            } finally {
-                this.#isReconnecting = false;
-            }
-        }, RECONNECT_INTERVAL);
-    }
-
-    #stopReconnectInterval(): void {
-        if (this.#reconnectInterval) {
-            clearInterval(this.#reconnectInterval);
-            this.#reconnectInterval = undefined;
-        }
-    }
-
     resetConnectAttempts(): void {
-        this.#connectAttempts = 0;
+        this.#recovery?.reset();
     }
 
     #onConnected(): void {
-        this.#connectAttempts = 0;
+        this.#recovery?.reset();
         this.emit('connected');
     }
 
     #onDisconnected(unexpected: boolean): void {
-        this.#connectAttempts++;
-
-        if (this.#connectAttempts >= MAX_CONNECT_ATTEMPTS) {
-            this.emit('failed');
-        } else {
-            this.emit('disconnected', unexpected);
-        }
+        this.emit('disconnected', unexpected);
+        this.#recovery?.handleDisconnect(unexpected);
     }
 
     async #onPower(state: AttentionState): Promise<void> {
