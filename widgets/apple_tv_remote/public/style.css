@@ -97,35 +97,60 @@ body {
     gap: var(--homey-su-4);
 }
 
-/* D-pad */
+/* D-pad clickwheel */
 
 .dpad {
-    display: grid;
-    order: 2;
-    grid-template-columns: repeat(3, auto);
-    grid-template-rows: repeat(3, auto);
-    gap: var(--homey-su-1);
+    position: relative;
+    width: 148px;
+    height: 148px;
     flex-shrink: 0;
+    order: 2;
 }
 
-.dpad-btn-up {
-    grid-area: 1 / 2;
+.dpad > .control-btn:not(.dpad-btn-select) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    font-size: 16px;
+    -webkit-mask: radial-gradient(circle, transparent 26px, black 28px);
+    mask: radial-gradient(circle, transparent 26px, black 28px);
 }
 
-.dpad-btn-left {
-    grid-area: 2 / 1;
+.dpad > .dpad-btn-up {
+    clip-path: polygon(50% calc(50% - 2px), 2px 0%, calc(100% - 2px) 0%);
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 16px;
 }
 
-.dpad-btn-select {
-    grid-area: 2 / 2;
+.dpad > .dpad-btn-right {
+    clip-path: polygon(calc(50% + 2px) 50%, 100% 2px, 100% calc(100% - 2px));
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 16px;
 }
 
-.dpad-btn-right {
-    grid-area: 2 / 3;
+.dpad > .dpad-btn-down {
+    clip-path: polygon(50% calc(50% + 2px), calc(100% - 2px) 100%, 2px 100%);
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 16px;
 }
 
-.dpad-btn-down {
-    grid-area: 3 / 2;
+.dpad > .dpad-btn-left {
+    clip-path: polygon(calc(50% - 2px) 50%, 0% calc(100% - 2px), 0% 2px);
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+.dpad > .dpad-btn-select {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* Right side: media + system + volume rows */
