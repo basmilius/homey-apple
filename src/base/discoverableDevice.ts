@@ -23,8 +23,9 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
     }
 
     async findService(service: string, update: boolean = true): Promise<void> {
-        const discoveryResult = await this.#findViaHomey(service)
-            ?? await this.#findViaUnicast(service);
+        const discoveryResult = update
+            ? (await this.#findViaUnicast(service) ?? await this.#findViaHomey(service))
+            : (await this.#findViaHomey(service) ?? await this.#findViaUnicast(service));
 
         if (!discoveryResult) {
             throw new Error(`Cannot find ${this.discoveryId} (${service}) on network.`);
