@@ -54,9 +54,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
     #artworkRequestingIdentifier?: string;
+    #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
     #protocol!: AirPlayDevice;
     #updateLock: Promise<void> = Promise.resolve();
+    #volumeDebounceTimer?: NodeJS.Timeout;
 
     constructor(device: Device<AppleApp, any>) {
         super(device.app);
@@ -74,7 +76,9 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async uninitialize(): Promise<void> {
+        clearTimeout(this.#nowPlayingDebounceTimer);
         clearTimeout(this.#nowPlayingAppTimer);
+        clearTimeout(this.#volumeDebounceTimer);
         this.#protocol.state.removeAllListeners();
         await this.#artwork.unregister();
     }
@@ -159,28 +163,34 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async #onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
         this.log(this.deviceName, `Now playing changed.`, client?.bundleIdentifier, client?.title);
 
-        await this.#serialized(async () => {
-            if (!client) {
-                await this.#clearNowPlayingImpl();
-                return;
-            }
+        clearTimeout(this.#nowPlayingDebounceTimer);
+        this.#nowPlayingDebounceTimer = setTimeout(async () => {
+            await this.#serialized(async () => {
+                if (!client) {
+                    await this.#clearNowPlayingImpl();
+                    return;
+                }
 
-            await this.#updateNowPlaying();
-        });
+                await this.#updateNowPlaying();
+            });
+        }, 300);
     }
 
     async #onVolumeDidChange(): Promise<void> {
-        try {
-            if (!this.#device.hasCapability('volume_set')) {
-                return;
-            }
+        clearTimeout(this.#volumeDebounceTimer);
+        this.#volumeDebounceTimer = setTimeout(async () => {
+            try {
+                if (!this.#device.hasCapability('volume_set')) {
+                    return;
+                }
 
-            this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
-            await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
-            await this.#emitMiniPlayerUpdate();
-        } catch (err) {
-            this.log(this.deviceName, 'Failed to update volume:', err);
-        }
+                this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
+                await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
+                await this.#emitMiniPlayerUpdate();
+            } catch (err) {
+                this.log(this.deviceName, 'Failed to update volume:', err);
+            }
+        }, 300);
     }
 
     async #setArtwork(client: AirPlayClient): Promise<void> {
@@ -255,12 +265,33 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #updateArtworkBuffer(buffer: Uint8Array<ArrayBufferLike> | Buffer): Promise<void> {
         const imageBuffer = Buffer.from(buffer);
-        this.log(this.deviceName, `Artwork buffer size: ${imageBuffer.byteLength}, header: ${imageBuffer.subarray(0, 4).toString('hex')}`);
+        this.log(this.deviceName, `Artwork buffer size: ${imageBuffer.byteLength}, header: ${imageBuffer.subarray(0, 12).toString('hex')}`);
+
+        if (this.#isHeicBuffer(imageBuffer)) {
+            this.log(this.deviceName, 'Skipping HEIC/HEIF artwork (not supported by Homey).');
+            return;
+        }
+
         this.#artwork.setStream((stream: any) => {
             stream.end(imageBuffer);
         });
         await this.#artwork.update();
         await this.updateArtworkUrl();
+    }
+
+    #isHeicBuffer(buffer: Buffer): boolean {
+        if (buffer.byteLength < 12) {
+            return false;
+        }
+
+        const ftyp = buffer.subarray(4, 8).toString('ascii');
+
+        if (ftyp !== 'ftyp') {
+            return false;
+        }
+
+        const brand = buffer.subarray(8, 12).toString('ascii');
+        return ['heic', 'heix', 'hevc', 'heim', 'heis', 'mif1'].includes(brand);
     }
 
     async #updateNowPlaying(): Promise<void> {

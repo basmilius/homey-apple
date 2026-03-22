@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import * as AirPlay from '@basmilius/apple-airplay';
-import { convertDiscoveryResult, waitFor } from '../utils';
+import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
 import type Homey from 'homey';
 
 export default class HomePodBasePairing extends EventEmitter {
@@ -38,6 +38,9 @@ export default class HomePodBasePairing extends EventEmitter {
             name: this.#device?.name,
             data: {
                 id: this.#device?.id
+            },
+            store: {
+                mac: extractMacAddress(this.#device?.txt as Record<string, string>)
             }
         }));
     }

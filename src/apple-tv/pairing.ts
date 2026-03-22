@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import * as AirPlay from '@basmilius/apple-airplay';
-import { convertDiscoveryResult, waitFor } from '../utils';
+import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
 import type Homey from 'homey';
 
 type Device = Homey.DiscoveryResultMDNSSD & {
@@ -50,7 +50,8 @@ export default class AppleTVPairing extends EventEmitter {
             },
             store: {
                 id: this.#device?.id,
-                credentials: this.#device?.store?.credentials
+                credentials: this.#device?.store?.credentials,
+                mac: extractMacAddress(this.#device?.txt as Record<string, string>)
             }
         }));
     }

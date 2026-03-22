@@ -8,6 +8,8 @@ type EventMap = {
     disconnected: [boolean];
 };
 
+const RECONNECT_INTERVAL = 15 * 60 * 1000;
+
 export default class AirPlayConnection extends EventEmitter<EventMap> {
     get isConnected(): boolean {
         return this.#protocol?.isConnected ?? false;
@@ -27,7 +29,9 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
 
     readonly #device!: AppleTVDevice | HomePodBaseDevice<any>;
     #credentials: AccessoryCredentials | null = null;
+    #isReconnecting = false;
     #protocol!: AirPlayDevice;
+    #reconnectInterval?: NodeJS.Timeout;
 
     constructor(device: AppleTVDevice | HomePodBaseDevice<any>) {
         super();
@@ -47,6 +51,7 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
 
         try {
             await this.#protocol.connect();
+            this.#startReconnectInterval();
         } catch (err) {
             this.#device.error('Failed to connect to AirPlay device:', err);
             await this.#device.setUnavailable(`Failed to connect to AirPlay device. Please file a diagnostics report. ${(err as Error).message}`);
@@ -64,6 +69,7 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
     }
 
     async disconnect(): Promise<void> {
+        this.#stopReconnectInterval();
         await this.#protocol?.disconnect();
     }
 
@@ -75,11 +81,42 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
         await this.connect();
     }
 
+    #startReconnectInterval(): void {
+        this.#stopReconnectInterval();
+
+        this.#reconnectInterval = setInterval(async () => {
+            if (this.#isReconnecting) {
+                return;
+            }
+
+            this.#isReconnecting = true;
+            this.#device.log('Scheduled AirPlay reconnection...');
+
+            try {
+                await this.#protocol.disconnect();
+                await this.#device.findServices();
+                await this.connect();
+            } catch (err) {
+                this.#device.error('Failed scheduled AirPlay reconnection:', err);
+            } finally {
+                this.#isReconnecting = false;
+            }
+        }, RECONNECT_INTERVAL);
+    }
+
+    #stopReconnectInterval(): void {
+        if (this.#reconnectInterval) {
+            clearInterval(this.#reconnectInterval);
+            this.#reconnectInterval = undefined;
+        }
+    }
+
     #onConnected(): void {
         this.emit('connected');
     }
 
     #onDisconnected(unexpected: boolean): void {
+        this.#stopReconnectInterval();
         this.emit('disconnected', unexpected);
     }
 }

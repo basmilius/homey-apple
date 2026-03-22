@@ -1,7 +1,7 @@
 import { type DiscoveryResult, mdnsUnicast, type MdnsService } from '@basmilius/apple-common';
 import { Device, type Driver } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
-import { convertDiscoveryResult, waitFor } from '../utils';
+import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
 import type Homey from 'homey';
 
 export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp>> extends Device<AppleApp, TDriver> {
@@ -55,10 +55,12 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
         this.log('[discovery]', `Found ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
+        await this.#migrateMacAddress(discoveryResult);
     }
 
     async onServiceUpdated(service: string, discoveryResult: DiscoveryResult): Promise<void> {
         this.log('[discovery]', `Updated ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
+        await this.#migrateMacAddress(discoveryResult);
     }
 
     async #findViaHomey(service: string): Promise<DiscoveryResult | null> {
@@ -68,15 +70,27 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             return null;
         }
 
+        const storedMac = this.getStoreValue('mac') as string | null;
         let result: Homey.DiscoveryResultMDNSSD | undefined;
         let retries = 0;
 
-        while (retries < 3) {
+        while (retries < 5) {
             const results = discovery.getDiscoveryResults();
 
             for (const [id, r] of Object.entries(results)) {
+                const mdnsResult = r as Homey.DiscoveryResultMDNSSD;
+
+                if (storedMac) {
+                    const mac = extractMacAddress(mdnsResult.txt as Record<string, string>);
+
+                    if (mac === storedMac) {
+                        result = mdnsResult;
+                        break;
+                    }
+                }
+
                 if (id === this.discoveryId) {
-                    result = r as Homey.DiscoveryResultMDNSSD;
+                    result = mdnsResult;
                     break;
                 }
             }
@@ -86,10 +100,25 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             }
 
             retries++;
-            await waitFor(500);
+            await waitFor(1000);
         }
 
         return result ? convertDiscoveryResult(result) : null;
+    }
+
+    async #migrateMacAddress(discoveryResult: DiscoveryResult): Promise<void> {
+        if (this.getStoreValue('mac')) {
+            return;
+        }
+
+        const mac = extractMacAddress(discoveryResult.txt as Record<string, string>);
+
+        if (!mac) {
+            return;
+        }
+
+        await this.setStoreValue('mac', mac);
+        this.log('[discovery]', `Migrated device to MAC-based identification: ${mac}`);
     }
 
     async #findViaUnicast(service: string): Promise<DiscoveryResult | null> {
@@ -101,7 +130,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
         this.log('[discovery]', `Homey mDNS cache miss for ${service}, trying unicast to ${existing.address}...`);
 
-        const results = await mdnsUnicast([existing.address], [service], 4);
+        const results = await mdnsUnicast([existing.address], [service], 5);
         const match = results.find((s: MdnsService) => s.address === existing.address);
 
         if (!match) {

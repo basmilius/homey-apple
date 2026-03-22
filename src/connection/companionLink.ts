@@ -17,7 +17,7 @@ type EventMap = {
 };
 
 const MAX_CONNECT_ATTEMPTS = 3;
-const RECONNECT_INTERVAL = 5 * 60 * 1000;
+const RECONNECT_INTERVAL = 15 * 60 * 1000;
 
 export default class CompanionLinkConnection extends EventEmitter<EventMap> {
     get isConnected(): boolean {
@@ -30,6 +30,7 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
 
     readonly #device: AppleTVDevice;
     #credentials!: AccessoryCredentials;
+    #isReconnecting = false;
     #protocol!: CompanionLinkDevice;
     #connectAttempts = 0;
     #reconnectInterval?: NodeJS.Timeout;
@@ -44,8 +45,7 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
 
         try {
             await this.#protocol.connect();
-            // note(backport): Scheduled reconnect disabled — was causing instability.
-            // this.#startReconnectInterval();
+            this.#startReconnectInterval();
         } catch (err) {
             this.#device.error('Failed to connect to Companion Link device:', err);
             await this.#device.setUnavailable(`Failed to connect to Companion Link device. Please file a diagnostics report. ${(err as Error).message}`);
@@ -78,14 +78,21 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
         this.#stopReconnectInterval();
 
         this.#reconnectInterval = setInterval(async () => {
-            this.#device.log('Scheduled reconnection interval reached, restarting Companion Link connection...');
+            if (this.#isReconnecting) {
+                return;
+            }
+
+            this.#isReconnecting = true;
+            this.#device.log('Scheduled Companion Link reconnection...');
 
             try {
                 await this.#protocol.disconnect();
                 await this.#device.findService(COMPANION_LINK_SERVICE);
                 await this.reconnect(this.#device.discoveryResultCompanionLink);
             } catch (err) {
-                this.#device.error('Failed to restart Companion Link connection:', err);
+                this.#device.error('Failed scheduled Companion Link reconnection:', err);
+            } finally {
+                this.#isReconnecting = false;
             }
         }, RECONNECT_INTERVAL);
     }
