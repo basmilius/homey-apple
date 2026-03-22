@@ -352,7 +352,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
             await device.setCapabilityValue('speaker_playing', client.isPlaying);
             await device.setCapabilityValue('speaker_album', client.album);
-            await device.setCapabilityValue('speaker_artist', client.artist || client.displayName || '-');
+            await device.setCapabilityValue('speaker_artist', client.artist || client.activePlayer?.currentItemMetadata?.trackArtistName || client.displayName || '-');
             await device.setCapabilityValue('speaker_track', client.title);
             await device.setCapabilityValue('speaker_duration', client.duration);
 
