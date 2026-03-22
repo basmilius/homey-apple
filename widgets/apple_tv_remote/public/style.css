@@ -114,8 +114,8 @@ body {
     height: 100%;
     border-radius: 50%;
     font-size: 16px;
-    -webkit-mask: radial-gradient(circle, transparent 26px, black 28px);
-    mask: radial-gradient(circle, transparent 26px, black 28px);
+    -webkit-mask: radial-gradient(circle, transparent 27px, black 27px);
+    mask: radial-gradient(circle, transparent 27px, black 27px);
 }
 
 .dpad > .dpad-btn-up {
