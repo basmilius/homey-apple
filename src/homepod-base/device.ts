@@ -85,11 +85,6 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         try {
             const credentials = getAccessoryCredentialsFromDevice(this);
 
-            if (!credentials) {
-                await this.setUnavailable('Cannot find credentials, please re-pair the device.');
-                return;
-            }
-
             if (!this.discoveryResult) {
                 await this.setUnavailable('Service discovery not complete, waiting for device...');
                 return;
