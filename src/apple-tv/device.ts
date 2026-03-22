@@ -116,6 +116,11 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                 return;
             }
 
+            if (!this.discoveryResultAirPlay || !this.discoveryResultCompanionLink) {
+                await this.setUnavailable('Service discovery not complete, waiting for device...');
+                return;
+            }
+
             this.log('Connecting to Apple TV (AirPlay)...');
             this.#airplay.createInstance(credentials, this.discoveryResultAirPlay);
             await this.#airplay.connect();

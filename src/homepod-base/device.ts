@@ -85,6 +85,16 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         try {
             const credentials = getAccessoryCredentialsFromDevice(this);
 
+            if (!credentials) {
+                await this.setUnavailable('Cannot find credentials, please re-pair the device.');
+                return;
+            }
+
+            if (!this.discoveryResult) {
+                await this.setUnavailable('Service discovery not complete, waiting for device...');
+                return;
+            }
+
             this.#airplay.createInstance(credentials, this.discoveryResult);
             await this.#airplay.connect();
         } catch (err) {
@@ -170,6 +180,10 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     async playUrl(url: string, volume?: number): Promise<void> {
         if (!this.app.useTimingServer) {
             throw new Error('Timing server is not enabled.');
+        }
+
+        if (!this.discoveryResult) {
+            throw new Error('Service discovery not complete.');
         }
 
         try {
