@@ -146,6 +146,10 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     setProtocol(protocol: AirPlayDevice): void {
+        if (this.#protocol) {
+            this.#protocol.state.removeAllListeners();
+        }
+
         this.#protocol = protocol;
 
         this.#protocol.state.on('nowPlayingChanged', this.#onNowPlayingChanged.bind(this));
@@ -228,6 +232,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#updateArtwork(null);
             await this.#protocol.requestPlaybackQueue(1);
         } catch (err) {
+            this.#artworkRequestingIdentifier = undefined;
             this.#device.error(this.deviceName, 'Failed to request artwork from playback queue', err);
         }
     }
