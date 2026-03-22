@@ -19,7 +19,7 @@ type EventMap = {
 const MAX_CONNECT_ATTEMPTS = 3;
 const RECONNECT_INTERVAL = 5 * 60 * 1000;
 
-export default class extends EventEmitter<EventMap> {
+export default class CompanionLinkConnection extends EventEmitter<EventMap> {
     get isConnected(): boolean {
         return this.#protocol?.isConnected ?? false;
     }

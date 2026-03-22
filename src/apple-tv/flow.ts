@@ -17,8 +17,12 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
     }
 
     async triggerCompanionLinkFailed(device: AppleTVDevice): Promise<void> {
-        const triggerCard = this.flow.getDeviceTriggerCard('appletv_companion_link_failed');
-        await triggerCard.trigger(device);
+        try {
+            const triggerCard = this.flow.getDeviceTriggerCard('appletv_companion_link_failed');
+            await triggerCard.trigger(device);
+        } catch (err) {
+            this.log(device.name, 'Failed to trigger companion link failed card.', err);
+        }
     }
 
     async triggerArtworkUrlUpdated(device: AppleTVDevice, localUrl: string, cloudUrl: string): Promise<void> {
@@ -99,107 +103,35 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         }
 
         remote.registerRunListener(async ({device, command}: RunArguments) => {
-            switch (command) {
-                case 'up':
-                    await device.airplay.remote.up();
-                    break;
+            const commands: Record<string, () => Promise<void>> = {
+                up: () => device.airplay.remote.up(),
+                down: () => device.airplay.remote.down(),
+                left: () => device.airplay.remote.left(),
+                right: () => device.airplay.remote.right(),
+                select: () => device.airplay.remote.select(),
+                menu: () => device.airplay.remote.menu(),
+                home: () => device.airplay.remote.home(),
+                play: () => device.airplay.remote.play(),
+                pause: () => device.airplay.remote.pause(),
+                playPause: () => device.airplay.remote.playPause(),
+                next: () => device.airplay.remote.next(),
+                previous: () => device.airplay.remote.previous(),
+                volumeUp: () => device.airplay.remote.volumeUp(),
+                volumeDown: () => device.airplay.remote.volumeDown(),
+                mute: () => device.airplay.remote.mute(),
+                stop: () => device.airplay.remote.commandStop(),
+                screensaver: () => device.companionLink.protocol.pressButton('Screensaver'),
+                topMenu: () => device.companionLink.protocol.pressButton('Guide'),
+                homeHold: () => device.companionLink.protocol.pressButton('Home', 'Hold'),
+                doubleTapSelect: () => device.companionLink.protocol.pressButton('Select', 'DoubleTap'),
+                channelUp: () => device.companionLink.protocol.pressButton('ChannelIncrement'),
+                channelDown: () => device.companionLink.protocol.pressButton('ChannelDecrement'),
+                siri: () => device.companionLink.protocol.pressButton('Siri'),
+                wake: () => device.airplay.remote.wake(),
+                suspend: () => device.airplay.remote.suspend()
+            };
 
-                case 'down':
-                    await device.airplay.remote.down();
-                    break;
-
-                case 'left':
-                    await device.airplay.remote.left();
-                    break;
-
-                case 'right':
-                    await device.airplay.remote.right();
-                    break;
-
-                case 'select':
-                    await device.airplay.remote.select();
-                    break;
-
-                case 'menu':
-                    await device.airplay.remote.menu();
-                    break;
-
-                case 'home':
-                    await device.airplay.remote.home();
-                    break;
-
-                case 'play':
-                    await device.airplay.remote.play();
-                    break;
-
-                case 'pause':
-                    await device.airplay.remote.pause();
-                    break;
-
-                case 'playPause':
-                    await device.airplay.remote.playPause();
-                    break;
-
-                case 'next':
-                    await device.airplay.remote.next();
-                    break;
-
-                case 'previous':
-                    await device.airplay.remote.previous();
-                    break;
-
-                case 'volumeUp':
-                    await device.airplay.remote.volumeUp();
-                    break;
-
-                case 'volumeDown':
-                    await device.airplay.remote.volumeDown();
-                    break;
-
-                case 'mute':
-                    await device.airplay.remote.mute();
-                    break;
-
-                case 'stop':
-                    await device.airplay.remote.commandStop();
-                    break;
-
-                case 'screensaver':
-                    await device.companionLink.protocol.pressButton('Screensaver');
-                    break;
-
-                case 'topMenu':
-                    await device.companionLink.protocol.pressButton('Guide');
-                    break;
-
-                case 'homeHold':
-                    await device.companionLink.protocol.pressButton('Home', 'Hold');
-                    break;
-
-                case 'doubleTapSelect':
-                    await device.companionLink.protocol.pressButton('Select', 'DoubleTap');
-                    break;
-
-                case 'channelUp':
-                    await device.companionLink.protocol.pressButton('ChannelIncrement');
-                    break;
-
-                case 'channelDown':
-                    await device.companionLink.protocol.pressButton('ChannelDecrement');
-                    break;
-
-                case 'siri':
-                    await device.companionLink.protocol.pressButton('Siri');
-                    break;
-
-                case 'wake':
-                    await device.airplay.remote.wake();
-                    break;
-
-                case 'suspend':
-                    await device.airplay.remote.suspend();
-                    break;
-            }
+            await commands[command]?.();
         });
     }
 

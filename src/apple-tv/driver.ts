@@ -12,7 +12,6 @@ export default class AppleTVDriver extends Driver<AppleApp> {
         const pairing = new AppleTVPairing(session, this.discovery.getStrategy('airplay'), this.getDevices());
 
         pairing.on('error', err => {
-            // todo: Show error screen or something.
             this.error(err);
         });
 

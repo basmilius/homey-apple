@@ -1,6 +1,7 @@
 /env.json
 /node_modules/
 /.claude/
+__pycache__/
 /.homeybuild/
 /.idea/
 

@@ -10,7 +10,6 @@ export default abstract class HomePodBaseDriver extends Driver<AppleApp> {
         const pairing = new HomePodBasePairing(session, this.discovery.getStrategy('airplay'), this.modelFilter, this.getDevices());
 
         pairing.on('error', err => {
-            // todo: Show error screen or something.
             this.error(err);
         });
 

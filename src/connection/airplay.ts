@@ -8,7 +8,7 @@ type EventMap = {
     disconnected: [boolean];
 };
 
-export default class extends EventEmitter<EventMap> {
+export default class AirPlayConnection extends EventEmitter<EventMap> {
     get isConnected(): boolean {
         return this.#protocol?.isConnected ?? false;
     }

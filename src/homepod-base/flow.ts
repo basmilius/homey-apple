@@ -11,12 +11,16 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
     }
 
     async triggerArtworkUrlUpdated(device: HomePodBaseDevice<HomePodBaseDriver>, localUrl: string, cloudUrl: string): Promise<void> {
-        const triggerCard = this.flow.getDeviceTriggerCard('homepod_artwork_url_updated');
+        try {
+            const triggerCard = this.flow.getDeviceTriggerCard('homepod_artwork_url_updated');
 
-        await triggerCard.trigger(device, {
-            localUrl,
-            cloudUrl
-        });
+            await triggerCard.trigger(device, {
+                localUrl,
+                cloudUrl
+            });
+        } catch (err) {
+            this.log(device.name, 'Failed to trigger artwork url updated card.', err);
+        }
     }
 
     #registerPlayUrl(): void {

@@ -178,21 +178,8 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         const client = await RaopClient.create(this.discoveryResult, this.app.timingServer);
         const audioSource = await UrlAudioSource.fromUrl(url);
 
-        // Let the actual playback happen in the background.
-        new Promise<void>(async resolve => {
-            await client.stream(audioSource, {
-                metadata: {
-                    title: 'Olympics',
-                    artist: 'RAOP Test',
-                    album: 'Test Album',
-                    duration: 5
-                },
-                volume
-            });
-
-            await client.close();
-
-            resolve();
-        });
+        void client.stream(audioSource, {volume})
+            .then(() => client.close())
+            .catch(err => this.error('Failed to stream audio:', err));
     }
 }

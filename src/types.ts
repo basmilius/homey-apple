@@ -11,9 +11,3 @@ export type {
     HomePodBaseDevice,
     HomePodBaseDriver
 };
-
-export type StrategyKey =
-    | 'appletv-airplay'
-    | 'appletv-companion-link'
-    | 'homepod'
-    | 'homepod-mini';
