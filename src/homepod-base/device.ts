@@ -74,6 +74,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     }
 
     async onUninit(): Promise<void> {
+        this.#airplay.removeAllListeners();
         await this.#airplayLogic.uninitialize();
         await this.#disconnect();
 
@@ -175,11 +176,16 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
             throw new Error('Timing server is not enabled.');
         }
 
-        const client = await RaopClient.create(this.discoveryResult, this.app.timingServer);
-        const audioSource = await UrlAudioSource.fromUrl(url);
+        try {
+            const client = await RaopClient.create(this.discoveryResult, this.app.timingServer);
+            const audioSource = await UrlAudioSource.fromUrl(url);
 
-        void client.stream(audioSource, {volume})
-            .then(() => client.close())
-            .catch(err => this.error('Failed to stream audio:', err));
+            void client.stream(audioSource, {volume})
+                .then(() => client.close())
+                .catch(err => this.error('Failed to stream audio:', err));
+        } catch (err) {
+            this.error('Failed to start audio playback:', err);
+            throw err;
+        }
     }
 }

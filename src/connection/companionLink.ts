@@ -63,7 +63,7 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
 
     async disconnect(): Promise<void> {
         this.#stopReconnectInterval();
-        await this.#protocol.disconnect();
+        await this.#protocol?.disconnect();
     }
 
     async reconnect(discoveryResult?: DiscoveryResult): Promise<void> {

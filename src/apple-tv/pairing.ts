@@ -57,8 +57,13 @@ export default class AppleTVPairing extends EventEmitter {
     }
 
     async onPincode(code: Buffer): Promise<Device | undefined> {
+        if (!this.#device) {
+            this.emit('error', 'No device selected.');
+            return;
+        }
+
         const pin = code.join('');
-        this.emit('log', `Pairing to ${this.#device?.name} with PIN ${pin}`);
+        this.emit('log', `Pairing to ${this.#device.name} with PIN ${pin}`);
 
         this.#m2 = await this.#protocol.pairing.internal.m2(this.#m1, pin);
         this.#m3 = await this.#protocol.pairing.internal.m3(this.#m2);
@@ -67,8 +72,8 @@ export default class AppleTVPairing extends EventEmitter {
 
         const credentials = await this.#protocol.pairing.internal.m6(this.#m4, this.#m5);
 
-        this.#device!.store ??= {};
-        this.#device!.store!.credentials = {
+        this.#device.store ??= {};
+        this.#device.store.credentials = {
             accessoryIdentifier: credentials.accessoryIdentifier,
             accessoryLongTermPublicKey: credentials.accessoryLongTermPublicKey.toString('hex'),
             pairingId: credentials.pairingId.toString('hex'),
@@ -79,7 +84,7 @@ export default class AppleTVPairing extends EventEmitter {
         this.#session.showView('add_device')
             .catch(e => this.emit('log', e));
 
-        await this.#protocol.disconnect();
+        this.#protocol.disconnect();
 
         return this.#device;
     }
@@ -109,11 +114,16 @@ export default class AppleTVPairing extends EventEmitter {
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 
-        await this.#protocol.connect();
-        await this.#protocol.pairing.start();
-        await this.#protocol.pairing.pinStart();
+        try {
+            await this.#protocol.connect();
+            await this.#protocol.pairing.start();
+            await this.#protocol.pairing.pinStart();
 
-        this.#m1 = await this.#protocol.pairing.internal.m1();
+            this.#m1 = await this.#protocol.pairing.internal.m1();
+        } catch (err) {
+            this.#protocol.disconnect();
+            throw err;
+        }
     }
 
     async onShowViewDiscover(): Promise<void> {

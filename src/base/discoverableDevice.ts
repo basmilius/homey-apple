@@ -49,6 +49,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
                     .map(async service => this.findService(service, update))
             );
         } catch (err) {
+            this.error('[discovery]', `Failed to find ${this.discoveryId} on network:`, err);
             await this.setUnavailable(`Cannot find ${this.discoveryId} on network. You might need to pair with the device again.`);
         }
     }

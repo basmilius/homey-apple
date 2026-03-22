@@ -99,6 +99,8 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async onUninit(): Promise<void> {
+        this.#airplay.removeAllListeners();
+        this.#companionLink.removeAllListeners();
         await this.#airplayLogic.uninitialize();
         await this.#disconnect();
 

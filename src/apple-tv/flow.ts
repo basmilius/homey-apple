@@ -68,16 +68,17 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         });
 
         launchApp.registerArgumentAutocompleteListener('app', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-            const launchableApps = await device.companionLink.protocol.getLaunchableApps();
+            const launchableApps: { name: string; bundleId: string }[] = await device.companionLink.protocol.getLaunchableApps();
+            const lowerQuery = query.trim().toLowerCase();
 
             return launchableApps
-                .filter((app: any) => query.trim().length === 0 || app.name.toLowerCase().includes(query.toLowerCase()))
-                .map((app: any) => ({
+                .filter(app => lowerQuery.length === 0 || app.name.toLowerCase().includes(lowerQuery))
+                .map(app => ({
                     id: app.bundleId,
                     name: app.name,
                     description: app.bundleId
                 }))
-                .sort((a: any, b: any) => a.name.localeCompare(b.name));
+                .sort((a, b) => a.name.localeCompare(b.name));
         });
     }
 
@@ -131,7 +132,13 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                 suspend: () => device.airplay.remote.suspend()
             };
 
-            await commands[command]?.();
+            const fn = commands[command];
+
+            if (!fn) {
+                throw new Error(`Unknown remote command: ${command}`);
+            }
+
+            await fn();
         });
     }
 
@@ -229,15 +236,16 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         });
 
         switchAccount.registerArgumentAutocompleteListener('account', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-            const userAccounts = await device.companionLink.protocol.getUserAccounts();
+            const userAccounts: { name: string; accountId: string }[] = await device.companionLink.protocol.getUserAccounts();
+            const lowerQuery = query.trim().toLowerCase();
 
             return userAccounts
-                .filter((app: any) => query.trim().length === 0 || app.name.toLowerCase().includes(query.toLowerCase()))
-                .map((app: any) => ({
-                    id: app.accountId,
-                    name: app.name
+                .filter(account => lowerQuery.length === 0 || account.name.toLowerCase().includes(lowerQuery))
+                .map(account => ({
+                    id: account.accountId,
+                    name: account.name
                 }))
-                .sort((a: any, b: any) => a.name.localeCompare(b.name));
+                .sort((a, b) => a.name.localeCompare(b.name));
         });
     }
 }

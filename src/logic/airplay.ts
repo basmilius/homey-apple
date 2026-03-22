@@ -54,6 +54,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
     #artworkRequestingIdentifier?: string;
+    #boundOnNowPlayingChanged?: (...args: any[]) => void;
+    #boundOnVolumeDidChange?: () => void;
     #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
     #protocol!: AirPlayDevice;
@@ -79,8 +81,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         clearTimeout(this.#nowPlayingDebounceTimer);
         clearTimeout(this.#nowPlayingAppTimer);
         clearTimeout(this.#volumeDebounceTimer);
-        this.#protocol.state.removeAllListeners();
-        await this.#artwork.unregister();
+        this.#removeProtocolListeners();
+
+        try {
+            await this.#artwork.unregister();
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to unregister artwork image:', err);
+        }
     }
 
     async clearNowPlaying(): Promise<void> {
@@ -150,47 +157,63 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     setProtocol(protocol: AirPlayDevice): void {
-        if (this.#protocol) {
-            this.#protocol.state.removeAllListeners();
-        }
+        this.#removeProtocolListeners();
 
         this.#protocol = protocol;
 
-        this.#protocol.state.on('nowPlayingChanged', this.#onNowPlayingChanged.bind(this));
-        this.#protocol.state.on('volumeDidChange', async () => await this.#onVolumeDidChange());
+        this.#boundOnNowPlayingChanged = this.#onNowPlayingChanged.bind(this);
+        this.#boundOnVolumeDidChange = () => this.#onVolumeDidChange();
+
+        this.#protocol.state.on('nowPlayingChanged', this.#boundOnNowPlayingChanged);
+        this.#protocol.state.on('volumeDidChange', this.#boundOnVolumeDidChange);
+    }
+
+    #removeProtocolListeners(): void {
+        if (!this.#protocol) {
+            return;
+        }
+
+        if (this.#boundOnNowPlayingChanged) {
+            this.#protocol.state.off('nowPlayingChanged', this.#boundOnNowPlayingChanged);
+        }
+
+        if (this.#boundOnVolumeDidChange) {
+            this.#protocol.state.off('volumeDidChange', this.#boundOnVolumeDidChange);
+        }
     }
 
     async #onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
         this.log(this.deviceName, `Now playing changed.`, client?.bundleIdentifier, client?.title);
 
         clearTimeout(this.#nowPlayingDebounceTimer);
-        this.#nowPlayingDebounceTimer = setTimeout(async () => {
-            await this.#serialized(async () => {
+        this.#nowPlayingDebounceTimer = setTimeout(() => {
+            this.#serialized(async () => {
                 if (!client) {
                     await this.#clearNowPlayingImpl();
                     return;
                 }
 
                 await this.#updateNowPlaying();
-            });
+            }).catch(err => this.log(this.deviceName, 'Failed to process now playing change:', err));
         }, 300);
     }
 
-    async #onVolumeDidChange(): Promise<void> {
+    #onVolumeDidChange(): void {
         clearTimeout(this.#volumeDebounceTimer);
-        this.#volumeDebounceTimer = setTimeout(async () => {
-            try {
-                if (!this.#device.hasCapability('volume_set')) {
-                    return;
-                }
-
-                this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
-                await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
-                await this.#emitMiniPlayerUpdate();
-            } catch (err) {
-                this.log(this.deviceName, 'Failed to update volume:', err);
-            }
+        this.#volumeDebounceTimer = setTimeout(() => {
+            this.#updateVolume()
+                .catch(err => this.log(this.deviceName, 'Failed to update volume:', err));
         }, 300);
+    }
+
+    async #updateVolume(): Promise<void> {
+        if (!this.#device.hasCapability('volume_set')) {
+            return;
+        }
+
+        this.log(this.deviceName, `Volume changed to ${this.#protocol.state.volume}.`);
+        await this.#device.setCapabilityValue('volume_set', this.#protocol.state.volume);
+        await this.#emitMiniPlayerUpdate();
     }
 
     async #setArtwork(client: AirPlayClient): Promise<void> {

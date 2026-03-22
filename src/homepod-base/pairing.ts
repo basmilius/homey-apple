@@ -70,13 +70,18 @@ export default class HomePodBasePairing extends EventEmitter {
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 
-        await this.#protocol.connect();
-        await this.#protocol.pairing.start();
-        const keys = await this.#protocol.pairing.transient();
+        try {
+            await this.#protocol.connect();
+            await this.#protocol.pairing.start();
+            const keys = await this.#protocol.pairing.transient();
 
-        this.emit('log', `Pairing successful! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
+            this.emit('log', `Pairing successful! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
+        } catch (err) {
+            this.#protocol.disconnect();
+            throw err;
+        }
 
-        await this.#protocol.disconnect();
+        this.#protocol.disconnect();
         await this.#session.showView('add_my_device');
     }
 

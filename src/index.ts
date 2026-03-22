@@ -22,7 +22,8 @@ export default class AppleApp extends App<AppleApp> {
     }
 
     get useTimingServer(): boolean {
-        return !('SERVER' in process.env) || !process.env.SERVER!.startsWith('ws://host');
+        const server = process.env.SERVER;
+        return !server || !server.startsWith('ws://host');
     }
 
     #appleTvFlow!: AppleTVFlow;
@@ -31,7 +32,12 @@ export default class AppleApp extends App<AppleApp> {
 
     async onInit(): Promise<void> {
         this.#timingServer = new TimingServer();
-        this.#timingServer.listen();
+
+        try {
+            await this.#timingServer.listen();
+        } catch (err) {
+            this.error('Failed to start timing server:', err);
+        }
 
         this.#appleTvFlow = new AppleTVFlow(this);
         this.#appleTvFlow.register();
