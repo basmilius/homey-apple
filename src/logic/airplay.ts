@@ -1,7 +1,6 @@
-import { PassThrough } from 'node:stream';
 import { Proto } from '@basmilius/apple-airplay';
 import type { AirPlayClient, AirPlayDevice, AirPlayPlayer } from '@basmilius/apple-devices';
-import { debounce, type Device, Shortcuts } from '@basmilius/homey-common';
+import { type Device, Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import Homey from 'homey';
 import AppleTVDevice from '../apple-tv/device';
@@ -55,16 +54,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
     #artworkRequestingIdentifier?: string;
+    #nowPlayingAppTimer?: NodeJS.Timeout;
     #protocol!: AirPlayDevice;
-
-    readonly #updateNowPlayingApp: (bundleIdentifier: string | null, displayName: string | null) => Promise<void>;
+    #updateLock: Promise<void> = Promise.resolve();
 
     constructor(device: Device<AppleApp, any>) {
         super(device.app);
 
         this.#device = device;
-
-        this.#updateNowPlayingApp = debounce(this.#updateNowPlayingAppImpl, 1000, this);
     }
 
     async initialize(): Promise<void> {
@@ -77,17 +74,24 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async uninitialize(): Promise<void> {
+        clearTimeout(this.#nowPlayingAppTimer);
         this.#protocol.state.removeAllListeners();
         await this.#artwork.unregister();
     }
 
     async clearNowPlaying(): Promise<void> {
+        await this.#serialized(() => this.#clearNowPlayingImpl());
+    }
+
+    async #clearNowPlayingImpl(): Promise<void> {
         try {
             if (this.#artwork) {
                 this.#artworkIdentifier = undefined;
                 await this.#updateArtwork(null);
-                await this.#updateNowPlayingApp(null, null);
             }
+
+            clearTimeout(this.#nowPlayingAppTimer);
+            await this.#updateNowPlayingAppImpl(null, null);
 
             await this.#device.setCapabilityValue('speaker_album', '');
             await this.#device.setCapabilityValue('speaker_artist', '');
@@ -151,12 +155,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     async #onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
         this.log(this.deviceName, `Now playing changed.`, client?.bundleIdentifier, client?.title);
 
-        if (!client) {
-            await this.clearNowPlaying();
-            return;
-        }
+        await this.#serialized(async () => {
+            if (!client) {
+                await this.#clearNowPlayingImpl();
+                return;
+            }
 
-        await this.#updateNowPlaying();
+            await this.#updateNowPlaying();
+        });
     }
 
     async #onVolumeDidChange(): Promise<void> {
@@ -173,42 +179,52 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
     }
 
-    async #setArtwork(identifier: string, item: Proto.ContentItem): Promise<void> {
-        if (identifier === this.#artworkIdentifier) {
-            this.log(this.deviceName, 'Artwork identifier unchanged.', identifier);
+    async #setArtwork(client: AirPlayClient): Promise<void> {
+        const artworkId = client.artworkId;
+        const url = client.artworkUrl(600);
+        const data = client.currentItemArtwork;
+
+        this.log(this.deviceName, 'setArtwork', {
+            artworkId,
+            currentIdentifier: this.#artworkIdentifier,
+            hasUrl: !!url,
+            hasData: !!data,
+            url: url?.substring(0, 80)
+        });
+
+        if (artworkId === this.#artworkIdentifier) {
             return;
         }
 
-        this.log(this.deviceName, 'Artwork identifier changed.', identifier);
+        // Priority 1: URL (artworkURL, remoteArtworks, artworkIdentifier template).
+        if (url) {
+            this.#artworkIdentifier = artworkId ?? undefined;
+            await this.#updateArtwork(url);
+            return;
+        }
 
-        if (!item.metadata?.artworkAvailable) {
-            this.log(this.deviceName, 'Artwork not available.');
+        // Priority 2: Inline binary data from playback queue.
+        if (data) {
+            this.#artworkIdentifier = artworkId ?? undefined;
+            await this.#updateArtworkBuffer(data);
+            return;
+        }
+
+        // No artwork evidence at all — clear it.
+        if (!artworkId) {
+            this.#artworkIdentifier = undefined;
             await this.#updateArtwork(null);
             return;
         }
 
-        if (item.metadata?.artworkURL) {
-            this.log(this.deviceName, 'Artwork available as URL.');
-            this.#artworkIdentifier = identifier;
-            await this.#updateArtwork(item.metadata.artworkURL);
-            return;
-        }
-
-        if (item.artworkData?.byteLength > 0) {
-            this.log(this.deviceName, 'Artwork data available in playback queue.');
-            this.#artworkIdentifier = identifier;
-            await this.#updateArtworkBuffer(item.artworkData);
-            return;
-        }
-
-        if (this.#artworkRequestingIdentifier === identifier) {
-            this.log(this.deviceName, 'Artwork available, but already requested.');
+        // Artwork should be available but isn't yet — request playback queue.
+        if (this.#artworkRequestingIdentifier === artworkId) {
             return;
         }
 
         try {
-            this.log(this.deviceName, 'Artwork available, but not yet, requesting...');
-            this.#artworkRequestingIdentifier = identifier;
+            this.log(this.deviceName, 'Requesting artwork from playback queue...', artworkId);
+            this.#artworkRequestingIdentifier = artworkId ?? undefined;
             await this.#updateArtwork(null);
             await this.#protocol.requestPlaybackQueue(1);
         } catch (err) {
@@ -233,11 +249,10 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async #updateArtworkBuffer(buffer: Uint8Array<ArrayBufferLike> | Buffer): Promise<void> {
-        await this.#device.setAlbumArtImage(this.#artwork);
+        const imageBuffer = Buffer.from(buffer);
+        this.log(this.deviceName, `Artwork buffer size: ${imageBuffer.byteLength}, header: ${imageBuffer.subarray(0, 4).toString('hex')}`);
         this.#artwork.setStream((stream: any) => {
-            const pt = new PassThrough();
-            pt.end(buffer);
-            pt.pipe(stream);
+            stream.end(imageBuffer);
         });
         await this.#artwork.update();
         await this.updateArtworkUrl();
@@ -251,7 +266,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         const client = this.#protocol.state.nowPlayingClient;
         const device = this.#device;
-        const item = client?.currentItem ?? null;
 
         this.log(this.deviceName, 'Now playing info updated.', client?.bundleIdentifier, client?.title);
 
@@ -288,11 +302,9 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             const nowPlayingAppBundleIdentifier = client.isPlaying ? client.bundleIdentifier : null;
             const nowPlayingAppDisplayName = client.isPlaying ? client.displayName : null;
 
-            await this.#updateNowPlayingApp(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
+            this.#scheduleNowPlayingAppUpdate(nowPlayingAppBundleIdentifier, nowPlayingAppDisplayName);
 
-            if (item) {
-                await this.#setArtwork(item.metadata?.artworkIdentifier || item.metadata?.contentIdentifier || item.identifier, item);
-            }
+            await this.#setArtwork(client);
 
             await this.#emitMiniPlayerUpdate();
         } catch (err) {
@@ -345,6 +357,32 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         } catch (err) {
             this.log(this.deviceName, 'Failed to emit mini player update:', err);
         }
+    }
+
+    async #serialized(fn: () => Promise<void>): Promise<void> {
+        let releaseLock: () => void;
+        const newLock = new Promise<void>(resolve => {
+            releaseLock = resolve;
+        });
+
+        const previousLock = this.#updateLock;
+        this.#updateLock = newLock;
+
+        await previousLock;
+
+        try {
+            await fn();
+        } finally {
+            releaseLock!();
+        }
+    }
+
+    #scheduleNowPlayingAppUpdate(bundleIdentifier: string | null, displayName: string | null): void {
+        clearTimeout(this.#nowPlayingAppTimer);
+        this.#nowPlayingAppTimer = setTimeout(() => {
+            this.#updateNowPlayingAppImpl(bundleIdentifier, displayName)
+                .catch(err => this.log(this.deviceName, 'Failed to update now playing app', err));
+        }, 1000);
     }
 
     async #updateNowPlayingAppImpl(bundleIdentifier: string | null, displayName: string | null): Promise<void> {

@@ -206,6 +206,12 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         }, 0);
     }
 
+    async #notify(message: string): Promise<void> {
+        await this.homey.notifications.createNotification({
+            excerpt: `[${this.getName()}] ${message}`
+        });
+    }
+
     async #onConnected(): Promise<void> {
         if (!this.#airplay.isConnected || !this.#companionLink.isConnected) {
             return;
@@ -216,6 +222,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async #onAirPlayConnected(): Promise<void> {
         this.log('Connected to Apple TV (AirPlay).');
+        await this.#notify('AirPlay connected.');
         await this.#onConnected();
     }
 
@@ -225,6 +232,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         }
 
         this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
+        await this.#notify('AirPlay disconnected unexpectedly, reconnecting...');
         await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
         await waitFor(1000);
 
@@ -235,6 +243,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     async #onCompanionLinkConnected(): Promise<void> {
         this.#companionLinkRetried = false;
         this.log('Connected to Apple TV (Companion Link).');
+        await this.#notify('Companion Link connected.');
         await this.#onConnected();
     }
 
@@ -244,6 +253,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         }
 
         this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
+        await this.#notify('Companion Link disconnected unexpectedly, reconnecting...');
         await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
         await waitFor(1000);
 
@@ -260,22 +270,26 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.#companionLinkRetried = true;
 
             this.log('Companion Link failed, attempting re-discovery before giving up...');
+            await this.#notify('Companion Link failed after 3 attempts, attempting re-discovery...');
             await this.setUnavailable('Reconnecting to Apple TV...');
 
             try {
                 await this.findService(COMPANION_LINK_SERVICE);
                 this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
+                await this.#notify(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
                 this.#companionLink.resetConnectAttempts();
                 await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
                 return;
             } catch {
                 this.log('Re-discovery of Companion Link service failed.');
+                await this.#notify('Re-discovery of Companion Link service failed.');
             }
         }
 
         this.#companionLinkFailed = true;
 
         this.log('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
+        await this.#notify('Companion Link failed permanently. Please restart the app.');
         await this.setUnavailable('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
         await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
     }
