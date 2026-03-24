@@ -157,6 +157,10 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         await this.#emitMiniPlayerUpdate();
     }
 
+    async emitUpdate(): Promise<void> {
+        await this.#emitMiniPlayerUpdate();
+    }
+
     setProtocol(protocol: AirPlayDevice): void {
         this.#removeProtocolListeners();
 

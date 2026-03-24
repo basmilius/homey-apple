@@ -113,6 +113,7 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
         }
 
         if (isOn) {
+            await this.#device.airplayLogic.emitUpdate();
             return;
         }
 
