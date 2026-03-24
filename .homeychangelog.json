@@ -1,278 +1,281 @@
 {
-  "1.0.0": {
-    "en": "First version!"
-  },
-  "0.0.1": {
-    "en": "Initial test version."
-  },
-  "0.0.2": {
-    "en": "Update the underlying companion link package."
-  },
-  "0.0.3": {
-    "en": "Updated app assets."
-  },
-  "0.0.4": {
-    "en": "Refactored ESM imports to dynamic imports."
-  },
-  "0.0.5": {
-    "en": "Updated svg assets to not have a set size."
-  },
-  "0.0.6": {
-    "en": "Updated app icon."
-  },
-  "0.0.7": {
-    "en": "App icon."
-  },
-  "0.0.8": {
-    "en": "Adds HomePod Mini and reworks the protocols."
-  },
-  "0.0.9": {
-    "en": "Reconnect logic."
-  },
-  "0.0.10": {
-    "en": "Improved airplay feedback logic."
-  },
-  "0.0.11": {
-    "en": "Updated underlying apple-protocols library."
-  },
-  "0.0.12": {
-    "en": "Show artworks from video streaming services as well."
-  },
-  "0.0.13": {
-    "en": "Updated underlying apple protocols library."
-  },
-  "0.0.14": {
-    "en": "Improved resiliency."
-  },
-  "0.0.15": {
-    "en": "Updated apple-protocols library."
-  },
-  "0.0.16": {
-    "en": "Artwork is now cleared when there is no artwork available. Update underlying apple-protocols library."
-  },
-  "0.0.17": {
-    "en": "Update apple-protocols sdk."
-  },
-  "0.0.18": {
-    "en": "Reworked internal logic and moved away from PoC state."
-  },
-  "0.0.19": {
-    "en": "Update apple-protocols SDK."
-  },
-  "0.0.20": {
-    "en": "Update apple-protocols SDK."
-  },
-  "0.0.21": {
-    "en": "Artwork and now playing client updates are more stable."
-  },
-  "0.0.22": {
-    "en": "Update apple-protocols SDK."
-  },
-  "0.0.23": {
-    "en": "Update apple-protocols SDK."
-  },
-  "0.0.24": {
-    "en": "Update app name and description and update apple-protocols SDK."
-  },
-  "0.0.25": {
-    "en": "Update apple-protocols SDK."
-  },
-  "0.0.26": {
-    "en": "This update adds support for the base HomePod and reworks internal logic."
-  },
-  "0.0.27": {
-    "en": "Remote control flow card and internal refactorings."
-  },
-  "0.0.28": {
-    "en": "Update apple-protocols sdk."
-  },
-  "0.0.29": {
-    "en": "Timing server"
-  },
-  "0.0.30": {
-    "en": "Fix for companion link reconnect logic."
-  },
-  "0.0.31": {
-    "en": "Reset now playing app and update apple-protocols sdk."
-  },
-  "1.0.1": {
-    "en": "Update category."
-  },
-  "1.0.2": {
-    "en": "Adds a maintenance action to restart the connections to the devices."
-  },
-  "1.0.3": {
-    "en": "Fixed an issue where the no devices found screen would not be shown during pairing."
-  },
-  "1.0.4": {
-    "en": "Add relative volume control buttons to homepod devices. Updated apple-protocols sdk."
-  },
-  "1.0.5": {
-    "en": "Updated apple-protocols sdk. Enabled verbose logging."
-  },
-  "1.0.6": {
-    "en": "Fixes a bug where unsupported artworks were loaded. Updated apple-protocols sdk."
-  },
-  "1.0.7": {
-    "en": "Add paypal donate option."
-  },
-  "1.0.8": {
-    "en": "Updated apple-protocols sdk. Removed already added devices from pairing list."
-  },
-  "1.0.9": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.10": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.11": {
-    "en": "Apple TV: Clear now playing info when the device is powered off. HomePod: Improve HomePod pairing. General: Updated apple-protocols sdk."
-  },
-  "1.0.12": {
-    "en": "Adds retry logic to HomePod pairing. Update apple-protocols sdk."
-  },
-  "1.0.13": {
-    "en": "Updated apple-protocols sdk."
-  },
-  "1.0.14": {
-    "en": "Updated apple-protocols sdk."
-  },
-  "1.0.15": {
-    "en": "Updated apple-protocols sdk."
-  },
-  "1.0.16": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.17": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.18": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.19": {
-    "en": "Remove unneeded step in HomePod pairing."
-  },
-  "1.0.20": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.21": {
-    "en": "Updated apple-protocols sdk. Fixed an issue where we tried to update removed devices."
-  },
-  "1.0.22": {
-    "en": "Update apple-protocols sdk."
-  },
-  "1.0.23": {
-    "en": "Fixed a pairing issue on Homey Pro 2019."
-  },
-  "1.0.24": {
-    "en": "Fixed a pairing issue on Homey Pro 2019 (Thanks Martijn!)"
-  },
-  "1.0.25": {
-    "en": "Update apple protocols SDK."
-  },
-  "1.0.26": {
-    "en": "Update apple-protocols SDK."
-  },
-  "1.0.27": {
-    "en": "Changed the way devices use their mdns discovery results. Updated apple-protocols SDK."
-  },
-  "1.0.28": {
-    "en": "Updates to device discovery on lan. Updated apple-protocols SDK."
-  },
-  "1.0.29": {
-    "en": "Fixed an issue that prevented some artworks to show. Fixed an issue for auto reconnect after a connection drop. Updated apple-protocols SDK."
-  },
-  "1.0.30": {
-    "en": "Fixed an issue where the app would try to update an already removed device."
-  },
-  "1.1.0": {
-    "en": "This update introduces a new power capability and a now playing app changed trigger for Apple TV devices."
-  },
-  "1.1.1": {
-    "en": "Allow the power capability to be set as device status."
-  },
-  "1.1.2": {
-    "en": "This update attempts to make the Apple TV Companion Link connection more stable."
-  },
-  "1.1.3": {
-    "en": "This update fixes an internal artwork update error."
-  },
-  "1.1.4": {
-    "en": "This update prevents triggering the now playing app changed trigger if the app is the same."
-  },
-  "1.1.5": {
-    "en": "In this update, the underlying apple-protocols sdk has been cleaned up and made more robust. The app itself doesn't have anything new, but expect connection improvements."
-  },
-  "1.1.6": {
-    "en": "This update improves the companion link reconnect logic."
-  },
-  "1.1.7": {
-    "en": "Update apple-protocols SDK."
-  },
-  "1.2.0": {
-    "en": "This update adds translations for all supported languages."
-  },
-  "1.2.1": {
-    "en": "Updated apple-protocols SDK."
-  },
-  "1.2.2": {
-    "en": "Refactored all discovery-related code."
-  },
-  "1.2.3": {
-    "en": "Updated apple-protocols SDK. Fixed a race condition."
-  },
-  "1.2.4": {
-    "en": "Updated apple-protocols SDK."
-  },
-  "1.2.5": {
-    "en": "Smaller app size."
-  },
-  "1.3.0": {
-    "en": "Experimental: HomePod and HomePod Mini now support audio streaming. This is still highly experimental, it uses a lot of memory for example. Use it with caution."
-  },
-  "1.3.1": {
-    "en": "Reduce app size."
-  },
-  "1.3.2": {
-    "en": "Update apple protocols SDK."
-  },
-  "1.3.3": {
-    "en": "This update focuses on memory consumption."
-  },
-  "1.3.4": {
-    "en": "Remove unneeded artwork fallback."
-  },
-  "1.3.5": {
-    "en": "Bump dependencies."
-  },
-  "1.3.6": {
-    "en": "Bump deps."
-  },
-  "1.3.7": {
-    "en": "Prevent updating now playing info when the device is turned off."
-  },
-  "1.4.0": {
-    "en": "This update introduces a new flow card that is fired when the app fails to connect to the companion link protocol. A restart of the app is then probably needed."
-  },
-  "1.4.1": {
-    "en": "Update apple-protocols SDK."
-  },
-  "1.4.2": {
-    "en": "Update apple-protocols SDK."
-  },
-  "1.4.3": {
-    "en": "This update fixes the launch app and switch user flow actions. The underlying companion link heartbeat loop was causing some issues."
-  },
-  "1.5.0": {
-    "en": "This update introduces a new artwork url changes trigger and fixes the companion link heartbeat loop, because the loop blocked the rest of the traffic."
-  },
-  "1.5.1": {
-    "en": "Prevent spamming the 'Companion link failed' trigger. It now runs only once per device."
-  },
-  "1.5.2": {
-    "en": "Update apple-protocols SDK."
-  },
-  "1.5.3": {
-    "en": "Publish without map files."
-  }
+    "1.0.0": {
+        "en": "First version!"
+    },
+    "0.0.1": {
+        "en": "Initial test version."
+    },
+    "0.0.2": {
+        "en": "Update the underlying companion link package."
+    },
+    "0.0.3": {
+        "en": "Updated app assets."
+    },
+    "0.0.4": {
+        "en": "Refactored ESM imports to dynamic imports."
+    },
+    "0.0.5": {
+        "en": "Updated svg assets to not have a set size."
+    },
+    "0.0.6": {
+        "en": "Updated app icon."
+    },
+    "0.0.7": {
+        "en": "App icon."
+    },
+    "0.0.8": {
+        "en": "Adds HomePod Mini and reworks the protocols."
+    },
+    "0.0.9": {
+        "en": "Reconnect logic."
+    },
+    "0.0.10": {
+        "en": "Improved airplay feedback logic."
+    },
+    "0.0.11": {
+        "en": "Updated underlying apple-protocols library."
+    },
+    "0.0.12": {
+        "en": "Show artworks from video streaming services as well."
+    },
+    "0.0.13": {
+        "en": "Updated underlying apple protocols library."
+    },
+    "0.0.14": {
+        "en": "Improved resiliency."
+    },
+    "0.0.15": {
+        "en": "Updated apple-protocols library."
+    },
+    "0.0.16": {
+        "en": "Artwork is now cleared when there is no artwork available. Update underlying apple-protocols library."
+    },
+    "0.0.17": {
+        "en": "Update apple-protocols sdk."
+    },
+    "0.0.18": {
+        "en": "Reworked internal logic and moved away from PoC state."
+    },
+    "0.0.19": {
+        "en": "Update apple-protocols SDK."
+    },
+    "0.0.20": {
+        "en": "Update apple-protocols SDK."
+    },
+    "0.0.21": {
+        "en": "Artwork and now playing client updates are more stable."
+    },
+    "0.0.22": {
+        "en": "Update apple-protocols SDK."
+    },
+    "0.0.23": {
+        "en": "Update apple-protocols SDK."
+    },
+    "0.0.24": {
+        "en": "Update app name and description and update apple-protocols SDK."
+    },
+    "0.0.25": {
+        "en": "Update apple-protocols SDK."
+    },
+    "0.0.26": {
+        "en": "This update adds support for the base HomePod and reworks internal logic."
+    },
+    "0.0.27": {
+        "en": "Remote control flow card and internal refactorings."
+    },
+    "0.0.28": {
+        "en": "Update apple-protocols sdk."
+    },
+    "0.0.29": {
+        "en": "Timing server"
+    },
+    "0.0.30": {
+        "en": "Fix for companion link reconnect logic."
+    },
+    "0.0.31": {
+        "en": "Reset now playing app and update apple-protocols sdk."
+    },
+    "1.0.1": {
+        "en": "Update category."
+    },
+    "1.0.2": {
+        "en": "Adds a maintenance action to restart the connections to the devices."
+    },
+    "1.0.3": {
+        "en": "Fixed an issue where the no devices found screen would not be shown during pairing."
+    },
+    "1.0.4": {
+        "en": "Add relative volume control buttons to homepod devices. Updated apple-protocols sdk."
+    },
+    "1.0.5": {
+        "en": "Updated apple-protocols sdk. Enabled verbose logging."
+    },
+    "1.0.6": {
+        "en": "Fixes a bug where unsupported artworks were loaded. Updated apple-protocols sdk."
+    },
+    "1.0.7": {
+        "en": "Add paypal donate option."
+    },
+    "1.0.8": {
+        "en": "Updated apple-protocols sdk. Removed already added devices from pairing list."
+    },
+    "1.0.9": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.10": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.11": {
+        "en": "Apple TV: Clear now playing info when the device is powered off. HomePod: Improve HomePod pairing. General: Updated apple-protocols sdk."
+    },
+    "1.0.12": {
+        "en": "Adds retry logic to HomePod pairing. Update apple-protocols sdk."
+    },
+    "1.0.13": {
+        "en": "Updated apple-protocols sdk."
+    },
+    "1.0.14": {
+        "en": "Updated apple-protocols sdk."
+    },
+    "1.0.15": {
+        "en": "Updated apple-protocols sdk."
+    },
+    "1.0.16": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.17": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.18": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.19": {
+        "en": "Remove unneeded step in HomePod pairing."
+    },
+    "1.0.20": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.21": {
+        "en": "Updated apple-protocols sdk. Fixed an issue where we tried to update removed devices."
+    },
+    "1.0.22": {
+        "en": "Update apple-protocols sdk."
+    },
+    "1.0.23": {
+        "en": "Fixed a pairing issue on Homey Pro 2019."
+    },
+    "1.0.24": {
+        "en": "Fixed a pairing issue on Homey Pro 2019 (Thanks Martijn!)"
+    },
+    "1.0.25": {
+        "en": "Update apple protocols SDK."
+    },
+    "1.0.26": {
+        "en": "Update apple-protocols SDK."
+    },
+    "1.0.27": {
+        "en": "Changed the way devices use their mdns discovery results. Updated apple-protocols SDK."
+    },
+    "1.0.28": {
+        "en": "Updates to device discovery on lan. Updated apple-protocols SDK."
+    },
+    "1.0.29": {
+        "en": "Fixed an issue that prevented some artworks to show. Fixed an issue for auto reconnect after a connection drop. Updated apple-protocols SDK."
+    },
+    "1.0.30": {
+        "en": "Fixed an issue where the app would try to update an already removed device."
+    },
+    "1.1.0": {
+        "en": "This update introduces a new power capability and a now playing app changed trigger for Apple TV devices."
+    },
+    "1.1.1": {
+        "en": "Allow the power capability to be set as device status."
+    },
+    "1.1.2": {
+        "en": "This update attempts to make the Apple TV Companion Link connection more stable."
+    },
+    "1.1.3": {
+        "en": "This update fixes an internal artwork update error."
+    },
+    "1.1.4": {
+        "en": "This update prevents triggering the now playing app changed trigger if the app is the same."
+    },
+    "1.1.5": {
+        "en": "In this update, the underlying apple-protocols sdk has been cleaned up and made more robust. The app itself doesn't have anything new, but expect connection improvements."
+    },
+    "1.1.6": {
+        "en": "This update improves the companion link reconnect logic."
+    },
+    "1.1.7": {
+        "en": "Update apple-protocols SDK."
+    },
+    "1.2.0": {
+        "en": "This update adds translations for all supported languages."
+    },
+    "1.2.1": {
+        "en": "Updated apple-protocols SDK."
+    },
+    "1.2.2": {
+        "en": "Refactored all discovery-related code."
+    },
+    "1.2.3": {
+        "en": "Updated apple-protocols SDK. Fixed a race condition."
+    },
+    "1.2.4": {
+        "en": "Updated apple-protocols SDK."
+    },
+    "1.2.5": {
+        "en": "Smaller app size."
+    },
+    "1.3.0": {
+        "en": "Experimental: HomePod and HomePod Mini now support audio streaming. This is still highly experimental, it uses a lot of memory for example. Use it with caution."
+    },
+    "1.3.1": {
+        "en": "Reduce app size."
+    },
+    "1.3.2": {
+        "en": "Update apple protocols SDK."
+    },
+    "1.3.3": {
+        "en": "This update focuses on memory consumption."
+    },
+    "1.3.4": {
+        "en": "Remove unneeded artwork fallback."
+    },
+    "1.3.5": {
+        "en": "Bump dependencies."
+    },
+    "1.3.6": {
+        "en": "Bump deps."
+    },
+    "1.3.7": {
+        "en": "Prevent updating now playing info when the device is turned off."
+    },
+    "1.4.0": {
+        "en": "This update introduces a new flow card that is fired when the app fails to connect to the companion link protocol. A restart of the app is then probably needed."
+    },
+    "1.4.1": {
+        "en": "Update apple-protocols SDK."
+    },
+    "1.4.2": {
+        "en": "Update apple-protocols SDK."
+    },
+    "1.4.3": {
+        "en": "This update fixes the launch app and switch user flow actions. The underlying companion link heartbeat loop was causing some issues."
+    },
+    "1.5.0": {
+        "en": "This update introduces a new artwork url changes trigger and fixes the companion link heartbeat loop, because the loop blocked the rest of the traffic."
+    },
+    "1.5.1": {
+        "en": "Prevent spamming the 'Companion link failed' trigger. It now runs only once per device."
+    },
+    "1.5.2": {
+        "en": "Update apple-protocols SDK."
+    },
+    "1.5.3": {
+        "en": "Publish without map files."
+    },
+    "1.7.0": {
+        "en": "Major improvements to the apple-protocols SDK. This update also includes backported widgets from the 1.6.x Python-test releases."
+    }
 }
