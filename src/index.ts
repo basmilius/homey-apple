@@ -6,7 +6,6 @@ import HomePodFlow from './homepod-base/flow';
 reporter.enable('error');
 reporter.enable('warn');
 reporter.enable('net');
-// reporter.all();
 
 export default class AppleApp extends App<AppleApp> {
     get appleTvFlow(): AppleTVFlow {

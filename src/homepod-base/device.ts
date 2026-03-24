@@ -154,9 +154,13 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
-            await this.#disconnect();
-            await this.#airplayLogic.clearNowPlaying();
-            await this.#connect();
+            try {
+                await this.#disconnect();
+                await this.#airplayLogic.clearNowPlaying();
+                await this.#connect();
+            } catch (err) {
+                this.error(err);
+            }
         });
     }
 

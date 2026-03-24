@@ -1,7 +1,7 @@
 import type { DiscoveryResult } from '@basmilius/apple-common';
 import type Homey from 'homey';
 
-export default function (result: Homey.DiscoveryResultMDNSSD): DiscoveryResult {
+export default function convertDiscoveryResult (result: Homey.DiscoveryResultMDNSSD): DiscoveryResult {
     const txt = result.txt as Record<string, string>;
 
     return {

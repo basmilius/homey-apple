@@ -200,7 +200,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }, 300);
     }
 
-    async onPlaybackStateChanged(_client: AirPlayClient, _player: AirPlayPlayer, _oldState: any, newState: any): Promise<void> {
+    async onPlaybackStateChanged(_client: AirPlayClient, _player: AirPlayPlayer, _oldState: Proto.PlaybackState_Enum, newState: Proto.PlaybackState_Enum): Promise<void> {
         // Fast path: update speaker_playing immediately without debounce.
         // The full nowPlayingChanged event will handle the rest.
         try {
@@ -299,7 +299,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             if (url) {
                 this.#artwork.setUrl(url.replace('.heic', '.jpg'));
             } else {
-                // @ts-ignore: The type definition of Homey.Image.setUrl() is incorrect.
+                // @ts-expect-error The type definition of Homey.Image.setUrl() is incorrect.
                 this.#artwork.setUrl(null);
             }
 
@@ -319,7 +319,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.#artwork.setStream((stream: any) => {
+        this.#artwork.setStream((stream: NodeJS.WritableStream) => {
             stream.end(imageBuffer);
         });
         await this.#artwork.update();
