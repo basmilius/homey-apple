@@ -35,6 +35,9 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
     constructor(device: AppleTVDevice) {
         super();
         this.#device = device;
+        this.onConnected = this.onConnected.bind(this);
+        this.onDisconnected = this.onDisconnected.bind(this);
+        this.onPower = this.onPower.bind(this);
     }
 
     async connect(): Promise<void> {
@@ -47,9 +50,9 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
         this.#recovery?.dispose();
 
         this.#protocol = new CompanionLinkDevice(discoveryResult);
-        this.#protocol.on('connected', () => this.#onConnected());
-        this.#protocol.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
-        this.#protocol.on('power', (state: AttentionState) => this.#onPower(state));
+        this.#protocol.on('connected', this.onConnected);
+        this.#protocol.on('disconnected', this.onDisconnected);
+        this.#protocol.on('attentionStateChanged', this.onPower);
 
         this.#recovery = new ConnectionRecovery({
             maxAttempts: 3,
@@ -90,17 +93,17 @@ export default class CompanionLinkConnection extends EventEmitter<EventMap> {
         this.#recovery?.reset();
     }
 
-    #onConnected(): void {
+    onConnected(): void {
         this.#recovery?.reset();
         this.emit('connected');
     }
 
-    #onDisconnected(unexpected: boolean): void {
+    onDisconnected(unexpected: boolean): void {
         this.emit('disconnected', unexpected);
         this.#recovery?.handleDisconnect(unexpected);
     }
 
-    async #onPower(state: AttentionState): Promise<void> {
+    async onPower(state: AttentionState): Promise<void> {
         this.#device.log('#onPower()', {state});
 
         const isOn = state === 'awake' || state === 'screensaver';

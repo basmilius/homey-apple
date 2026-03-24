@@ -80,14 +80,20 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
+        this.onAirPlayConnected = this.onAirPlayConnected.bind(this);
+        this.onAirPlayDisconnected = this.onAirPlayDisconnected.bind(this);
+        this.onCompanionLinkConnected = this.onCompanionLinkConnected.bind(this);
+        this.onCompanionLinkDisconnected = this.onCompanionLinkDisconnected.bind(this);
+        this.onCompanionLinkFailed = this.onCompanionLinkFailed.bind(this);
+
         this.#airplay = new AirPlayConnection(this);
         this.#companionLink = new CompanionLinkConnection(this);
 
-        this.#airplay.on('connected', this.#onAirPlayConnected.bind(this));
-        this.#airplay.on('disconnected', this.#onAirPlayDisconnected.bind(this));
-        this.#companionLink.on('connected', this.#onCompanionLinkConnected.bind(this));
-        this.#companionLink.on('disconnected', this.#onCompanionLinkDisconnected.bind(this));
-        this.#companionLink.on('failed', this.#onCompanionLinkFailed.bind(this));
+        this.#airplay.on('connected', this.onAirPlayConnected);
+        this.#airplay.on('disconnected', this.onAirPlayDisconnected);
+        this.#companionLink.on('connected', this.onCompanionLinkConnected);
+        this.#companionLink.on('disconnected', this.onCompanionLinkDisconnected);
+        this.#companionLink.on('failed', this.onCompanionLinkFailed);
 
         await this.syncCapabilities(CAPABILITIES);
         this.#registerCapabilities();
@@ -152,23 +158,23 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.protocol.sendCommand(Proto.Command.Stop);
+            await this.#airplay.remote.commandStop();
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.protocol.sendCommand(Proto.Command.Play);
+                await this.#airplay.remote.commandPlay();
             } else {
-                await this.#airplay.protocol.sendCommand(Proto.Command.Pause);
+                await this.#airplay.remote.commandPause();
             }
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#airplay.remote.volumeUp();
+            await this.#airplay.protocol.volume.up();
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#airplay.remote.volumeDown();
+            await this.#airplay.protocol.volume.down();
         });
 
         this.registerCapabilityListener('volume_mute', async () => {
@@ -227,13 +233,13 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         await this.setAvailable();
     }
 
-    async #onAirPlayConnected(): Promise<void> {
+    async onAirPlayConnected(): Promise<void> {
         this.log('Connected to Apple TV (AirPlay).');
         await this.#notify('AirPlay connected.');
         await this.#onConnected();
     }
 
-    async #onAirPlayDisconnected(unexpected: boolean): Promise<void> {
+    async onAirPlayDisconnected(unexpected: boolean): Promise<void> {
         if (!unexpected) {
             return;
         }
@@ -243,14 +249,14 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
     }
 
-    async #onCompanionLinkConnected(): Promise<void> {
+    async onCompanionLinkConnected(): Promise<void> {
         this.#companionLinkRetried = false;
         this.log('Connected to Apple TV (Companion Link).');
         await this.#notify('Companion Link connected.');
         await this.#onConnected();
     }
 
-    async #onCompanionLinkDisconnected(unexpected: boolean): Promise<void> {
+    async onCompanionLinkDisconnected(unexpected: boolean): Promise<void> {
         if (!unexpected) {
             return;
         }
@@ -260,7 +266,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
     }
 
-    async #onCompanionLinkFailed(): Promise<void> {
+    async onCompanionLinkFailed(): Promise<void> {
         if (this.#companionLinkFailed) {
             return;
         }

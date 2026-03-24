@@ -55,8 +55,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
     #artworkRequestingIdentifier?: string;
-    #boundOnNowPlayingChanged?: (...args: any[]) => void;
-    #boundOnVolumeDidChange?: () => void;
     #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
     #protocol!: AirPlayDevice;
@@ -67,6 +65,10 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         super(device.app);
 
         this.#device = device;
+        this.onNowPlayingChanged = this.onNowPlayingChanged.bind(this);
+        this.onPlaybackStateChanged = this.onPlaybackStateChanged.bind(this);
+        this.onVolumeDidChange = this.onVolumeDidChange.bind(this);
+        this.onVolumeMutedDidChange = this.onVolumeMutedDidChange.bind(this);
     }
 
     async initialize(): Promise<void> {
@@ -165,12 +167,10 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#removeProtocolListeners();
 
         this.#protocol = protocol;
-
-        this.#boundOnNowPlayingChanged = this.#onNowPlayingChanged.bind(this);
-        this.#boundOnVolumeDidChange = () => this.#onVolumeDidChange();
-
-        this.#protocol.state.on('nowPlayingChanged', this.#boundOnNowPlayingChanged);
-        this.#protocol.state.on('volumeDidChange', this.#boundOnVolumeDidChange);
+        this.#protocol.state.on('nowPlayingChanged', this.onNowPlayingChanged);
+        this.#protocol.state.on('playbackStateChanged', this.onPlaybackStateChanged);
+        this.#protocol.state.on('volumeDidChange', this.onVolumeDidChange);
+        this.#protocol.state.on('volumeMutedDidChange', this.onVolumeMutedDidChange);
     }
 
     #removeProtocolListeners(): void {
@@ -178,16 +178,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        if (this.#boundOnNowPlayingChanged) {
-            this.#protocol.state.off('nowPlayingChanged', this.#boundOnNowPlayingChanged);
-        }
-
-        if (this.#boundOnVolumeDidChange) {
-            this.#protocol.state.off('volumeDidChange', this.#boundOnVolumeDidChange);
-        }
+        this.#protocol.state.off('nowPlayingChanged', this.onNowPlayingChanged);
+        this.#protocol.state.off('playbackStateChanged', this.onPlaybackStateChanged);
+        this.#protocol.state.off('volumeDidChange', this.onVolumeDidChange);
+        this.#protocol.state.off('volumeMutedDidChange', this.onVolumeMutedDidChange);
     }
 
-    async #onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
+    async onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
         this.log(this.deviceName, `Now playing changed.`, client?.bundleIdentifier, client?.title);
 
         clearTimeout(this.#nowPlayingDebounceTimer);
@@ -203,7 +200,28 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }, 300);
     }
 
-    #onVolumeDidChange(): void {
+    async onPlaybackStateChanged(_client: AirPlayClient, _player: AirPlayPlayer, _oldState: any, newState: any): Promise<void> {
+        // Fast path: update speaker_playing immediately without debounce.
+        // The full nowPlayingChanged event will handle the rest.
+        try {
+            const isPlaying = newState === Proto.PlaybackState_Enum.Playing;
+            await this.#device.setCapabilityValue('speaker_playing', isPlaying);
+            await this.#emitMiniPlayerUpdate();
+        } catch (err) {
+            this.log(this.deviceName, 'Failed to update playback state', err);
+        }
+    }
+
+    onVolumeMutedDidChange(muted: boolean): void {
+        if (!this.#device.hasCapability('volume_mute')) {
+            return;
+        }
+
+        this.#device.setCapabilityValue('volume_mute', muted)
+            .catch(err => this.log(this.deviceName, 'Failed to update volume mute', err));
+    }
+
+    onVolumeDidChange(): void {
         clearTimeout(this.#volumeDebounceTimer);
         this.#volumeDebounceTimer = setTimeout(() => {
             this.#updateVolume()

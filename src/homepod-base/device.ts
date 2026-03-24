@@ -60,9 +60,12 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
+        this.onConnected = this.onConnected.bind(this);
+        this.onDisconnected = this.onDisconnected.bind(this);
+
         this.#airplay = new AirPlayConnection(this);
-        this.#airplay.on('connected', () => this.#onConnected());
-        this.#airplay.on('disconnected', (unexpected: boolean) => this.#onDisconnected(unexpected));
+        this.#airplay.on('connected', this.onConnected);
+        this.#airplay.on('disconnected', this.onDisconnected);
 
         await this.syncCapabilities(CAPABILITIES);
         this.#registerCapabilities();
@@ -102,11 +105,11 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         await this.#airplay.disconnect();
     }
 
-    async #onConnected(): Promise<void> {
+    async onConnected(): Promise<void> {
         await this.setAvailable();
     }
 
-    async #onDisconnected(unexpected: boolean): Promise<void> {
+    async onDisconnected(unexpected: boolean): Promise<void> {
         if (!unexpected) {
             return;
         }
@@ -125,14 +128,14 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.protocol.sendCommand(Proto.Command.Stop);
+            await this.#airplay.remote.commandStop();
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.protocol.sendCommand(Proto.Command.Play);
+                await this.#airplay.remote.commandPlay();
             } else {
-                await this.#airplay.protocol.sendCommand(Proto.Command.Pause);
+                await this.#airplay.remote.commandPause();
             }
         });
 

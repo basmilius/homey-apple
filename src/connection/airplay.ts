@@ -36,11 +36,13 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
         super();
 
         this.#device = device;
+        this.onConnected = this.onConnected.bind(this);
+        this.onDisconnected = this.onDisconnected.bind(this);
     }
 
     async connect(): Promise<void> {
         if (this.#credentials) {
-            await this.#protocol.setCredentials(this.#credentials);
+            this.#protocol.setCredentials(this.#credentials);
         }
 
         if (this.#device.app.useTimingServer) {
@@ -56,8 +58,8 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
         this.#recovery?.dispose();
 
         this.#protocol = new AirPlayDevice(discoveryResult);
-        this.#protocol.on('connected', this.#onConnected.bind(this));
-        this.#protocol.on('disconnected', this.#onDisconnected.bind(this));
+        this.#protocol.on('connected', this.onConnected);
+        this.#protocol.on('disconnected', this.onDisconnected);
 
         this.#device.airplayLogic.setProtocol(this.#protocol);
 
@@ -84,7 +86,7 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
 
     async disconnect(): Promise<void> {
         this.#recovery?.dispose();
-        await this.#protocol?.disconnect();
+        this.#protocol?.disconnect();
     }
 
     async reconnect(discoveryResult?: DiscoveryResult): Promise<void> {
@@ -95,12 +97,12 @@ export default class AirPlayConnection extends EventEmitter<EventMap> {
         await this.connect();
     }
 
-    #onConnected(): void {
+    onConnected(): void {
         this.#recovery?.reset();
         this.emit('connected');
     }
 
-    #onDisconnected(unexpected: boolean): void {
+    onDisconnected(unexpected: boolean): void {
         this.emit('disconnected', unexpected);
         this.#recovery?.handleDisconnect(unexpected);
     }
