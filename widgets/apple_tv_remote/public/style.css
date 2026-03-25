@@ -153,6 +153,7 @@ body {
     width: 60px;
     height: 60px;
     transform: translate(-50%, -50%);
+    z-index: 1;
 }
 
 /* Right side: media + system + volume rows */
