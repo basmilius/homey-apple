@@ -220,9 +220,9 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async #notify(message: string): Promise<void> {
-        await this.homey.notifications.createNotification({
-            excerpt: `[${this.getName()}] ${message}`
-        });
+        // await this.homey.notifications.createNotification({
+        //     excerpt: `[${this.getName()}] ${message}`
+        // });
     }
 
     async #onConnected(): Promise<void> {
