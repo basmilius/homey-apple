@@ -25,6 +25,8 @@
         "speaker_position",
         "speaker_prev",
         "speaker_track",
+        "speaker_repeat",
+        "speaker_shuffle",
         "artwork_url",
         "onoff",
         "power",

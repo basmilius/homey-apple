@@ -7,6 +7,9 @@ import { getAccessoryCredentialsFromDevice } from '../utils';
 import type AppleTVDriver from './driver';
 import type Homey from 'homey';
 
+const SLOW_RECOVERY_INTERVAL = 2 * 60 * 1000;
+const SLOW_RECOVERY_MAX_ATTEMPTS = 15;
+
 const CAPABILITIES = [
     'speaker_album',
     'speaker_artist',
@@ -16,6 +19,8 @@ const CAPABILITIES = [
     'speaker_position',
     'speaker_prev',
     'speaker_track',
+    'speaker_repeat',
+    'speaker_shuffle',
     'artwork_url',
     'artwork_url_cloud',
     'artwork_url_local',
@@ -67,6 +72,8 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #companionLinkFailed = false;
     #companionLinkRetried = false;
     #connectedOnce = false;
+    #slowRecoveryAttempt = 0;
+    #slowRecoveryTimer: ReturnType<typeof setTimeout> | null = null;
     #services!: Record<string, Homey.DiscoveryStrategy>;
 
     async onInit(): Promise<void> {
@@ -105,6 +112,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async onUninit(): Promise<void> {
+        this.#stopSlowRecovery();
         this.#airplay.removeAllListeners();
         this.#companionLink.removeAllListeners();
         await this.#airplayLogic.uninitialize();
@@ -145,6 +153,52 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         await this.#companionLink.disconnect();
     }
 
+    async #startSlowRecovery(): Promise<void> {
+        this.log(`Starting slow recovery phase, retrying every ${SLOW_RECOVERY_INTERVAL / 1000}s for up to ${SLOW_RECOVERY_MAX_ATTEMPTS} attempts...`);
+        await this.setUnavailable('Device offline, retrying connection...');
+        this.#slowRecoveryAttempt = 0;
+        this.#scheduleSlowRecoveryAttempt();
+    }
+
+    #scheduleSlowRecoveryAttempt(): void {
+        this.#slowRecoveryTimer = setTimeout(async () => {
+            this.#slowRecoveryTimer = null;
+            this.#slowRecoveryAttempt++;
+
+            this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt}/${SLOW_RECOVERY_MAX_ATTEMPTS}...`);
+
+            try {
+                await this.findService(COMPANION_LINK_SERVICE);
+                this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
+                this.#companionLink.resetConnectAttempts();
+                await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+            } catch {
+                this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt} failed.`);
+            }
+
+            if (this.#slowRecoveryAttempt >= SLOW_RECOVERY_MAX_ATTEMPTS) {
+                this.#companionLinkFailed = true;
+                this.log('Companion Link failed permanently after extended recovery period. Please restart the app.');
+                await this.#notify('Companion Link failed permanently after extended recovery. Please restart the app.');
+                await this.setUnavailable('Failed to connect to Apple TV using Companion Link. Please restart the app.');
+                await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
+                return;
+            }
+
+            if (!this.#companionLink.isConnected) {
+                this.#scheduleSlowRecoveryAttempt();
+            }
+        }, SLOW_RECOVERY_INTERVAL);
+    }
+
+    #stopSlowRecovery(): void {
+        if (this.#slowRecoveryTimer) {
+            clearTimeout(this.#slowRecoveryTimer);
+            this.#slowRecoveryTimer = null;
+        }
+        this.#slowRecoveryAttempt = 0;
+    }
+
     #registerCapabilities(): void {
         this.#registerOnOff();
         this.#registerRemote();
@@ -180,11 +234,28 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.registerCapabilityListener('volume_mute', async () => {
             await this.#airplay.remote.mute();
         });
+
+        this.registerCapabilityListener('speaker_repeat', async (value: string) => {
+            const modeMap: Record<string, Proto.RepeatMode_Enum> = {
+                none: Proto.RepeatMode_Enum.Off,
+                track: Proto.RepeatMode_Enum.One,
+                playlist: Proto.RepeatMode_Enum.All,
+            };
+            await this.#airplay.remote.commandSetRepeatMode(modeMap[value] ?? Proto.RepeatMode_Enum.Off);
+        });
+
+        this.registerCapabilityListener('speaker_shuffle', async (value: boolean) => {
+            const mode = value ? Proto.ShuffleMode_Enum.Songs : Proto.ShuffleMode_Enum.Off;
+            await this.#airplay.remote.commandSetShuffleMode(mode);
+        });
     }
 
     #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
             try {
+                this.#stopSlowRecovery();
+                this.#companionLinkFailed = false;
+                this.#companionLinkRetried = false;
                 await this.#disconnect();
                 await this.#airplayLogic.clearNowPlaying();
                 await this.#connect();
@@ -251,6 +322,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async onCompanionLinkConnected(): Promise<void> {
         this.#companionLinkRetried = false;
+        this.#stopSlowRecovery();
         this.log('Connected to Apple TV (Companion Link).');
         await this.#notify('Companion Link connected.');
         await this.#onConnected();
@@ -268,6 +340,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async onCompanionLinkFailed(): Promise<void> {
         if (this.#companionLinkFailed) {
+            return;
+        }
+
+        if (this.#slowRecoveryTimer) {
             return;
         }
 
@@ -291,12 +367,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             }
         }
 
-        this.#companionLinkFailed = true;
-
-        this.log('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
-        await this.#notify('Companion Link failed permanently. Please restart the app.');
-        await this.setUnavailable('Failed to connect to Apple TV using Companion Link, this is probably caused by a port change. Apple TV & HomePod will not try to reconnect. Please restart the app.');
-        await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
+        await this.#startSlowRecovery();
     }
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {

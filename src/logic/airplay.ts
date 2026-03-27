@@ -54,7 +54,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
-    #artworkRequestingIdentifier?: string;
     #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
     #protocol!: AirPlayDevice;
@@ -113,6 +112,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#device.setCapabilityValue('speaker_duration', -1);
             await this.#device.setCapabilityValue('speaker_position', -1);
             await this.#device.setCapabilityValue('speaker_playing', false);
+
+            if (this.#device.hasCapability('speaker_repeat')) {
+                await this.#device.setCapabilityValue('speaker_repeat', 'none');
+            }
+            if (this.#device.hasCapability('speaker_shuffle')) {
+                await this.#device.setCapabilityValue('speaker_shuffle', false);
+            }
 
             this.log(this.deviceName, 'Now playing info cleared.');
             await this.#emitMiniPlayerUpdate();
@@ -241,32 +247,13 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #setArtwork(client: AirPlayClient): Promise<void> {
         const artworkId = client.artworkId;
-        const url = client.artworkUrl(600);
-        const data = client.currentItemArtwork;
 
         this.log(this.deviceName, 'setArtwork', {
             artworkId,
-            currentIdentifier: this.#artworkIdentifier,
-            hasUrl: !!url,
-            hasData: !!data,
-            url: url?.substring(0, 80)
+            currentIdentifier: this.#artworkIdentifier
         });
 
         if (artworkId === this.#artworkIdentifier) {
-            return;
-        }
-
-        // Priority 1: URL (artworkURL, remoteArtworks, artworkIdentifier template).
-        if (url) {
-            this.#artworkIdentifier = artworkId ?? undefined;
-            await this.#updateArtwork(url);
-            return;
-        }
-
-        // Priority 2: Inline binary data from playback queue.
-        if (data) {
-            this.#artworkIdentifier = artworkId ?? undefined;
-            await this.#updateArtworkBuffer(data);
             return;
         }
 
@@ -278,19 +265,22 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        // Artwork should be available but isn't yet — request playback queue.
-        if (this.#artworkRequestingIdentifier === artworkId) {
-            return;
-        }
-
+        // Use the unified artwork API to resolve artwork from all sources.
         try {
-            this.log(this.deviceName, 'Requesting artwork from playback queue...', artworkId);
-            this.#artworkRequestingIdentifier = artworkId ?? undefined;
-            await this.#updateArtwork(null);
-            await this.#protocol.requestPlaybackQueue(1);
+            const artwork = await this.#protocol.artwork.get(600);
+
+            if (artwork?.url) {
+                this.#artworkIdentifier = artworkId ?? undefined;
+                await this.#updateArtwork(artwork.url);
+            } else if (artwork?.data) {
+                this.#artworkIdentifier = artworkId ?? undefined;
+                await this.#updateArtworkBuffer(artwork.data);
+            } else {
+                this.#artworkIdentifier = artworkId ?? undefined;
+                await this.#updateArtwork(null);
+            }
         } catch (err) {
-            this.#artworkRequestingIdentifier = undefined;
-            this.#device.error(this.deviceName, 'Failed to request artwork from playback queue', err);
+            this.#device.error(this.deviceName, 'Failed to fetch artwork', err);
         }
     }
 
@@ -359,8 +349,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         try {
             const hasSpeakerNext = device.hasCapability('speaker_next');
             const hasSpeakerPrev = device.hasCapability('speaker_prev');
+            const hasSpeakerRepeat = device.hasCapability('speaker_repeat');
+            const hasSpeakerShuffle = device.hasCapability('speaker_shuffle');
             const isNextSupported = client.isCommandSupported(Proto.Command.NextTrack);
             const isPrevSupported = client.isCommandSupported(Proto.Command.PreviousTrack);
+            const isRepeatSupported = client.isCommandSupported(Proto.Command.ChangeRepeatMode);
+            const isShuffleSupported = client.isCommandSupported(Proto.Command.ChangeShuffleMode);
 
             if (isNextSupported && !hasSpeakerNext) {
                 await device.addCapability('speaker_next');
@@ -374,6 +368,18 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 await device.removeCapability('speaker_prev');
             }
 
+            if (isRepeatSupported && !hasSpeakerRepeat) {
+                await device.addCapability('speaker_repeat');
+            } else if (!isRepeatSupported && hasSpeakerRepeat) {
+                await device.removeCapability('speaker_repeat');
+            }
+
+            if (isShuffleSupported && !hasSpeakerShuffle) {
+                await device.addCapability('speaker_shuffle');
+            } else if (!isShuffleSupported && hasSpeakerShuffle) {
+                await device.removeCapability('speaker_shuffle');
+            }
+
             await device.setCapabilityValue('speaker_playing', client.isPlaying);
             await device.setCapabilityValue('speaker_album', client.album);
             await device.setCapabilityValue('speaker_artist', client.artist || client.activePlayer?.currentItemMetadata?.trackArtistName || client.displayName || '-');
@@ -381,6 +387,18 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await device.setCapabilityValue('speaker_duration', client.duration);
 
             await device.setCapabilityValue('speaker_position', client.elapsedTime);
+
+            if (device.hasCapability('speaker_repeat')) {
+                const repeatMap: Record<string, string> = {
+                    off: 'none',
+                    one: 'track',
+                    all: 'playlist',
+                };
+                await device.setCapabilityValue('speaker_repeat', repeatMap[this.repeat] ?? 'none');
+            }
+            if (device.hasCapability('speaker_shuffle')) {
+                await device.setCapabilityValue('speaker_shuffle', this.shuffle);
+            }
 
             const nowPlayingAppBundleIdentifier = client.isPlaying ? client.bundleIdentifier : null;
             const nowPlayingAppDisplayName = client.isPlaying ? client.displayName : null;

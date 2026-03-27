@@ -19,6 +19,8 @@ const CAPABILITIES = [
     'speaker_prev',
     'speaker_stop',
     'speaker_track',
+    'speaker_repeat',
+    'speaker_shuffle',
     'artwork_url',
     'artwork_url_cloud',
     'artwork_url_local',
@@ -149,6 +151,20 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
             await this.#airplay.protocol.volume.set(volume);
+        });
+
+        this.registerCapabilityListener('speaker_repeat', async (value: string) => {
+            const modeMap: Record<string, Proto.RepeatMode_Enum> = {
+                none: Proto.RepeatMode_Enum.Off,
+                track: Proto.RepeatMode_Enum.One,
+                playlist: Proto.RepeatMode_Enum.All,
+            };
+            await this.#airplay.remote.commandSetRepeatMode(modeMap[value] ?? Proto.RepeatMode_Enum.Off);
+        });
+
+        this.registerCapabilityListener('speaker_shuffle', async (value: boolean) => {
+            const mode = value ? Proto.ShuffleMode_Enum.Songs : Proto.ShuffleMode_Enum.Off;
+            await this.#airplay.remote.commandSetShuffleMode(mode);
         });
     }
 
