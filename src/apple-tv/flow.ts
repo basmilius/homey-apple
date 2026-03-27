@@ -1,4 +1,4 @@
-import { Proto } from '@basmilius/apple-airplay';
+import { Proto } from '@basmilius/apple-sdk';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, AppleTVDevice } from '../types';
 import { repeatModeToProto } from '../utils';
@@ -65,11 +65,11 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         launchApp.registerRunListener(async ({app, device}: RunArguments) => {
-            await device.companionLink.protocol.launchApp(app.id);
+            await device.sdk.apps?.launch(app.id);
         });
 
         launchApp.registerArgumentAutocompleteListener('app', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-            const launchableApps: { name: string; bundleId: string }[] = await device.companionLink.protocol.getLaunchableApps();
+            const launchableApps = await device.sdk.apps?.list() ?? [];
             const lowerQuery = query.trim().toLowerCase();
 
             return launchableApps
@@ -92,7 +92,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         }
 
         launchUrl.registerRunListener(async ({device, url}: RunArguments) => {
-            await device.companionLink.protocol.launchUrl(url);
+            await device.sdk.apps?.openUrl(url);
         });
     }
 
@@ -105,32 +105,34 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         }
 
         remote.registerRunListener(async ({device, command}: RunArguments) => {
+            const sdk = device.sdk;
+
             const commands: Record<string, () => Promise<void>> = {
-                up: () => device.airplay.remote.up(),
-                down: () => device.airplay.remote.down(),
-                left: () => device.airplay.remote.left(),
-                right: () => device.airplay.remote.right(),
-                select: () => device.airplay.remote.select(),
-                menu: () => device.airplay.remote.menu(),
-                home: () => device.airplay.remote.home(),
-                play: () => device.airplay.remote.play(),
-                pause: () => device.airplay.remote.pause(),
-                playPause: () => device.airplay.remote.playPause(),
-                next: () => device.airplay.remote.next(),
-                previous: () => device.airplay.remote.previous(),
-                volumeUp: () => device.airplay.protocol.volume.up(),
-                volumeDown: () => device.airplay.protocol.volume.down(),
-                mute: () => device.airplay.remote.mute(),
-                stop: () => device.airplay.remote.stop(),
-                screensaver: () => device.companionLink.protocol.pressButton('Screensaver'),
-                topMenu: () => device.airplay.remote.topMenu(),
-                homeHold: () => device.companionLink.protocol.pressButton('Home', 'Hold'),
-                doubleTapSelect: () => device.companionLink.protocol.pressButton('Select', 'DoubleTap'),
-                channelUp: () => device.airplay.remote.channelUp(),
-                channelDown: () => device.airplay.remote.channelDown(),
-                siri: () => device.companionLink.protocol.pressButton('Siri'),
-                wake: () => device.airplay.remote.wake(),
-                suspend: () => device.airplay.remote.suspend()
+                up: () => sdk.remote.up(),
+                down: () => sdk.remote.down(),
+                left: () => sdk.remote.left(),
+                right: () => sdk.remote.right(),
+                select: () => sdk.remote.select(),
+                menu: () => sdk.remote.menu(),
+                home: () => sdk.remote.home(),
+                play: () => sdk.remote.play(),
+                pause: () => sdk.remote.pause(),
+                playPause: () => sdk.remote.playPause(),
+                next: () => sdk.remote.next(),
+                previous: () => sdk.remote.previous(),
+                volumeUp: () => sdk.volume.up(),
+                volumeDown: () => sdk.volume.down(),
+                mute: () => sdk.remote.mute(),
+                stop: () => sdk.remote.stop(),
+                screensaver: () => sdk.companionLink!.pressButton('Screensaver'),
+                topMenu: () => sdk.remote.topMenu(),
+                homeHold: () => sdk.companionLink!.pressButton('Home', 'Hold'),
+                doubleTapSelect: () => sdk.companionLink!.pressButton('Select', 'DoubleTap'),
+                channelUp: () => sdk.remote.channelUp(),
+                channelDown: () => sdk.remote.channelDown(),
+                siri: () => sdk.companionLink!.pressButton('Siri'),
+                wake: () => sdk.remote.wake(),
+                suspend: () => sdk.remote.suspend()
             };
 
             const fn = commands[command];
@@ -152,7 +154,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, position}: RunArguments) => {
-            await device.airplay.remote.commandSeekToPosition(Math.floor(position));
+            await device.sdk.playback.seekTo(Math.floor(position));
         });
     }
 
@@ -165,7 +167,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, mode}: RunArguments) => {
-            await device.airplay.remote.commandSetRepeatMode(repeatModeToProto[mode] ?? Proto.RepeatMode_Enum.Off);
+            await device.sdk.playback.setRepeatMode(repeatModeToProto[mode] ?? Proto.RepeatMode_Enum.Off);
         });
     }
 
@@ -181,7 +183,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             const mode = shuffle === 'true'
                 ? Proto.ShuffleMode_Enum.Songs
                 : Proto.ShuffleMode_Enum.Off;
-            await device.airplay.remote.commandSetShuffleMode(mode);
+            await device.sdk.playback.setShuffleMode(mode);
         });
     }
 
@@ -194,7 +196,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, seconds}: RunArguments) => {
-            await device.airplay.remote.commandSkipBackward(Math.floor(seconds));
+            await device.sdk.playback.skipBackward(Math.floor(seconds));
         });
     }
 
@@ -207,7 +209,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, seconds}: RunArguments) => {
-            await device.airplay.remote.commandSkipForward(Math.floor(seconds));
+            await device.sdk.playback.skipForward(Math.floor(seconds));
         });
     }
 
@@ -226,11 +228,11 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         switchAccount.registerRunListener(async ({device, account}: RunArguments) => {
-            await device.companionLink.protocol.switchUserAccount(account.id);
+            await device.sdk.accounts?.switch(account.id);
         });
 
         switchAccount.registerArgumentAutocompleteListener('account', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-            const userAccounts: { name: string; accountId: string }[] = await device.companionLink.protocol.getUserAccounts();
+            const userAccounts = await device.sdk.accounts?.list() ?? [];
             const lowerQuery = query.trim().toLowerCase();
 
             return userAccounts

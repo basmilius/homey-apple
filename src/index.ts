@@ -1,11 +1,7 @@
-import { reporter, TimingServer } from '@basmilius/apple-common';
+import { configure, TimingServer } from '@basmilius/apple-sdk';
 import { App } from '@basmilius/homey-common';
 import AppleTVFlow from './apple-tv/flow';
 import HomePodFlow from './homepod-base/flow';
-
-reporter.enable('error');
-reporter.enable('warn');
-reporter.enable('net');
 
 export default class AppleApp extends App<AppleApp> {
     get appleTvFlow(): AppleTVFlow {
@@ -37,6 +33,13 @@ export default class AppleApp extends App<AppleApp> {
         } catch (err) {
             this.error('Failed to start timing server:', err);
         }
+
+        configure({
+            logging: ['error', 'warn', 'net'],
+            timingServer: this.useTimingServer
+                ? this.#timingServer
+                : undefined
+        });
 
         this.#appleTvFlow = new AppleTVFlow(this);
         this.#appleTvFlow.register();

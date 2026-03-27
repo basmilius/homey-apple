@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import * as AirPlay from '@basmilius/apple-airplay';
+import { HomePod } from '@basmilius/apple-sdk';
 import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -10,7 +10,6 @@ export default class HomePodBasePairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Homey.DiscoveryResultMDNSSD | undefined;
-    #protocol!: AirPlay.Protocol;
 
     constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[]) {
         super();
@@ -66,22 +65,19 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay.Protocol(convertDiscoveryResult(this.#device));
+        const pod = new HomePod({airplay: convertDiscoveryResult(this.#device)});
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 
         try {
-            await this.#protocol.connect();
-            await this.#protocol.pairing.start();
-            const keys = await this.#protocol.pairing.transient();
-
-            this.emit('log', `Pairing successful! Keys: ${keys.accessoryToControllerKey.toString('hex')} ${keys.controllerToAccessoryKey.toString('hex')}`);
+            await pod.connect();
+            this.emit('log', 'Transient pairing successful!');
+            pod.disconnect();
         } catch (err) {
-            this.#protocol.disconnect();
+            pod.disconnect();
             throw err;
         }
 
-        this.#protocol.disconnect();
         await this.#session.showView('add_my_device');
     }
 

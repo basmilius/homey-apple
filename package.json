@@ -5,15 +5,8 @@
         "build": "tsc && rm -rf .homeybuild/node_modules/**/*.js.map && rm -rf .homeybuild/node_modules/**/*.mjs.map"
     },
     "dependencies": {
-        "@basmilius/apple-airplay": "^0.11.0",
-        "@basmilius/apple-audio-source": "^0.11.0",
-        "@basmilius/apple-common": "^0.11.0",
-        "@basmilius/apple-companion-link": "^0.11.0",
-        "@basmilius/apple-devices": "^0.11.0",
-        "@basmilius/apple-encoding": "^0.11.0",
-        "@basmilius/apple-encryption": "^0.11.0",
-        "@basmilius/apple-raop": "^0.11.0",
-        "@basmilius/apple-rtsp": "^0.11.0",
+        "@basmilius/apple-audio-source": "^0.13.2",
+        "@basmilius/apple-sdk": "^0.13.2",
         "@basmilius/homey-common": "^1.20.0"
     },
     "devDependencies": {

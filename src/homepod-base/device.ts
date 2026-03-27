@@ -1,13 +1,12 @@
-import { Proto } from '@basmilius/apple-airplay';
-import { Url as UrlAudioSource } from '@basmilius/apple-audio-source';
-import { AIRPLAY_SERVICE, type DiscoveryResult } from '@basmilius/apple-common';
-import { RaopClient } from '@basmilius/apple-raop';
+import { Url } from '@basmilius/apple-audio-source';
+import { AIRPLAY_SERVICE, ConnectionRecovery, type DiscoveryResult, HomePod, Proto } from '@basmilius/apple-sdk';
 import { DiscoverableDevice } from '../base';
-import { AirPlayConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import { capabilityToRepeatMode, getAccessoryCredentialsFromDevice } from '../utils';
+import { capabilityToRepeatMode } from '../utils';
 import type HomePodBaseDriver from './driver';
 import type Homey from 'homey';
+
+const RECONNECT_INTERVAL = 15 * 60 * 1000;
 
 const CAPABILITIES = [
     'speaker_album',
@@ -31,10 +30,6 @@ const CAPABILITIES = [
 ];
 
 export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDriver> extends DiscoverableDevice<TDriver> {
-    get airplay(): AirPlayConnection {
-        return this.#airplay;
-    }
-
     get airplayLogic(): AirPlayLogic {
         return this.#airplayLogic;
     }
@@ -43,13 +38,22 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         return this.discoveryResults[AIRPLAY_SERVICE];
     }
 
+    get sdk(): HomePod {
+        if (!this.#pod) {
+            throw new Error('HomePod SDK device is not initialized.');
+        }
+
+        return this.#pod;
+    }
+
     get services(): Record<string, Homey.DiscoveryStrategy> {
         return this.#services;
     }
 
-    #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
     #connectedOnce = false;
+    #pod?: HomePod;
+    #recovery?: ConnectionRecovery;
     #services!: Record<string, Homey.DiscoveryStrategy>;
 
     async onInit(): Promise<void> {
@@ -62,13 +66,6 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
-        this.onConnected = this.onConnected.bind(this);
-        this.onDisconnected = this.onDisconnected.bind(this);
-
-        this.#airplay = new AirPlayConnection(this);
-        this.#airplay.on('connected', this.onConnected);
-        this.#airplay.on('disconnected', this.onDisconnected);
-
         await this.syncCapabilities(CAPABILITIES);
         this.#registerCapabilities();
         this.#registerMaintenance();
@@ -79,94 +76,133 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     }
 
     async onUninit(): Promise<void> {
-        this.#airplay.removeAllListeners();
+        this.#recovery?.dispose();
         await this.#airplayLogic.uninitialize();
-        await this.#disconnect();
+        this.#pod?.disconnect();
 
         this.log('Uninitialized.');
     }
 
     async #connect(): Promise<void> {
         try {
-            const credentials = getAccessoryCredentialsFromDevice(this);
-
             if (!this.discoveryResult) {
                 await this.setUnavailable('Service discovery not complete, waiting for device...');
                 return;
             }
 
-            this.#airplay.createInstance(credentials, this.discoveryResult);
-            await this.#airplay.connect();
+            // Create or reconfigure the SDK device.
+            if (!this.#pod) {
+                this.#pod = new HomePod({
+                    airplay: this.discoveryResult
+                });
+
+                this.#airplayLogic.setDevice(this.#pod);
+                this.#wireEvents();
+                this.#setupRecovery();
+            } else {
+                this.#pod.discoveryResult = this.discoveryResult;
+            }
+
+            await this.#pod.connect();
         } catch (err) {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to HomePod.');
         }
     }
 
-    async #disconnect(): Promise<void> {
-        await this.#airplay.disconnect();
-    }
-
-    async onConnected(): Promise<void> {
-        await this.setAvailable();
-    }
-
-    async onDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
+    #wireEvents(): void {
+        if (!this.#pod) {
             return;
         }
 
-        this.log('Disconnected from HomePod, reconnecting...');
-        await this.setUnavailable('Disconnected from HomePod, reconnecting...');
+        this.#pod.on('connected', async () => {
+            this.#recovery?.reset();
+            await this.setAvailable();
+        });
+
+        this.#pod.on('disconnected', async (unexpected: boolean) => {
+            if (!unexpected) {
+                return;
+            }
+
+            this.log('Disconnected from HomePod, reconnecting...');
+            await this.setUnavailable('Disconnected from HomePod, reconnecting...');
+            this.#recovery?.handleDisconnect(unexpected);
+        });
+    }
+
+    #setupRecovery(): void {
+        this.#recovery?.dispose();
+
+        this.#recovery = new ConnectionRecovery({
+            maxAttempts: 3,
+            baseDelay: 1000,
+            reconnectInterval: RECONNECT_INTERVAL,
+            onReconnect: async () => {
+                this.#pod!.airplay.disconnectSafely();
+                await this.findService(AIRPLAY_SERVICE);
+                this.#pod!.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
+                await this.#pod!.airplay.connect();
+            }
+        });
+
+        this.#recovery.on('recovering', (attempt) => {
+            this.log(`AirPlay recovery attempt ${attempt}...`);
+        });
+
+        this.#recovery.on('failed', () => {
+            this.error('AirPlay recovery failed after max attempts.');
+        });
     }
 
     #registerCapabilities(): void {
         this.registerCapabilityListener('speaker_next', async () => {
-            await this.#airplay.protocol.sendCommand(Proto.Command.NextInContext);
+            await this.sdk.playback.next();
         });
 
         this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#airplay.protocol.sendCommand(Proto.Command.PreviousInContext);
+            await this.sdk.playback.previous();
         });
 
         this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.remote.commandStop();
+            await this.sdk.playback.stop();
         });
 
         this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
             if (play) {
-                await this.#airplay.remote.commandPlay();
+                await this.sdk.playback.play();
             } else {
-                await this.#airplay.remote.commandPause();
+                await this.sdk.playback.pause();
             }
         });
 
         this.registerCapabilityListener('volume_up', async () => {
-            await this.#airplay.protocol.volume.up();
+            await this.sdk.volume.up();
         });
 
         this.registerCapabilityListener('volume_down', async () => {
-            await this.#airplay.protocol.volume.down();
+            await this.sdk.volume.down();
         });
 
         this.registerCapabilityListener('volume_set', async (volume: number) => {
-            await this.#airplay.protocol.volume.set(volume);
+            await this.sdk.volume.set(volume);
         });
 
         this.registerCapabilityListener('speaker_repeat', async (value: string) => {
-            await this.#airplay.remote.commandSetRepeatMode(capabilityToRepeatMode[value] ?? Proto.RepeatMode_Enum.Off);
+            await this.sdk.playback.setRepeatMode(capabilityToRepeatMode[value] ?? Proto.RepeatMode_Enum.Off);
         });
 
         this.registerCapabilityListener('speaker_shuffle', async (value: boolean) => {
             const mode = value ? Proto.ShuffleMode_Enum.Songs : Proto.ShuffleMode_Enum.Off;
-            await this.#airplay.remote.commandSetShuffleMode(mode);
+            await this.sdk.playback.setShuffleMode(mode);
         });
     }
 
     #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
             try {
-                await this.#disconnect();
+                this.#pod?.disconnect();
+                this.#pod = undefined;
                 await this.#airplayLogic.clearNowPlaying();
                 await this.#connect();
             } catch (err) {
@@ -195,17 +231,17 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
             throw new Error('Timing server is not enabled.');
         }
 
-        if (!this.discoveryResult) {
-            throw new Error('Service discovery not complete.');
+        if (!this.#pod) {
+            throw new Error('HomePod is not connected.');
         }
 
         try {
-            const client = await RaopClient.create(this.discoveryResult, this.app.timingServer);
-            const audioSource = await UrlAudioSource.fromUrl(url);
+            if (volume !== undefined) {
+                await this.sdk.volume.set(volume);
+            }
 
-            void client.stream(audioSource, {volume})
-                .then(() => client.close())
-                .catch(err => this.error('Failed to stream audio:', err));
+            const audioSource = await Url.fromUrl(url);
+            await this.sdk.media.streamAudio(audioSource);
         } catch (err) {
             this.error('Failed to start audio playback:', err);
             throw err;

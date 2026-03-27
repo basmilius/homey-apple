@@ -59,7 +59,7 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, position}: RunArguments) => {
-            await device.airplay.remote.commandSeekToPosition(Math.floor(position));
+            await device.sdk.playback.seekTo(Math.floor(position));
         });
     }
 
@@ -72,7 +72,7 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, seconds}: RunArguments) => {
-            await device.airplay.remote.commandSkipBackward(Math.floor(seconds));
+            await device.sdk.playback.skipBackward(Math.floor(seconds));
         });
     }
 
@@ -85,7 +85,7 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, seconds}: RunArguments) => {
-            await device.airplay.remote.commandSkipForward(Math.floor(seconds));
+            await device.sdk.playback.skipForward(Math.floor(seconds));
         });
     }
 }

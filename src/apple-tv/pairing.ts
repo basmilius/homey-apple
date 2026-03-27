@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import * as AirPlay from '@basmilius/apple-airplay';
+import { AppleTV, type PairingSession } from '@basmilius/apple-sdk';
 import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -13,12 +13,7 @@ export default class AppleTVPairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     #device: Device | undefined;
-    #protocol!: AirPlay.Protocol;
-    #m1: any;
-    #m2: any;
-    #m3: any;
-    #m4: any;
-    #m5: any;
+    #pairingSession?: PairingSession;
 
     constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[]) {
         super();
@@ -57,7 +52,7 @@ export default class AppleTVPairing extends EventEmitter {
     }
 
     async onPincode(code: Buffer): Promise<Device | undefined> {
-        if (!this.#device) {
+        if (!this.#device || !this.#pairingSession) {
             this.emit('error', 'No device selected.');
             return;
         }
@@ -65,12 +60,8 @@ export default class AppleTVPairing extends EventEmitter {
         const pin = code.join('');
         this.emit('log', `Pairing to ${this.#device.name} with PIN ${pin}`);
 
-        this.#m2 = await this.#protocol.pairing.internal.m2(this.#m1, pin);
-        this.#m3 = await this.#protocol.pairing.internal.m3(this.#m2);
-        this.#m4 = await this.#protocol.pairing.internal.m4(this.#m3);
-        this.#m5 = await this.#protocol.pairing.internal.m5(this.#m4);
-
-        const credentials = await this.#protocol.pairing.internal.m6(this.#m4, this.#m5);
+        await this.#pairingSession.pin(pin);
+        const credentials = await this.#pairingSession.end();
 
         this.#device.store ??= {};
         this.#device.store.credentials = {
@@ -83,8 +74,6 @@ export default class AppleTVPairing extends EventEmitter {
 
         this.#session.showView('add_device')
             .catch(e => this.emit('log', e));
-
-        this.#protocol.disconnect();
 
         return this.#device;
     }
@@ -110,18 +99,16 @@ export default class AppleTVPairing extends EventEmitter {
             return;
         }
 
-        this.#protocol = new AirPlay.Protocol(convertDiscoveryResult(this.#device));
+        const tv = new AppleTV({airplay: convertDiscoveryResult(this.#device)});
+        this.#pairingSession = tv.createPairingSession();
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 
         try {
-            await this.#protocol.connect();
-            await this.#protocol.pairing.start();
-            await this.#protocol.pairing.pinStart();
-
-            this.#m1 = await this.#protocol.pairing.internal.m1();
+            await this.#pairingSession.start();
         } catch (err) {
-            this.#protocol.disconnect();
+            this.#pairingSession.abort();
+            this.#pairingSession = undefined;
             throw err;
         }
     }

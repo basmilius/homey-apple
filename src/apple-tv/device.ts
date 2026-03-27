@@ -1,12 +1,11 @@
-import { Proto } from '@basmilius/apple-airplay';
-import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type DiscoveryResult } from '@basmilius/apple-common';
+import { AIRPLAY_SERVICE, AppleTV, COMPANION_LINK_SERVICE, ConnectionRecovery, type DiscoveryResult, Proto } from '@basmilius/apple-sdk';
 import { DiscoverableDevice } from '../base';
-import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
 import { capabilityToRepeatMode, getAccessoryCredentialsFromDevice } from '../utils';
 import type AppleTVDriver from './driver';
 import type Homey from 'homey';
 
+const RECONNECT_INTERVAL = 15 * 60 * 1000;
 const SLOW_RECOVERY_INTERVAL = 2 * 60 * 1000;
 const SLOW_RECOVERY_MAX_ATTEMPTS = 15;
 
@@ -42,16 +41,8 @@ const CAPABILITIES = [
 ];
 
 export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
-    get airplay(): AirPlayConnection {
-        return this.#airplay;
-    }
-
     get airplayLogic(): AirPlayLogic {
         return this.#airplayLogic;
-    }
-
-    get companionLink(): CompanionLinkConnection {
-        return this.#companionLink;
     }
 
     get discoveryResultAirPlay(): DiscoveryResult {
@@ -62,19 +53,28 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         return this.discoveryResults[COMPANION_LINK_SERVICE];
     }
 
+    get sdk(): AppleTV {
+        if (!this.#tv) {
+            throw new Error('Apple TV SDK device is not initialized.');
+        }
+
+        return this.#tv;
+    }
+
     get services(): Record<string, Homey.DiscoveryStrategy> {
         return this.#services;
     }
 
-    #airplay!: AirPlayConnection;
     #airplayLogic!: AirPlayLogic;
-    #companionLink!: CompanionLinkConnection;
+    #airplayRecovery?: ConnectionRecovery;
     #companionLinkFailed = false;
+    #companionLinkRecovery?: ConnectionRecovery;
     #companionLinkRetried = false;
     #connectedOnce = false;
     #slowRecoveryAttempt = 0;
     #slowRecoveryTimer: ReturnType<typeof setTimeout> | null = null;
     #services!: Record<string, Homey.DiscoveryStrategy>;
+    #tv?: AppleTV;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
@@ -87,21 +87,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
 
-        this.onAirPlayConnected = this.onAirPlayConnected.bind(this);
-        this.onAirPlayDisconnected = this.onAirPlayDisconnected.bind(this);
-        this.onCompanionLinkConnected = this.onCompanionLinkConnected.bind(this);
-        this.onCompanionLinkDisconnected = this.onCompanionLinkDisconnected.bind(this);
-        this.onCompanionLinkFailed = this.onCompanionLinkFailed.bind(this);
-
-        this.#airplay = new AirPlayConnection(this);
-        this.#companionLink = new CompanionLinkConnection(this);
-
-        this.#airplay.on('connected', this.onAirPlayConnected);
-        this.#airplay.on('disconnected', this.onAirPlayDisconnected);
-        this.#companionLink.on('connected', this.onCompanionLinkConnected);
-        this.#companionLink.on('disconnected', this.onCompanionLinkDisconnected);
-        this.#companionLink.on('failed', this.onCompanionLinkFailed);
-
         await this.syncCapabilities(CAPABILITIES);
         this.#registerCapabilities();
         this.#registerMaintenance();
@@ -113,10 +98,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async onUninit(): Promise<void> {
         this.#stopSlowRecovery();
-        this.#airplay.removeAllListeners();
-        this.#companionLink.removeAllListeners();
+        this.#airplayRecovery?.dispose();
+        this.#companionLinkRecovery?.dispose();
         await this.#airplayLogic.uninitialize();
-        await this.#disconnect();
+        this.#tv?.disconnect();
 
         this.log('Uninitialized.');
     }
@@ -135,22 +120,146 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                 return;
             }
 
-            this.log('Connecting to Apple TV (AirPlay)...');
-            this.#airplay.createInstance(credentials, this.discoveryResultAirPlay);
-            await this.#airplay.connect();
+            // Create or reconfigure the SDK device.
+            if (!this.#tv) {
+                this.#tv = new AppleTV({
+                    airplay: this.discoveryResultAirPlay,
+                    companionLink: this.discoveryResultCompanionLink
+                });
 
-            this.log('Connecting to Apple TV (Companion Link)...');
-            this.#companionLink.createInstance(credentials, this.discoveryResultCompanionLink);
-            await this.#companionLink.connect();
+                this.#airplayLogic.setDevice(this.#tv);
+                this.#wireEvents();
+                this.#setupRecovery(credentials);
+            } else {
+                this.#tv.discoveryResult = this.discoveryResultAirPlay;
+
+                if (this.#tv.companionLink) {
+                    this.#tv.companionLink.discoveryResult = this.discoveryResultCompanionLink;
+                }
+            }
+
+            this.log('Connecting to Apple TV...');
+            await this.#tv.connect(credentials);
         } catch (err) {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to Apple TV.');
         }
     }
 
-    async #disconnect(): Promise<void> {
-        await this.#airplay.disconnect();
-        await this.#companionLink.disconnect();
+    #wireEvents(): void {
+        if (!this.#tv) {
+            return;
+        }
+
+        this.#tv.on('connected', async () => {
+            this.#airplayRecovery?.reset();
+            this.log('Connected to Apple TV (AirPlay).');
+
+            if (this.#tv!.companionLink?.isConnected) {
+                await this.setAvailable();
+            }
+        });
+
+        this.#tv.on('disconnected', async (unexpected: boolean) => {
+            if (!unexpected) {
+                return;
+            }
+
+            this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
+            await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
+            this.#airplayRecovery?.handleDisconnect(unexpected);
+        });
+
+        this.#tv.on('power', async (state) => {
+            this.log('#onPower()', {state});
+
+            const isOn = state === 'awake' || state === 'screensaver';
+
+            try {
+                await this.setCapabilityValue('onoff', isOn);
+                await this.setCapabilityValue('power', this.homey.__(isOn ? 'capability.power.on' : 'capability.power.off'));
+            } catch (err) {
+                this.error('Failed to set power state.', err);
+            }
+
+            if (isOn) {
+                this.#airplayLogic.emitUpdate();
+                return;
+            }
+
+            await this.#airplayLogic.clearNowPlaying();
+        });
+
+        if (this.#tv.companionLink) {
+            this.#tv.companionLink.on('connected', async () => {
+                this.#companionLinkRecovery?.reset();
+                this.#companionLinkRetried = false;
+                this.#stopSlowRecovery();
+                this.log('Connected to Apple TV (Companion Link).');
+
+                if (this.#tv!.airplay.isConnected) {
+                    await this.setAvailable();
+                }
+            });
+
+            this.#tv.companionLink.on('disconnected', async (unexpected: boolean) => {
+                if (!unexpected) {
+                    return;
+                }
+
+                this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
+                await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
+                this.#companionLinkRecovery?.handleDisconnect(unexpected);
+            });
+        }
+    }
+
+    #setupRecovery(credentials: NonNullable<ReturnType<typeof getAccessoryCredentialsFromDevice>>): void {
+        this.#airplayRecovery?.dispose();
+        this.#companionLinkRecovery?.dispose();
+
+        this.#airplayRecovery = new ConnectionRecovery({
+            maxAttempts: 3,
+            baseDelay: 1000,
+            reconnectInterval: RECONNECT_INTERVAL,
+            onReconnect: async () => {
+                this.#tv!.airplay.disconnectSafely();
+                await this.findService(AIRPLAY_SERVICE);
+                this.#tv!.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
+                this.#tv!.airplay.setCredentials(credentials);
+                await this.#tv!.airplay.connect();
+            }
+        });
+
+        this.#airplayRecovery.on('recovering', (attempt) => {
+            this.log(`AirPlay recovery attempt ${attempt}...`);
+        });
+
+        this.#airplayRecovery.on('failed', () => {
+            this.error('AirPlay recovery failed after max attempts.');
+        });
+
+        this.#companionLinkRecovery = new ConnectionRecovery({
+            maxAttempts: 3,
+            baseDelay: 1000,
+            reconnectInterval: RECONNECT_INTERVAL,
+            onReconnect: async () => {
+                await this.#tv!.companionLink!.disconnectSafely();
+                await this.findService(COMPANION_LINK_SERVICE);
+                this.#tv!.companionLink!.discoveryResult = this.discoveryResultCompanionLink;
+                await this.#tv!.companionLink!.setCredentials(credentials);
+                await this.#tv!.companionLink!.connect();
+            }
+        });
+
+        this.#companionLinkRecovery.on('recovering', (attempt) => {
+            this.log(`Companion Link recovery attempt ${attempt}...`);
+        });
+
+        this.#companionLinkRecovery.on('failed', async () => {
+            this.error('Companion Link recovery failed after max attempts.');
+            await this.#onCompanionLinkFailed();
+        });
     }
 
     async #startSlowRecovery(): Promise<void> {
@@ -170,8 +279,15 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             try {
                 await this.findService(COMPANION_LINK_SERVICE);
                 this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
-                this.#companionLink.resetConnectAttempts();
-                await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+                this.#companionLinkRecovery?.reset();
+                this.#tv!.companionLink!.discoveryResult = this.discoveryResultCompanionLink;
+
+                const credentials = getAccessoryCredentialsFromDevice(this);
+
+                if (credentials) {
+                    await this.#tv!.companionLink!.setCredentials(credentials);
+                    await this.#tv!.companionLink!.connect();
+                }
             } catch {
                 this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt} failed.`);
             }
@@ -179,13 +295,12 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             if (this.#slowRecoveryAttempt >= SLOW_RECOVERY_MAX_ATTEMPTS) {
                 this.#companionLinkFailed = true;
                 this.log('Companion Link failed permanently after extended recovery period. Please restart the app.');
-                await this.#notify('Companion Link failed permanently after extended recovery. Please restart the app.');
                 await this.setUnavailable('Failed to connect to Apple TV using Companion Link. Please restart the app.');
                 await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
                 return;
             }
 
-            if (!this.#companionLink.isConnected) {
+            if (!this.#tv?.companionLink?.isConnected) {
                 this.#scheduleSlowRecoveryAttempt();
             }
         }, SLOW_RECOVERY_INTERVAL);
@@ -199,141 +314,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#slowRecoveryAttempt = 0;
     }
 
-    #registerCapabilities(): void {
-        this.#registerOnOff();
-        this.#registerRemote();
-
-        this.registerCapabilityListener('speaker_next', async () => {
-            await this.#airplay.protocol.sendCommand(Proto.Command.NextInContext);
-        });
-
-        this.registerCapabilityListener('speaker_prev', async () => {
-            await this.#airplay.protocol.sendCommand(Proto.Command.PreviousInContext);
-        });
-
-        this.registerCapabilityListener('speaker_stop', async () => {
-            await this.#airplay.remote.commandStop();
-        });
-
-        this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
-            if (play) {
-                await this.#airplay.remote.commandPlay();
-            } else {
-                await this.#airplay.remote.commandPause();
-            }
-        });
-
-        this.registerCapabilityListener('volume_up', async () => {
-            await this.#airplay.protocol.volume.up();
-        });
-
-        this.registerCapabilityListener('volume_down', async () => {
-            await this.#airplay.protocol.volume.down();
-        });
-
-        this.registerCapabilityListener('volume_mute', async () => {
-            await this.#airplay.remote.mute();
-        });
-
-        this.registerCapabilityListener('speaker_repeat', async (value: string) => {
-            await this.#airplay.remote.commandSetRepeatMode(capabilityToRepeatMode[value] ?? Proto.RepeatMode_Enum.Off);
-        });
-
-        this.registerCapabilityListener('speaker_shuffle', async (value: boolean) => {
-            const mode = value ? Proto.ShuffleMode_Enum.Songs : Proto.ShuffleMode_Enum.Off;
-            await this.#airplay.remote.commandSetShuffleMode(mode);
-        });
-    }
-
-    #registerMaintenance(): void {
-        this.registerCapabilityListener('button.restart', async () => {
-            try {
-                this.#stopSlowRecovery();
-                this.#companionLinkFailed = false;
-                this.#companionLinkRetried = false;
-                await this.#disconnect();
-                await this.#airplayLogic.clearNowPlaying();
-                await this.#connect();
-            } catch (err) {
-                this.error(err);
-            }
-        });
-    }
-
-    #registerOnOff(): void {
-        this.registerCapabilityListener('onoff', async (value: boolean) => {
-            if (value) {
-                await this.#airplay.remote.wake();
-            } else {
-                await this.#airplay.remote.suspend();
-            }
-        });
-    }
-
-    #registerRemote(): void {
-        const keys = CAPABILITIES.filter(k => k.startsWith('remote_'));
-
-        this.registerMultipleCapabilityListener(keys, async values => {
-            values.remote_up === true && await this.#airplay.remote.up();
-            values.remote_down === true && await this.#airplay.remote.down();
-            values.remote_left === true && await this.#airplay.remote.left();
-            values.remote_right === true && await this.#airplay.remote.right();
-            values.remote_select === true && await this.#airplay.remote.select();
-            values.remote_home === true && await this.#airplay.remote.home();
-            values.remote_back === true && await this.#airplay.remote.menu();
-            values.remote_playpause === true && await this.#airplay.remote.playPause();
-        }, 0);
-    }
-
-    async #notify(message: string): Promise<void> {
-        // await this.homey.notifications.createNotification({
-        //     excerpt: `[${this.getName()}] ${message}`
-        // });
-    }
-
-    async #onConnected(): Promise<void> {
-        if (!this.#airplay.isConnected || !this.#companionLink.isConnected) {
-            return;
-        }
-
-        await this.setAvailable();
-    }
-
-    async onAirPlayConnected(): Promise<void> {
-        this.log('Connected to Apple TV (AirPlay).');
-        await this.#notify('AirPlay connected.');
-        await this.#onConnected();
-    }
-
-    async onAirPlayDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
-            return;
-        }
-
-        this.log('Disconnected from Apple TV (AirPlay), reconnecting...');
-        await this.#notify('AirPlay disconnected unexpectedly, reconnecting...');
-        await this.setUnavailable('Disconnected from Apple TV (AirPlay), reconnecting...');
-    }
-
-    async onCompanionLinkConnected(): Promise<void> {
-        this.#companionLinkRetried = false;
-        this.#stopSlowRecovery();
-        this.log('Connected to Apple TV (Companion Link).');
-        await this.#notify('Companion Link connected.');
-        await this.#onConnected();
-    }
-
-    async onCompanionLinkDisconnected(unexpected: boolean): Promise<void> {
-        if (!unexpected) {
-            return;
-        }
-
-        this.log('Disconnected from Apple TV (Companion Link), reconnecting...');
-        await this.#notify('Companion Link disconnected unexpectedly, reconnecting...');
-        await this.setUnavailable('Disconnected from Apple TV (Companion Link), reconnecting...');
-    }
-
-    async onCompanionLinkFailed(): Promise<void> {
+    async #onCompanionLinkFailed(): Promise<void> {
         if (this.#companionLinkFailed) {
             return;
         }
@@ -346,23 +327,115 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.#companionLinkRetried = true;
 
             this.log('Companion Link failed, attempting re-discovery before giving up...');
-            await this.#notify('Companion Link failed after 3 attempts, attempting re-discovery...');
             await this.setUnavailable('Reconnecting to Apple TV...');
 
             try {
                 await this.findService(COMPANION_LINK_SERVICE);
                 this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
-                await this.#notify(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
-                this.#companionLink.resetConnectAttempts();
-                await this.#companionLink.reconnect(this.discoveryResultCompanionLink);
+                this.#companionLinkRecovery?.reset();
+                this.#tv!.companionLink!.discoveryResult = this.discoveryResultCompanionLink;
+
+                const credentials = getAccessoryCredentialsFromDevice(this);
+
+                if (credentials) {
+                    await this.#tv!.companionLink!.setCredentials(credentials);
+                    await this.#tv!.companionLink!.connect();
+                }
+
                 return;
             } catch {
                 this.log('Re-discovery of Companion Link service failed.');
-                await this.#notify('Re-discovery of Companion Link service failed.');
             }
         }
 
         await this.#startSlowRecovery();
+    }
+
+    #registerCapabilities(): void {
+        this.#registerOnOff();
+        this.#registerRemote();
+
+        this.registerCapabilityListener('speaker_next', async () => {
+            await this.sdk.playback.next();
+        });
+
+        this.registerCapabilityListener('speaker_prev', async () => {
+            await this.sdk.playback.previous();
+        });
+
+        this.registerCapabilityListener('speaker_stop', async () => {
+            await this.sdk.playback.stop();
+        });
+
+        this.registerCapabilityListener('speaker_playing', async (play: boolean) => {
+            if (play) {
+                await this.sdk.playback.play();
+            } else {
+                await this.sdk.playback.pause();
+            }
+        });
+
+        this.registerCapabilityListener('volume_up', async () => {
+            await this.sdk.volume.up();
+        });
+
+        this.registerCapabilityListener('volume_down', async () => {
+            await this.sdk.volume.down();
+        });
+
+        this.registerCapabilityListener('volume_mute', async () => {
+            await this.sdk.remote.mute();
+        });
+
+        this.registerCapabilityListener('speaker_repeat', async (value: string) => {
+            await this.sdk.playback.setRepeatMode(capabilityToRepeatMode[value] ?? Proto.RepeatMode_Enum.Off);
+        });
+
+        this.registerCapabilityListener('speaker_shuffle', async (value: boolean) => {
+            const mode = value ? Proto.ShuffleMode_Enum.Songs : Proto.ShuffleMode_Enum.Off;
+            await this.sdk.playback.setShuffleMode(mode);
+        });
+    }
+
+    #registerMaintenance(): void {
+        this.registerCapabilityListener('button.restart', async () => {
+            try {
+                this.#stopSlowRecovery();
+                this.#companionLinkFailed = false;
+                this.#companionLinkRetried = false;
+                this.#tv?.disconnect();
+                this.#tv = undefined;
+                await this.#airplayLogic.clearNowPlaying();
+                await this.#connect();
+            } catch (err) {
+                this.error(err);
+            }
+        });
+    }
+
+    #registerOnOff(): void {
+        this.registerCapabilityListener('onoff', async (value: boolean) => {
+            if (value) {
+                await this.sdk.power?.on();
+            } else {
+                await this.sdk.power?.off();
+            }
+        });
+    }
+
+    #registerRemote(): void {
+        const keys = CAPABILITIES.filter(k => k.startsWith('remote_'));
+
+        this.registerMultipleCapabilityListener(keys, async values => {
+            values.remote_up === true && await this.sdk.remote.up();
+            values.remote_down === true && await this.sdk.remote.down();
+            values.remote_left === true && await this.sdk.remote.left();
+            values.remote_right === true && await this.sdk.remote.right();
+            values.remote_select === true && await this.sdk.remote.select();
+            values.remote_home === true && await this.sdk.remote.home();
+            values.remote_back === true && await this.sdk.remote.menu();
+            values.remote_playpause === true && await this.sdk.remote.playPause();
+        }, 0);
     }
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {

@@ -1,4 +1,4 @@
-import { type DiscoveryResult, mdnsUnicast, type MdnsService } from '@basmilius/apple-common';
+import { type DiscoveryResult, type MdnsService, mdnsUnicast } from '@basmilius/apple-sdk';
 import { Device, type Driver } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
