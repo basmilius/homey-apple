@@ -3,7 +3,7 @@ import { AIRPLAY_SERVICE, COMPANION_LINK_SERVICE, type DiscoveryResult } from '@
 import { DiscoverableDevice } from '../base';
 import { AirPlayConnection, CompanionLinkConnection } from '../connection';
 import { AirPlayLogic } from '../logic';
-import { getAccessoryCredentialsFromDevice } from '../utils';
+import { capabilityToRepeatMode, getAccessoryCredentialsFromDevice } from '../utils';
 import type AppleTVDriver from './driver';
 import type Homey from 'homey';
 
@@ -236,12 +236,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         });
 
         this.registerCapabilityListener('speaker_repeat', async (value: string) => {
-            const modeMap: Record<string, Proto.RepeatMode_Enum> = {
-                none: Proto.RepeatMode_Enum.Off,
-                track: Proto.RepeatMode_Enum.One,
-                playlist: Proto.RepeatMode_Enum.All,
-            };
-            await this.#airplay.remote.commandSetRepeatMode(modeMap[value] ?? Proto.RepeatMode_Enum.Off);
+            await this.#airplay.remote.commandSetRepeatMode(capabilityToRepeatMode[value] ?? Proto.RepeatMode_Enum.Off);
         });
 
         this.registerCapabilityListener('speaker_shuffle', async (value: boolean) => {

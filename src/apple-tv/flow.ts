@@ -1,6 +1,7 @@
 import { Proto } from '@basmilius/apple-airplay';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, AppleTVDevice } from '../types';
+import { repeatModeToProto } from '../utils';
 import type Homey from 'homey';
 
 export default class AppleTVFlow extends Shortcuts<AppleApp> {
@@ -158,20 +159,13 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
     #registerSetRepeat(): void {
         const card = this.flow.getActionCard('appletv_set_repeat');
 
-        const modeMap: Record<string, Proto.RepeatMode_Enum> = {
-            off: Proto.RepeatMode_Enum.Off,
-            one: Proto.RepeatMode_Enum.One,
-            all: Proto.RepeatMode_Enum.All,
-        };
-
         type RunArguments = {
             readonly device: AppleTVDevice;
             readonly mode: string;
         };
 
         card.registerRunListener(async ({device, mode}: RunArguments) => {
-            const repeatMode = modeMap[mode] ?? Proto.RepeatMode_Enum.Off;
-            await device.airplay.remote.commandSetRepeatMode(repeatMode);
+            await device.airplay.remote.commandSetRepeatMode(repeatModeToProto[mode] ?? Proto.RepeatMode_Enum.Off);
         });
     }
 

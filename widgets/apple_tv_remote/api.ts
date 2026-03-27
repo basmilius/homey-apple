@@ -1,6 +1,8 @@
 import type { WidgetApiRequest } from '@basmilius/homey-common';
 import type AppleApp from '../../src';
 import type AppleTVDevice from '../../src/apple-tv/device';
+import { safeCapabilityValue } from '../../src/utils';
+import { findDevice } from '../shared';
 
 type Params = {
     readonly deviceId: string;
@@ -17,32 +19,19 @@ type State = {
     readonly onoff: boolean | null;
 };
 
-const findDevice = async ({homey: {app}}: WidgetApiRequest<AppleApp, never, Params>, deviceId: string): Promise<AppleTVDevice | null> =>
-    app.getDevice<AppleTVDevice>(deviceId);
-
-const buildState = (device: AppleTVDevice): State => {
-    const cap = (name: string): any => {
-        try {
-            return device.getCapabilityValue(name);
-        } catch {
-            return null;
-        }
-    };
-
-    return {
-        deviceId: device.getData().id,
-        deviceName: device.getName(),
-        track: cap('speaker_track'),
-        artist: cap('speaker_artist'),
-        album: cap('speaker_album'),
-        playing: cap('speaker_playing'),
-        artworkUrl: cap('artwork_url'),
-        onoff: cap('onoff'),
-    };
-};
+const buildState = (device: AppleTVDevice): State => ({
+    deviceId: device.getData().id,
+    deviceName: device.getName(),
+    track: safeCapabilityValue(device, 'speaker_track'),
+    artist: safeCapabilityValue(device, 'speaker_artist'),
+    album: safeCapabilityValue(device, 'speaker_album'),
+    playing: safeCapabilityValue(device, 'speaker_playing'),
+    artworkUrl: safeCapabilityValue(device, 'artwork_url'),
+    onoff: safeCapabilityValue(device, 'onoff'),
+});
 
 const send = async (request: WidgetApiRequest<AppleApp, never, Params>, capabilityId: string, value: any = true): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
     if (!device) {
         return false;
     }
@@ -56,7 +45,7 @@ const send = async (request: WidgetApiRequest<AppleApp, never, Params>, capabili
 };
 
 export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<State | null> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
     if (!device) {
         return null;
     }
@@ -101,7 +90,7 @@ export const volume_down = async (request: WidgetApiRequest<AppleApp, never, Par
     send(request, 'volume_down');
 
 export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
     if (!device) {
         return false;
     }
@@ -116,7 +105,7 @@ export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): 
 };
 
 export const power = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
     if (!device) {
         return false;
     }

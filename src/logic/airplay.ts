@@ -5,7 +5,30 @@ import type { AppleApp } from '../types';
 import Homey from 'homey';
 import AppleTVDevice from '../apple-tv/device';
 import HomePodBaseDevice from '../homepod-base/device';
-import { getFallbackArtworkUrl } from '../utils';
+import { getFallbackArtworkUrl, repeatModeToCapability, safeCapabilityValue } from '../utils';
+
+export type MiniPlayerState = {
+    readonly deviceId: string;
+    readonly deviceName: string;
+    readonly track: string | null;
+    readonly artist: string | null;
+    readonly album: string | null;
+    readonly playing: boolean | null;
+    readonly position: number | null;
+    readonly duration: number | null;
+    readonly volume: number | null;
+    readonly artworkUrl: string | null;
+    readonly onoff: boolean | null;
+    readonly shuffle: boolean;
+    readonly repeat: string;
+    readonly positionTimestamp: number;
+    readonly features: {
+        readonly previous: boolean;
+        readonly next: boolean;
+        readonly shuffle: boolean;
+        readonly repeat: boolean;
+    };
+};
 
 export default class AirPlayLogic extends Shortcuts<AppleApp> {
     get deviceName(): string {
@@ -163,6 +186,26 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
 
         await this.#emitMiniPlayerUpdate();
+    }
+
+    getState(): MiniPlayerState {
+        return {
+            deviceId: this.#device.id,
+            deviceName: this.#device.getName(),
+            track: safeCapabilityValue(this.#device, 'speaker_track'),
+            artist: safeCapabilityValue(this.#device, 'speaker_artist'),
+            album: safeCapabilityValue(this.#device, 'speaker_album'),
+            playing: safeCapabilityValue(this.#device, 'speaker_playing'),
+            position: this.position,
+            duration: safeCapabilityValue(this.#device, 'speaker_duration'),
+            volume: safeCapabilityValue(this.#device, 'volume_set'),
+            artworkUrl: safeCapabilityValue(this.#device, 'artwork_url'),
+            onoff: safeCapabilityValue(this.#device, 'onoff'),
+            shuffle: this.shuffle,
+            repeat: this.repeat,
+            positionTimestamp: Date.now(),
+            features: this.#getFeatureAvailability(),
+        };
     }
 
     async emitUpdate(): Promise<void> {
@@ -389,12 +432,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await device.setCapabilityValue('speaker_position', client.elapsedTime);
 
             if (device.hasCapability('speaker_repeat')) {
-                const repeatMap: Record<string, string> = {
-                    off: 'none',
-                    one: 'track',
-                    all: 'playlist',
-                };
-                await device.setCapabilityValue('speaker_repeat', repeatMap[this.repeat] ?? 'none');
+                await device.setCapabilityValue('speaker_repeat', repeatModeToCapability[this.repeat] ?? 'none');
             }
             if (device.hasCapability('speaker_shuffle')) {
                 await device.setCapabilityValue('speaker_shuffle', this.shuffle);
@@ -429,32 +467,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async #emitMiniPlayerUpdate(): Promise<void> {
-        const cap = (name: string): any => {
-            try {
-                return this.#device.getCapabilityValue(name);
-            } catch {
-                return null;
-            }
-        };
-
         try {
-            await this.#device.homey.api.realtime('apple-mini-player-update', {
-                deviceId: this.#device.id,
-                deviceName: this.#device.getName(),
-                track: cap('speaker_track'),
-                artist: cap('speaker_artist'),
-                album: cap('speaker_album'),
-                playing: cap('speaker_playing'),
-                position: this.position,
-                duration: cap('speaker_duration'),
-                volume: cap('volume_set'),
-                artworkUrl: cap('artwork_url'),
-                onoff: cap('onoff'),
-                shuffle: this.shuffle,
-                repeat: this.repeat,
-                positionTimestamp: Date.now(),
-                features: this.#getFeatureAvailability(),
-            });
+            await this.#device.homey.api.realtime('apple-mini-player-update', this.getState());
         } catch (err) {
             this.log(this.deviceName, 'Failed to emit mini player update:', err);
         }

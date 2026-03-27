@@ -1,8 +1,10 @@
-import { Proto } from '@basmilius/apple-airplay';
 import type { WidgetApiRequest } from '@basmilius/homey-common';
 import type AppleApp from '../../src';
 import type AppleTVDevice from '../../src/apple-tv/device';
 import type HomePodBaseDevice from '../../src/homepod-base/device';
+import type { MiniPlayerState } from '../../src/logic';
+import { repeatModeToCapability } from '../../src/utils';
+import { findDevice } from '../shared';
 
 type Params = {
     readonly deviceId: string;
@@ -22,76 +24,17 @@ type RepeatBody = {
 
 type Device = AppleTVDevice | HomePodBaseDevice<any>;
 
-type State = {
-    readonly deviceId: string;
-    readonly deviceName: string;
-    readonly track: string | null;
-    readonly artist: string | null;
-    readonly album: string | null;
-    readonly playing: boolean | null;
-    readonly position: number | null;
-    readonly duration: number | null;
-    readonly volume: number | null;
-    readonly artworkUrl: string | null;
-    readonly onoff: boolean | null;
-    readonly shuffle: boolean;
-    readonly repeat: string;
-    readonly positionTimestamp: number;
-    readonly features: {
-        readonly previous: boolean;
-        readonly next: boolean;
-        readonly shuffle: boolean;
-        readonly repeat: boolean;
-    };
-};
-
-const findDevice = async ({homey: {app}}: WidgetApiRequest<AppleApp, any, Params>, deviceId: string): Promise<Device | null> =>
-    app.getDevice<Device>(deviceId);
-
-const isAppleTVDevice = (device: Device): device is AppleTVDevice =>
-    'companionLink' in device;
-
-const buildState = (device: Device): State => {
-    const cap = (name: string): any => {
-        try {
-            return device.getCapabilityValue(name);
-        } catch {
-            return null;
-        }
-    };
-
-    const logic = device.airplayLogic;
-
-    return {
-        deviceId: device.getData().id,
-        deviceName: device.getName(),
-        track: cap('speaker_track'),
-        artist: cap('speaker_artist'),
-        album: cap('speaker_album'),
-        playing: cap('speaker_playing'),
-        position: logic.position,
-        duration: cap('speaker_duration'),
-        volume: cap('volume_set'),
-        artworkUrl: cap('artwork_url'),
-        onoff: cap('onoff'),
-        shuffle: logic.shuffle,
-        repeat: logic.repeat,
-        positionTimestamp: logic.positionTimestamp || Date.now(),
-        features: logic.features,
-    };
-};
-
-export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<State | null> => {
-    const device = await findDevice(request, request.params.deviceId);
+export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<MiniPlayerState | null> => {
+    const device = await findDevice<Device>(request, request.params.deviceId);
     if (!device) {
         return null;
     }
 
-    return buildState(device);
+    return device.airplayLogic.getState();
 };
 
 export const set_playing = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<Device>(request, request.params.deviceId);
     if (!device) {
         return false;
     }
@@ -106,7 +49,7 @@ export const set_playing = async (request: WidgetApiRequest<AppleApp, never, Par
 };
 
 export const set_next = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<Device>(request, request.params.deviceId);
     if (!device) {
         return false;
     }
@@ -120,7 +63,7 @@ export const set_next = async (request: WidgetApiRequest<AppleApp, never, Params
 };
 
 export const set_previous = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<Device>(request, request.params.deviceId);
     if (!device) {
         return false;
     }
@@ -134,7 +77,7 @@ export const set_previous = async (request: WidgetApiRequest<AppleApp, never, Pa
 };
 
 export const set_volume = async (request: WidgetApiRequest<AppleApp, VolumeBody, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
+    const device = await findDevice<Device>(request, request.params.deviceId);
     const volume = request.body?.volume;
 
     if (!device || volume === undefined || volume === null) {
@@ -160,17 +103,13 @@ export const set_volume = async (request: WidgetApiRequest<AppleApp, VolumeBody,
 };
 
 export const set_shuffle = async (request: WidgetApiRequest<AppleApp, ShuffleBody, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
-    if (!device || !isAppleTVDevice(device)) {
+    const device = await findDevice<Device>(request, request.params.deviceId);
+    if (!device || !device.hasCapability('speaker_shuffle')) {
         return false;
     }
 
-    const newMode = request.body?.shuffle
-        ? Proto.ShuffleMode_Enum.Songs
-        : Proto.ShuffleMode_Enum.Off;
-
     try {
-        await device.airplay.remote.commandSetShuffleMode(newMode);
+        await device.triggerCapabilityListener('speaker_shuffle', !!request.body?.shuffle);
         return true;
     } catch {
         return false;
@@ -178,21 +117,13 @@ export const set_shuffle = async (request: WidgetApiRequest<AppleApp, ShuffleBod
 };
 
 export const set_repeat = async (request: WidgetApiRequest<AppleApp, RepeatBody, Params>): Promise<boolean> => {
-    const device = await findDevice(request, request.params.deviceId);
-    if (!device || !isAppleTVDevice(device)) {
+    const device = await findDevice<Device>(request, request.params.deviceId);
+    if (!device || !device.hasCapability('speaker_repeat')) {
         return false;
     }
 
-    const modeMap: Record<string, Proto.RepeatMode_Enum> = {
-        off: Proto.RepeatMode_Enum.Off,
-        all: Proto.RepeatMode_Enum.All,
-        one: Proto.RepeatMode_Enum.One,
-    };
-
-    const newMode = modeMap[request.body?.repeat] ?? Proto.RepeatMode_Enum.Off;
-
     try {
-        await device.airplay.remote.commandSetRepeatMode(newMode);
+        await device.triggerCapabilityListener('speaker_repeat', repeatModeToCapability[request.body?.repeat] ?? 'none');
         return true;
     } catch {
         return false;
