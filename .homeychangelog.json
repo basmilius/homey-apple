@@ -277,5 +277,9 @@
     },
     "1.7.0": {
         "en": "Major improvements to the apple-protocols SDK. This update also includes backported widgets from the 1.6.x Python-test releases."
+    },
+    "1.7.1": {
+        "en": "Improvements to backoff logic to cover device updates. Updated apple-protocols SDK.",
+        "nl": "Verbeteringen aan de backoff-logic voor apparaten tijdens het updaten. Update apple-protocols SDK."
     }
 }
