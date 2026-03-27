@@ -13,7 +13,7 @@ export default function extractMacAddress(txt: Record<string, string> | null | u
         return null;
     }
 
-    const raw = txt.deviceid ?? txt.rpmrtid ?? null;
+    const raw = txt.deviceid ?? txt.rpba ?? txt.rpBA ?? txt.rpmrtid ?? null;
 
     if (!raw) {
         return null;
@@ -28,11 +28,11 @@ export default function extractMacAddress(txt: Record<string, string> | null | u
  * @param mac A MAC address in any common format.
  * @returns The normalized MAC address (e.g. `AA:BB:CC:DD:EE:FF`).
  */
-function normalizeMacAddress(mac: string): string {
+function normalizeMacAddress(mac: string): string | null {
     const clean = mac.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
 
     if (clean.length !== 12) {
-        return mac.toUpperCase();
+        return null;
     }
 
     return clean.match(/.{2}/g)!.join(':');

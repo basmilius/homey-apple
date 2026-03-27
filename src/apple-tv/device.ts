@@ -93,6 +93,13 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         await super.onInit();
 
+        // If both services were found, #connect() was already triggered from onServiceFound.
+        // If only AirPlay was found (CL discovery failed), connect without CL as fallback.
+        if (!this.#connectedOnce && this.discoveryResultAirPlay) {
+            this.#connectedOnce = true;
+            await this.#connect();
+        }
+
         this.log('Initialized.');
     }
 
@@ -115,7 +122,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                 return;
             }
 
-            if (!this.discoveryResultAirPlay || !this.discoveryResultCompanionLink) {
+            if (!this.discoveryResultAirPlay) {
                 await this.setUnavailable('Service discovery not complete, waiting for device...');
                 return;
             }
@@ -124,7 +131,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             if (!this.#tv) {
                 this.#tv = new AppleTV({
                     airplay: this.discoveryResultAirPlay,
-                    companionLink: this.discoveryResultCompanionLink
+                    companionLink: this.discoveryResultCompanionLink ?? undefined
                 });
 
                 this.#airplayLogic.setDevice(this.#tv);
@@ -140,6 +147,14 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
             this.log('Connecting to Apple TV...');
             await this.#tv.connect(credentials);
+
+            // The SDK silently swallows Companion Link connection failures.
+            // If AirPlay connected but CL didn't, still mark available and start CL recovery.
+            if (this.#tv.airplay.isConnected && !this.#tv.companionLink?.isConnected) {
+                this.log('AirPlay connected, but Companion Link failed. Starting recovery...');
+                await this.setAvailable();
+                this.#companionLinkRecovery?.handleDisconnect(true);
+            }
         } catch (err) {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to Apple TV.');
@@ -264,9 +279,9 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async #startSlowRecovery(): Promise<void> {
         this.log(`Starting slow recovery phase, retrying every ${SLOW_RECOVERY_INTERVAL / 1000}s for up to ${SLOW_RECOVERY_MAX_ATTEMPTS} attempts...`);
-        await this.setUnavailable('Device offline, retrying connection...');
         this.#slowRecoveryAttempt = 0;
         this.#scheduleSlowRecoveryAttempt();
+        await this.setUnavailable('Device offline, retrying connection...');
     }
 
     #scheduleSlowRecoveryAttempt(): void {

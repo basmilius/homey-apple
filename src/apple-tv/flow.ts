@@ -124,13 +124,25 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                 volumeDown: () => sdk.volume.down(),
                 mute: () => sdk.remote.mute(),
                 stop: () => sdk.remote.stop(),
-                screensaver: () => sdk.companionLink!.pressButton('Screensaver'),
+                screensaver: () => {
+                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
+                    return sdk.companionLink.pressButton('Screensaver');
+                },
                 topMenu: () => sdk.remote.topMenu(),
-                homeHold: () => sdk.companionLink!.pressButton('Home', 'Hold'),
-                doubleTapSelect: () => sdk.companionLink!.pressButton('Select', 'DoubleTap'),
+                homeHold: () => {
+                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
+                    return sdk.companionLink.pressButton('Home', 'Hold');
+                },
+                doubleTapSelect: () => {
+                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
+                    return sdk.companionLink.pressButton('Select', 'DoubleTap');
+                },
                 channelUp: () => sdk.remote.channelUp(),
                 channelDown: () => sdk.remote.channelDown(),
-                siri: () => sdk.companionLink!.pressButton('Siri'),
+                siri: () => {
+                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
+                    return sdk.companionLink.pressButton('Siri');
+                },
                 wake: () => sdk.remote.wake(),
                 suspend: () => sdk.remote.suspend()
             };

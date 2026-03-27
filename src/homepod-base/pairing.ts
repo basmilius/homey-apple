@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { HomePod } from '@basmilius/apple-sdk';
+import { AIRPLAY_SERVICE, HomePod } from '@basmilius/apple-sdk';
 import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -9,6 +9,7 @@ export default class HomePodBasePairing extends EventEmitter {
     readonly #session: Homey.Driver.PairSession;
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
+    readonly #onDiscoveryResult: (result: Homey.DiscoveryResultMDNSSD) => void;
     #device: Homey.DiscoveryResultMDNSSD | undefined;
 
     constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[]) {
@@ -20,7 +21,8 @@ export default class HomePodBasePairing extends EventEmitter {
         this.#strategy = strategy;
 
         this.#devices = Object.values(this.#strategy.getDiscoveryResults()) as Homey.DiscoveryResultMDNSSD[];
-        this.#strategy.on('result', result => this.#devices.push(result));
+        this.#onDiscoveryResult = result => this.#devices.push(result);
+        this.#strategy.on('result', this.#onDiscoveryResult);
     }
 
     async start(): Promise<void> {
@@ -33,15 +35,18 @@ export default class HomePodBasePairing extends EventEmitter {
 
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
 
-        this.#session.setHandler('get_device', async () => ({
-            name: this.#device?.name,
-            data: {
-                id: this.#device?.id
-            },
-            store: {
-                mac: extractMacAddress(this.#device?.txt as Record<string, string>)
-            }
-        }));
+        this.#session.setHandler('get_device', async () => {
+            this.#strategy.off('result', this.#onDiscoveryResult);
+            return {
+                name: this.#device?.name,
+                data: {
+                    id: this.#device?.id
+                },
+                store: {
+                    mac: extractMacAddress(this.#device?.txt as Record<string, string>)
+                }
+            };
+        });
     }
 
     async onShowView(view: string): Promise<void> {
@@ -65,7 +70,7 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        const pod = new HomePod({airplay: convertDiscoveryResult(this.#device)});
+        const pod = new HomePod({airplay: convertDiscoveryResult(this.#device, AIRPLAY_SERVICE)});
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 

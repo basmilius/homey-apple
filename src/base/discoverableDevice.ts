@@ -43,26 +43,33 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
     }
 
     async findServices(update: boolean = true): Promise<void> {
-        try {
-            await Promise.all(
-                Object
-                    .keys(this.services)
-                    .map(async service => this.findService(service, update))
-            );
-        } catch (err) {
+        const results = await Promise.allSettled(
+            Object
+                .keys(this.services)
+                .map(async service => this.findService(service, update))
+        );
+
+        const failed = results.filter(r => r.status === 'rejected');
+
+        if (failed.length === results.length) {
+            const err = (failed[0] as PromiseRejectedResult).reason;
             this.error('[discovery]', `Failed to find ${this.discoveryId} on network:`, err);
             await this.setUnavailable(`Cannot find ${this.discoveryId} on network. You might need to pair with the device again.`);
+        } else if (failed.length > 0) {
+            for (const f of failed) {
+                this.error('[discovery]', `Partial discovery failure for ${this.discoveryId}:`, (f as PromiseRejectedResult).reason);
+            }
         }
     }
 
     async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
         this.log('[discovery]', `Found ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
-        await this.#migrateMacAddress(discoveryResult);
+        await this.#migrateMacAddress(service, discoveryResult);
     }
 
     async onServiceUpdated(service: string, discoveryResult: DiscoveryResult): Promise<void> {
         this.log('[discovery]', `Updated ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
-        await this.#migrateMacAddress(discoveryResult);
+        await this.#migrateMacAddress(service, discoveryResult);
     }
 
     async #findViaHomey(service: string): Promise<DiscoveryResult | null> {
@@ -72,7 +79,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             return null;
         }
 
-        const storedMac = this.getStoreValue('mac') as string | null;
+        const storedMac = this.getStoreValue(`mac:${service}`) as string | null;
         let result: Homey.DiscoveryResultMDNSSD | undefined;
         let retries = 0;
 
@@ -88,6 +95,10 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
                     if (mac === storedMac) {
                         result = mdnsResult;
                         break;
+                    }
+
+                    if (mac) {
+                        continue;
                     }
                 }
 
@@ -105,11 +116,13 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             await waitFor(1000);
         }
 
-        return result ? convertDiscoveryResult(result) : null;
+        return result ? convertDiscoveryResult(result, service) : null;
     }
 
-    async #migrateMacAddress(discoveryResult: DiscoveryResult): Promise<void> {
-        if (this.getStoreValue('mac')) {
+    async #migrateMacAddress(service: string, discoveryResult: DiscoveryResult): Promise<void> {
+        const storeKey = `mac:${service}`;
+
+        if (this.getStoreValue(storeKey)) {
             return;
         }
 
@@ -119,8 +132,8 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             return;
         }
 
-        await this.setStoreValue('mac', mac);
-        this.log('[discovery]', `Migrated device to MAC-based identification: ${mac}`);
+        await this.setStoreValue(storeKey, mac);
+        this.log('[discovery]', `Stored MAC for ${service}: ${mac}`);
     }
 
     async #findViaUnicast(service: string): Promise<DiscoveryResult | null> {

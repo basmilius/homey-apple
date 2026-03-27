@@ -1,7 +1,7 @@
 import type { DiscoveryResult } from '@basmilius/apple-sdk';
 import type Homey from 'homey';
 
-export default function convertDiscoveryResult(result: Homey.DiscoveryResultMDNSSD): DiscoveryResult {
+export default function convertDiscoveryResult(result: Homey.DiscoveryResultMDNSSD, type: string): DiscoveryResult {
     const txt = result.txt as Record<string, string>;
 
     return {
@@ -14,7 +14,7 @@ export default function convertDiscoveryResult(result: Homey.DiscoveryResultMDNS
         service: {
             port: Number(result.port),
             protocol: 'tcp',
-            type: '_'
+            type
         },
         packet: null
     } as unknown as DiscoveryResult;
