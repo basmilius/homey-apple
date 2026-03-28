@@ -396,12 +396,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         try {
             await this.#syncDynamicCapabilities(client);
 
-            await this.#device.setCapabilityValue('speaker_playing', client.isPlaying);
-            await this.#device.setCapabilityValue('speaker_album', client.album);
-            await this.#device.setCapabilityValue('speaker_artist', client.artist || client.activePlayer?.currentItemMetadata?.trackArtistName || client.displayName || '-');
-            await this.#device.setCapabilityValue('speaker_track', client.title);
-            await this.#device.setCapabilityValue('speaker_duration', client.duration);
-            await this.#device.setCapabilityValue('speaker_position', client.elapsedTime);
+            await Promise.allSettled([
+                this.#device.setCapabilityValue('speaker_playing', client.isPlaying),
+                this.#device.setCapabilityValue('speaker_album', client.album),
+                this.#device.setCapabilityValue('speaker_artist', client.artist || client.activePlayer?.currentItemMetadata?.trackArtistName || client.displayName || '-'),
+                this.#device.setCapabilityValue('speaker_track', client.title),
+                this.#device.setCapabilityValue('speaker_duration', client.duration),
+                this.#device.setCapabilityValue('speaker_position', client.elapsedTime)
+            ]);
 
             if (this.#device.hasCapability('speaker_repeat')) {
                 await this.#device.setCapabilityValue('speaker_repeat', repeatModeToCapability[this.repeat] ?? 'none');
