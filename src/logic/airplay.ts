@@ -133,21 +133,16 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             clearTimeout(this.#nowPlayingAppTimer);
             await this.#updateNowPlayingAppImpl(null, null);
 
-            await this.#device.setCapabilityValue('speaker_album', '');
-            await this.#device.setCapabilityValue('speaker_artist', '');
-            await this.#device.setCapabilityValue('speaker_track', '');
-            await this.#device.setCapabilityValue('speaker_duration', -1);
-            await this.#device.setCapabilityValue('speaker_position', -1);
-            await this.#device.setCapabilityValue('speaker_playing', false);
-
-            if (this.#device.hasCapability('speaker_repeat')) {
-                await this.#device.setCapabilityValue('speaker_repeat', 'none');
-            }
-            if (this.#device.hasCapability('speaker_shuffle')) {
-                await this.#device.setCapabilityValue('speaker_shuffle', false);
-            }
-
-            this.log(this.deviceName, 'Now playing info cleared.');
+            await Promise.allSettled([
+                this.#device.setCapabilityValue('speaker_album', ''),
+                this.#device.setCapabilityValue('speaker_artist', ''),
+                this.#device.setCapabilityValue('speaker_track', ''),
+                this.#device.setCapabilityValue('speaker_duration', -1),
+                this.#device.setCapabilityValue('speaker_position', -1),
+                this.#device.setCapabilityValue('speaker_playing', false),
+                this.#device.hasCapability('speaker_repeat') ? this.#device.setCapabilityValue('speaker_repeat', 'none') : undefined,
+                this.#device.hasCapability('speaker_shuffle') ? this.#device.setCapabilityValue('speaker_shuffle', false) : undefined
+            ]);
             this.#emitMiniPlayerUpdate();
         } catch (err) {
             this.log(this.deviceName, 'Failed to clear now playing info', err);
