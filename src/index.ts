@@ -35,7 +35,7 @@ export default class AppleApp extends App<AppleApp> {
         }
 
         configure({
-            logging: ['error', 'warn', 'net'],
+            logging: ['error', 'warn'],
             timingServer: this.useTimingServer
                 ? this.#timingServer
                 : undefined

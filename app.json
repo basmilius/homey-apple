@@ -2885,14 +2885,6 @@
         "protocol": "tcp"
       },
       "id": "{{host}}"
-    },
-    "companion-link": {
-      "type": "mdns-sd",
-      "mdns-sd": {
-        "name": "_companion-link",
-        "protocol": "tcp"
-      },
-      "id": "{{host}}"
     }
   }
 }

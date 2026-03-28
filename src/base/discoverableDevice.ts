@@ -85,26 +85,28 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
         while (retries < 5) {
             const results = discovery.getDiscoveryResults();
+            const entries = Object.entries(results);
 
-            for (const [id, r] of Object.entries(results)) {
-                const mdnsResult = r as Homey.DiscoveryResultMDNSSD;
-
-                if (storedMac) {
+            // First pass: try to match by MAC address.
+            if (storedMac) {
+                for (const [, r] of entries) {
+                    const mdnsResult = r as Homey.DiscoveryResultMDNSSD;
                     const mac = extractMacAddress(mdnsResult.txt as Record<string, string>);
 
                     if (mac === storedMac) {
                         result = mdnsResult;
                         break;
                     }
-
-                    if (mac) {
-                        continue;
-                    }
                 }
+            }
 
-                if (id === this.discoveryId) {
-                    result = mdnsResult;
-                    break;
+            // Second pass: fall back to discovery ID matching.
+            if (!result) {
+                for (const [id, r] of entries) {
+                    if (id === this.discoveryId) {
+                        result = r as Homey.DiscoveryResultMDNSSD;
+                        break;
+                    }
                 }
             }
 
@@ -121,14 +123,9 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
     async #migrateMacAddress(service: string, discoveryResult: DiscoveryResult): Promise<void> {
         const storeKey = `mac:${service}`;
-
-        if (this.getStoreValue(storeKey)) {
-            return;
-        }
-
         const mac = extractMacAddress(discoveryResult.txt as Record<string, string>);
 
-        if (!mac) {
+        if (!mac || this.getStoreValue(storeKey) === mac) {
             return;
         }
 

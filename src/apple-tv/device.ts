@@ -1,4 +1,4 @@
-import { AIRPLAY_SERVICE, AppleTV, COMPANION_LINK_SERVICE, ConnectionRecovery, type DiscoveryResult, Proto } from '@basmilius/apple-sdk';
+import { AIRPLAY_SERVICE, AppleTV, COMPANION_LINK_SERVICE, ConnectionRecovery, type DiscoveryResult, type MdnsService, mdnsUnicast, Proto } from '@basmilius/apple-sdk';
 import { DiscoverableDevice } from '../base';
 import { AirPlayLogic } from '../logic';
 import { capabilityToRepeatMode, getAccessoryCredentialsFromDevice } from '../utils';
@@ -49,10 +49,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         return this.discoveryResults[AIRPLAY_SERVICE];
     }
 
-    get discoveryResultCompanionLink(): DiscoveryResult {
-        return this.discoveryResults[COMPANION_LINK_SERVICE];
-    }
-
     get sdk(): AppleTV {
         if (!this.#tv) {
             throw new Error('Apple TV SDK device is not initialized.');
@@ -80,8 +76,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         await this.setUnavailable('Connecting...');
 
         this.#services = {
-            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay'),
-            [COMPANION_LINK_SERVICE]: this.discovery.getStrategy('companion-link')
+            [AIRPLAY_SERVICE]: this.discovery.getStrategy('airplay')
         };
 
         this.#airplayLogic = new AirPlayLogic(this);
@@ -92,13 +87,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#registerMaintenance();
 
         await super.onInit();
-
-        // If both services were found, #connect() was already triggered from onServiceFound.
-        // If only AirPlay was found (CL discovery failed), connect without CL as fallback.
-        if (!this.#connectedOnce && this.discoveryResultAirPlay) {
-            this.#connectedOnce = true;
-            await this.#connect();
-        }
 
         this.log('Initialized.');
     }
@@ -127,11 +115,14 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                 return;
             }
 
+            // Discover Companion Link via unicast using AirPlay's address.
+            const companionLink = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
+
             // Create or reconfigure the SDK device.
             if (!this.#tv) {
                 this.#tv = new AppleTV({
                     airplay: this.discoveryResultAirPlay,
-                    companionLink: this.discoveryResultCompanionLink ?? undefined
+                    companionLink: companionLink ?? undefined
                 });
 
                 this.#airplayLogic.setDevice(this.#tv);
@@ -140,24 +131,53 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             } else {
                 this.#tv.discoveryResult = this.discoveryResultAirPlay;
 
-                if (this.#tv.companionLink) {
-                    this.#tv.companionLink.discoveryResult = this.discoveryResultCompanionLink;
+                if (this.#tv.companionLink && companionLink) {
+                    this.#tv.companionLink.discoveryResult = companionLink;
                 }
             }
 
             this.log('Connecting to Apple TV...');
             await this.#tv.connect(credentials);
-
-            // The SDK silently swallows Companion Link connection failures.
-            // If AirPlay connected but CL didn't, still mark available and start CL recovery.
-            if (this.#tv.airplay.isConnected && !this.#tv.companionLink?.isConnected) {
-                this.log('AirPlay connected, but Companion Link failed. Starting recovery...');
-                await this.setAvailable();
-                this.#companionLinkRecovery?.handleDisconnect(true);
-            }
         } catch (err) {
             this.error('Error received', err);
             await this.setUnavailable('Cannot connect to Apple TV.');
+        }
+    }
+
+    async #discoverCompanionLink(address: string): Promise<DiscoveryResult | null> {
+        this.log(`Discovering Companion Link via unicast to ${address}...`);
+
+        try {
+            const results = await mdnsUnicast([address], [COMPANION_LINK_SERVICE], 5);
+            const match = results.find((s: MdnsService) => s.address === address);
+
+            if (!match) {
+                this.log('Companion Link not found via unicast.');
+                return null;
+            }
+
+            this.log(`Found Companion Link at ${match.address}:${match.port}.`);
+
+            const txt = match.properties;
+            const hostname = match.name.replace(/\s+/g, '-');
+
+            return {
+                id: `${hostname}.local`,
+                fqdn: `${hostname}.local`,
+                address: match.address,
+                modelName: txt?.model ?? '',
+                familyName: null,
+                txt,
+                service: {
+                    port: match.port,
+                    protocol: 'tcp',
+                    type: COMPANION_LINK_SERVICE
+                },
+                packet: null
+            } as unknown as DiscoveryResult;
+        } catch (err) {
+            this.error('Companion Link unicast discovery failed:', err);
+            return null;
         }
     }
 
@@ -186,7 +206,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         });
 
         this.#tv.on('power', async (state) => {
-            this.log('#onPower()', {state});
+            this.log('Power state changed:', state);
 
             const isOn = state === 'awake' || state === 'screensaver';
 
@@ -260,8 +280,13 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             reconnectInterval: RECONNECT_INTERVAL,
             onReconnect: async () => {
                 await this.#tv!.companionLink!.disconnectSafely();
-                await this.findService(COMPANION_LINK_SERVICE);
-                this.#tv!.companionLink!.discoveryResult = this.discoveryResultCompanionLink;
+                const cl = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
+
+                if (!cl) {
+                    throw new Error('Companion Link not found via unicast.');
+                }
+
+                this.#tv!.companionLink!.discoveryResult = cl;
                 await this.#tv!.companionLink!.setCredentials(credentials);
                 await this.#tv!.companionLink!.connect();
             }
@@ -292,10 +317,15 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt}/${SLOW_RECOVERY_MAX_ATTEMPTS}...`);
 
             try {
-                await this.findService(COMPANION_LINK_SERVICE);
-                this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
+                const cl = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
+
+                if (!cl) {
+                    throw new Error('Companion Link not found via unicast.');
+                }
+
+                this.log(`Re-discovered Companion Link at ${cl.address}:${cl.service.port}, reconnecting...`);
                 this.#companionLinkRecovery?.reset();
-                this.#tv!.companionLink!.discoveryResult = this.discoveryResultCompanionLink;
+                this.#tv!.companionLink!.discoveryResult = cl;
 
                 const credentials = getAccessoryCredentialsFromDevice(this);
 
@@ -345,10 +375,15 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             await this.setUnavailable('Reconnecting to Apple TV...');
 
             try {
-                await this.findService(COMPANION_LINK_SERVICE);
-                this.log(`Re-discovered Companion Link at ${this.discoveryResultCompanionLink.address}:${this.discoveryResultCompanionLink.service.port}, reconnecting...`);
+                const cl = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
+
+                if (!cl) {
+                    throw new Error('Companion Link not found via unicast.');
+                }
+
+                this.log(`Re-discovered Companion Link at ${cl.address}:${cl.service.port}, reconnecting...`);
                 this.#companionLinkRecovery?.reset();
-                this.#tv!.companionLink!.discoveryResult = this.discoveryResultCompanionLink;
+                this.#tv!.companionLink!.discoveryResult = cl;
 
                 const credentials = getAccessoryCredentialsFromDevice(this);
 
@@ -460,7 +495,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             return;
         }
 
-        if (!this.discoveryResultAirPlay || !this.discoveryResultCompanionLink) {
+        if (!this.discoveryResultAirPlay) {
             return;
         }
 

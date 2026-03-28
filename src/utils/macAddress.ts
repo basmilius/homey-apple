@@ -1,10 +1,6 @@
 /**
  * Extracts and normalizes the MAC address from mDNS TXT records.
  *
- * Looks for the MAC in common Apple device TXT fields:
- * - `deviceid`: Used by AirPlay services
- * - `rpmrtid`: Used by Companion Link services
- *
  * @param txt The TXT records from an mDNS discovery result.
  * @returns The normalized MAC address (uppercase, colon-separated) or null.
  */
@@ -13,7 +9,7 @@ export default function extractMacAddress(txt: Record<string, string> | null | u
         return null;
     }
 
-    const raw = txt.deviceid ?? txt.rpba ?? txt.rpBA ?? txt.rpmrtid ?? null;
+    const raw = txt.deviceid ?? txt.mac ?? null;
 
     if (!raw) {
         return null;

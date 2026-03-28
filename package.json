@@ -5,8 +5,8 @@
         "build": "tsc && rm -rf .homeybuild/node_modules/**/*.js.map && rm -rf .homeybuild/node_modules/**/*.mjs.map"
     },
     "dependencies": {
-        "@basmilius/apple-audio-source": "^0.13.2",
-        "@basmilius/apple-sdk": "^0.13.2",
+        "@basmilius/apple-audio-source": "^0.13.4",
+        "@basmilius/apple-sdk": "^0.13.4",
         "@basmilius/homey-common": "^1.20.0"
     },
     "devDependencies": {
