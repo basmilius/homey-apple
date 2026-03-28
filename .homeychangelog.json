@@ -281,5 +281,9 @@
     "1.7.1": {
         "en": "Improvements to backoff logic to cover device updates. Updated apple-protocols SDK.",
         "nl": "Verbeteringen aan de backoff-logic voor apparaten tijdens het updaten. Update apple-protocols SDK."
+    },
+    "1.7.2": {
+        "en": "Improvements to device discovery. Update apple-protocols SDK.",
+        "nl": "Verbeteringen aan de apparaatdetectie. Update apple-protocols SDK."
     }
 }
