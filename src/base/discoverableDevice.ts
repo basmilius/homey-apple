@@ -79,7 +79,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             return null;
         }
 
-        const storedMac = (this.getStoreValue(`mac:${service}`) ?? this.getStoreValue('mac')) as string | null;
+        const storedMac = (this.getStoreValue('mac') ?? this.getStoreValue(`mac:${service}`)) as string | null;
         let result: Homey.DiscoveryResultMDNSSD | undefined;
         let retries = 0;
 
@@ -122,14 +122,13 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
     }
 
     async #migrateMacAddress(service: string, discoveryResult: DiscoveryResult): Promise<void> {
-        const storeKey = `mac:${service}`;
         const mac = extractMacAddress(discoveryResult.txt as Record<string, string>);
 
-        if (!mac || this.getStoreValue(storeKey) === mac) {
+        if (!mac || this.getStoreValue('mac') === mac) {
             return;
         }
 
-        await this.setStoreValue(storeKey, mac);
+        await this.setStoreValue('mac', mac);
         this.log('[discovery]', `Stored MAC for ${service}: ${mac}`);
     }
 
