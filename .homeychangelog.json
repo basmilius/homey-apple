@@ -285,5 +285,9 @@
     "1.7.2": {
         "en": "Improvements to device discovery. Update apple-protocols SDK.",
         "nl": "Verbeteringen aan de apparaatdetectie. Update apple-protocols SDK."
+    },
+    "1.7.3": {
+        "en": "Fixed a migration issue.",
+        "nl": "Een migratieprobleem opgelost."
     }
 }

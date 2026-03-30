@@ -79,7 +79,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
             return null;
         }
 
-        const storedMac = this.getStoreValue(`mac:${service}`) as string | null;
+        const storedMac = (this.getStoreValue(`mac:${service}`) ?? this.getStoreValue('mac')) as string | null;
         let result: Homey.DiscoveryResultMDNSSD | undefined;
         let retries = 0;
 
