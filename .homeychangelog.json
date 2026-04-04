@@ -293,5 +293,8 @@
     "1.7.4": {
         "en": "Fixed a migration issue.",
         "nl": "Een migratieprobleem opgelost."
+    },
+    "1.7.5": {
+        "en": "Update dependencies."
     }
 }

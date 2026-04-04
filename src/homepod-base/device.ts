@@ -139,10 +139,12 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
             baseDelay: 1000,
             reconnectInterval: RECONNECT_INTERVAL,
             onReconnect: async () => {
-                this.#pod!.airplay.disconnectSafely();
+                const pod = this.#pod;
+                if (!pod) return;
+                pod.airplay.disconnectSafely();
                 await this.findService(AIRPLAY_SERVICE);
-                this.#pod!.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
-                await this.#pod!.airplay.connect();
+                pod.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
+                await pod.airplay.connect();
             }
         });
 

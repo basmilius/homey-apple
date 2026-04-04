@@ -7,12 +7,12 @@
     "dependencies": {
         "@basmilius/apple-audio-source": "^0.13.4",
         "@basmilius/apple-sdk": "^0.13.4",
-        "@basmilius/homey-common": "^1.20.0"
+        "@basmilius/homey-common": "^1.21.0"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-        "@types/node": "^25.5.0",
+        "@types/node": "^25.5.2",
         "typescript": "^6.0.2"
     }
 }

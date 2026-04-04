@@ -7,12 +7,12 @@
       "dependencies": {
         "@basmilius/apple-audio-source": "^0.13.4",
         "@basmilius/apple-sdk": "^0.13.4",
-        "@basmilius/homey-common": "^1.20.0",
+        "@basmilius/homey-common": "^1.21.0",
       },
       "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-        "@types/node": "^25.5.0",
+        "@types/node": "^25.5.2",
         "typescript": "^6.0.2",
       },
     },
@@ -36,13 +36,13 @@
 
     "@basmilius/apple-sdk": ["@basmilius/apple-sdk@0.13.4", "", { "dependencies": { "@basmilius/apple-airplay": "0.13.4", "@basmilius/apple-common": "0.13.4", "@basmilius/apple-companion-link": "0.13.4", "@basmilius/apple-encoding": "0.13.4", "@basmilius/apple-raop": "0.13.4" } }, "sha512-HxG4BC3psfQfI34ZjpgMjY7t4dbWTtJAnJTaTBtt3GROuM1pM+xtzzKCVAhYzgSsSWVNjlrxN+PbcEaElxLU4A=="],
 
-    "@basmilius/homey-common": ["@basmilius/homey-common@1.20.0", "", {}, "sha512-B91tJaC9lsWJobnSN/wO2Hhk/8ZO86J48cLwP3EyxoL7b8xq1A+XJlXBxk4CCcD2+QXcY0NgNCMoLAEOir++4g=="],
+    "@basmilius/homey-common": ["@basmilius/homey-common@1.21.0", "", {}, "sha512-Rpp9GRlcNZPqRsNSwURnFrslRqLB5X3iX7u8rkvcb2G1JQ4rx6NmDzN+gqiLh1QNjgE97An2RLBxC064ZbMiJA=="],
 
     "@tsconfig/node22": ["@tsconfig/node22@22.0.5", "", {}, "sha512-hLf2ld+sYN/BtOJjHUWOk568dvjFQkHnLNa6zce25GIH+vxKfvTgm3qpaH6ToF5tu/NN0IH66s+Bb5wElHrLcw=="],
 
     "@types/homey": ["homey-apps-sdk-v3-types@0.3.12", "", { "dependencies": { "@types/node": "^14.14.20" } }, "sha512-xr275VoF7FAiTi6PzElqHWpuGgSBY9hZFZsKeCTA4rluopf8sVk6zUPa+giSRSTiTrN3N3QjmHD5lUoNVwYd4g=="],
 
-    "@types/node": ["@types/node@25.5.0", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw=="],
+    "@types/node": ["@types/node@25.5.2", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-tO4ZIRKNC+MDWV4qKVZe3Ql/woTnmHDr5JD8UI5hn2pwBrHEwOEMZK7WlNb5RKB6EoJ02gwmQS9OrjuFnZYdpg=="],
 
     "typescript": ["typescript@6.0.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ=="],
 
