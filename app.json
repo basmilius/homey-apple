@@ -162,7 +162,9 @@
       "companion link"
     ]
   },
-  "permissions": [],
+  "permissions": [
+    "homey:app:com.athom.soundboard"
+  ],
   "images": {
     "small": "/assets/images/small.png",
     "large": "/assets/images/large.png",
@@ -1564,6 +1566,93 @@
               "ru": "Аккаунт",
               "ko": "계정",
               "ar": "الحساب"
+            }
+          }
+        ]
+      },
+      {
+        "id": "homepod_play_soundboard",
+        "platforms": [
+          "local"
+        ],
+        "title": {
+          "en": "Play a Soundboard sound",
+          "nl": "Speel een Soundboard-geluid",
+          "da": "Afspil en Soundboard-lyd",
+          "de": "Spiele einen Soundboard-Ton",
+          "es": "Reproducir sonido de Soundboard",
+          "fr": "Jouer un son du Soundboard",
+          "it": "Riproduci un suono del Soundboard",
+          "no": "Spill en Soundboard-lyd",
+          "sv": "Spela ett Soundboard-ljud",
+          "pl": "Odtwórz dźwięk z Soundboard",
+          "ru": "Воспроизвести звук Soundboard",
+          "ko": "사운드보드 소리 재생",
+          "ar": "تشغيل صوت من Soundboard"
+        },
+        "titleFormatted": {
+          "en": "Play Soundboard sound [[sound]] at volume [[volume]]",
+          "nl": "Speel Soundboard-geluid [[sound]] op volume [[volume]]",
+          "da": "Afspil Soundboard-lyd [[sound]] ved lydstyrke [[volume]]",
+          "de": "Spiele Soundboard-Ton [[sound]] mit Lautstärke [[volume]]",
+          "es": "Reproducir sonido de Soundboard [[sound]] con volumen [[volume]]",
+          "fr": "Jouer le son du Soundboard [[sound]] au volume [[volume]]",
+          "it": "Riproduci suono del Soundboard [[sound]] al volume [[volume]]",
+          "no": "Spill Soundboard-lyd [[sound]] ved volum [[volume]]",
+          "sv": "Spela Soundboard-ljud [[sound]] vid volym [[volume]]",
+          "pl": "Odtwórz dźwięk z Soundboard [[sound]] przy głośności [[volume]]",
+          "ru": "Воспроизвести звук Soundboard [[sound]] с громкостью [[volume]]",
+          "ko": "볼륨 [[volume]]으로 사운드보드 소리 [[sound]] 재생",
+          "ar": "تشغيل صوت Soundboard [[sound]] بمستوى الصوت [[volume]]"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+          },
+          {
+            "name": "sound",
+            "type": "autocomplete",
+            "title": {
+              "en": "Sound",
+              "nl": "Geluid",
+              "da": "Lyd",
+              "de": "Ton",
+              "es": "Sonido",
+              "fr": "Son",
+              "it": "Suono",
+              "no": "Lyd",
+              "sv": "Ljud",
+              "pl": "Dźwięk",
+              "ru": "Звук",
+              "ko": "소리",
+              "ar": "صوت"
+            }
+          },
+          {
+            "type": "range",
+            "name": "volume",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "label": "%",
+            "labelDecimals": 0,
+            "value": 50,
+            "title": {
+              "en": "Volume",
+              "nl": "Volume",
+              "de": "Lautstärke",
+              "fr": "Volume",
+              "it": "Volume",
+              "sv": "Volym",
+              "no": "Volum",
+              "es": "Volumen",
+              "da": "Lydstyrke",
+              "ru": "Громкость",
+              "pl": "Głośność",
+              "ko": "볼륨",
+              "ar": "مستوى الصوت"
             }
           }
         ]

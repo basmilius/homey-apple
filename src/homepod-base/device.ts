@@ -2,7 +2,7 @@ import { Url } from '@basmilius/apple-audio-source';
 import { AIRPLAY_SERVICE, ConnectionRecovery, type DiscoveryResult, HomePod, Proto } from '@basmilius/apple-sdk';
 import { DiscoverableDevice } from '../base';
 import { AirPlayLogic } from '../logic';
-import { capabilityToRepeatMode } from '../utils';
+import { capabilityToRepeatMode, type SoundBoardSound } from '../utils';
 import type HomePodBaseDriver from './driver';
 import type Homey from 'homey';
 
@@ -226,6 +226,11 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         this.#connectedOnce = true;
         await this.#connect();
+    }
+
+    async playSoundboard(sound: SoundBoardSound, volume?: number): Promise<void> {
+        const url = await this.app.soundBoard.getSoundUrl(sound);
+        await this.playUrl(url, volume);
     }
 
     async playUrl(url: string, volume?: number): Promise<void> {

@@ -16,5 +16,6 @@
     "apple_tv_remote": {
       "no_device": "선택된 Apple TV 없음"
     }
-  }
+  },
+  "soundboard_not_installed": "사운드보드 앱을 설치해주세요."
 }

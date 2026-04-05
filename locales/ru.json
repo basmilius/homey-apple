@@ -13,5 +13,6 @@
     "apple_tv_remote": {
       "no_device": "Apple TV не выбран"
     }
-  }
+  },
+  "soundboard_not_installed": "Пожалуйста, установите приложение Soundboard."
 }

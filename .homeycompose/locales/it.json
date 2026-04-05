@@ -1,4 +1,5 @@
 {
+    "soundboard_not_installed": "Per favore installa l'app Soundboard.",
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco delle applicazioni.",
         "cannot_fetch_accounts_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco degli account."

@@ -161,7 +161,9 @@
       "companion link"
     ]
   },
-  "permissions": [],
+  "permissions": [
+    "homey:app:com.athom.soundboard"
+  ],
   "images": {
     "small": "/assets/images/small.png",
     "large": "/assets/images/large.png",

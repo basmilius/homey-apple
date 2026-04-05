@@ -1,8 +1,11 @@
 import { Shortcuts } from '@basmilius/homey-common';
+import type Homey from 'homey';
 import type { AppleApp, HomePodBaseDevice, HomePodBaseDriver } from '../types';
+import type { SoundBoardSound } from '../utils';
 
 export default class HomePodFlow extends Shortcuts<AppleApp> {
     register(): void {
+        this.#registerPlaySoundboard();
         this.#registerPlayUrl();
         this.#registerPlayUrlAtVolume();
         this.#registerSetPosition();
@@ -21,6 +24,29 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         } catch (err) {
             this.log(device.name, 'Failed to trigger artwork url updated card.', err);
         }
+    }
+
+    #registerPlaySoundboard(): void {
+        const card = this.homey.flow.getActionCard('homepod_play_soundboard');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly sound: SoundBoardSound;
+            readonly volume: number;
+        };
+
+        card.registerRunListener(async ({device, sound, volume}: RunArguments) => {
+            await device.playSoundboard(sound, volume);
+        });
+
+        card.registerArgumentAutocompleteListener('sound', async (query: string): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
+            const sounds = await this.app.soundBoard.getSounds();
+            const lowerQuery = query.trim().toLowerCase();
+
+            return sounds
+                .filter(sound => lowerQuery.length === 0 || sound.name.toLowerCase().includes(lowerQuery))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        });
     }
 
     #registerPlayUrl(): void {

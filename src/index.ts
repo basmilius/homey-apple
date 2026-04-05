@@ -2,6 +2,7 @@ import { configure, TimingServer } from '@basmilius/apple-sdk';
 import { App } from '@basmilius/homey-common';
 import AppleTVFlow from './apple-tv/flow';
 import HomePodFlow from './homepod-base/flow';
+import { SoundBoard } from './utils';
 
 export default class AppleApp extends App<AppleApp> {
     get appleTvFlow(): AppleTVFlow {
@@ -10,6 +11,10 @@ export default class AppleApp extends App<AppleApp> {
 
     get homePodFlow(): HomePodFlow {
         return this.#homePodFlow;
+    }
+
+    get soundBoard(): SoundBoard {
+        return this.#soundBoard;
     }
 
     get timingServer(): TimingServer {
@@ -23,6 +28,7 @@ export default class AppleApp extends App<AppleApp> {
 
     #appleTvFlow!: AppleTVFlow;
     #homePodFlow!: HomePodFlow;
+    #soundBoard!: SoundBoard;
     #timingServer!: TimingServer;
 
     async onInit(): Promise<void> {
@@ -40,6 +46,8 @@ export default class AppleApp extends App<AppleApp> {
                 ? this.#timingServer
                 : undefined
         });
+
+        this.#soundBoard = new SoundBoard(this.homey);
 
         this.#appleTvFlow = new AppleTVFlow(this);
         this.#appleTvFlow.register();

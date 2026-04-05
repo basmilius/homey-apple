@@ -4,4 +4,5 @@ export { default as extractMacAddress } from './macAddress';
 export { default as getAccessoryCredentialsFromDevice } from './getAccessoryCredentialsFromDevice';
 export { capabilityToRepeatMode, repeatModeToProto, repeatModeToCapability } from './repeatMode';
 export { default as safeCapabilityValue } from './safeCapabilityValue';
+export { default as SoundBoard, type SoundBoardSound } from './soundBoard';
 export { default as waitFor } from './waitFor';
