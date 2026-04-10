@@ -7,12 +7,12 @@
       "dependencies": {
         "@basmilius/apple-audio-source": "^0.13.4",
         "@basmilius/apple-sdk": "^0.13.4",
-        "@basmilius/homey-common": "^1.21.0",
+        "@basmilius/homey-common": "^1.22.0",
       },
       "devDependencies": {
         "@tsconfig/node22": "^22.0.5",
         "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12",
-        "@types/node": "^25.5.2",
+        "@types/node": "^25.6.0",
         "typescript": "^6.0.2",
       },
     },
@@ -36,17 +36,17 @@
 
     "@basmilius/apple-sdk": ["@basmilius/apple-sdk@0.13.4", "", { "dependencies": { "@basmilius/apple-airplay": "0.13.4", "@basmilius/apple-common": "0.13.4", "@basmilius/apple-companion-link": "0.13.4", "@basmilius/apple-encoding": "0.13.4", "@basmilius/apple-raop": "0.13.4" } }, "sha512-HxG4BC3psfQfI34ZjpgMjY7t4dbWTtJAnJTaTBtt3GROuM1pM+xtzzKCVAhYzgSsSWVNjlrxN+PbcEaElxLU4A=="],
 
-    "@basmilius/homey-common": ["@basmilius/homey-common@1.21.0", "", {}, "sha512-Rpp9GRlcNZPqRsNSwURnFrslRqLB5X3iX7u8rkvcb2G1JQ4rx6NmDzN+gqiLh1QNjgE97An2RLBxC064ZbMiJA=="],
+    "@basmilius/homey-common": ["@basmilius/homey-common@1.22.0", "", {}, "sha512-9XxhMlCissj04S30Ks4VOQPBhf6CLR1FKMQjysk/i2VyXAnJLX9GH1R7KiwPyqCmxeQd3dfQuQo1WiT6LVZOEg=="],
 
     "@tsconfig/node22": ["@tsconfig/node22@22.0.5", "", {}, "sha512-hLf2ld+sYN/BtOJjHUWOk568dvjFQkHnLNa6zce25GIH+vxKfvTgm3qpaH6ToF5tu/NN0IH66s+Bb5wElHrLcw=="],
 
     "@types/homey": ["homey-apps-sdk-v3-types@0.3.12", "", { "dependencies": { "@types/node": "^14.14.20" } }, "sha512-xr275VoF7FAiTi6PzElqHWpuGgSBY9hZFZsKeCTA4rluopf8sVk6zUPa+giSRSTiTrN3N3QjmHD5lUoNVwYd4g=="],
 
-    "@types/node": ["@types/node@25.5.2", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-tO4ZIRKNC+MDWV4qKVZe3Ql/woTnmHDr5JD8UI5hn2pwBrHEwOEMZK7WlNb5RKB6EoJ02gwmQS9OrjuFnZYdpg=="],
+    "@types/node": ["@types/node@25.6.0", "", { "dependencies": { "undici-types": "~7.19.0" } }, "sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ=="],
 
     "typescript": ["typescript@6.0.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ=="],
 
-    "undici-types": ["undici-types@7.18.2", "", {}, "sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w=="],
+    "undici-types": ["undici-types@7.19.2", "", {}, "sha512-qYVnV5OEm2AW8cJMCpdV20CDyaN3g0AjDlOGf1OW4iaDEx8MwdtChUp4zu4H0VP3nDRF/8RKWH+IPp9uW0YGZg=="],
 
     "@types/homey/@types/node": ["@types/node@14.18.63", "", {}, "sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ=="],
   }
