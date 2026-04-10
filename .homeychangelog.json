@@ -300,5 +300,9 @@
     "1.7.6": {
         "en": "Add volume_set capability to Apple TV if it supports absolute volume control. Improved connection backoff strategy and reconnection logic. Update apple-protocols SDK.",
         "nl": "Voeg volume_set mogelijkheid toe aan Apple TV als deze absolute volume control ondersteunt. Verbeterde verbinding backoff strategie en verbinding herstel logica. Update apple-protocols SDK."
+    },
+    "1.7.7": {
+        "en": "New Homey-style device icons. Thanks @Athom!",
+        "nl": "Nieuwe Homey-stijl apparaat-icons. Bedankt @Athom!"
     }
 }
