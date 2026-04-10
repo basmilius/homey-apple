@@ -55,6 +55,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     #pod?: HomePod;
     #recovery?: ConnectionRecovery;
     #services!: Record<string, Homey.DiscoveryStrategy>;
+    #slowRecoveryTimer: ReturnType<typeof setTimeout> | null = null;
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
@@ -76,6 +77,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     }
 
     async onUninit(): Promise<void> {
+        this.#stopSlowRecovery();
         this.#recovery?.dispose();
         await this.#airplayLogic.uninitialize();
         this.#pod?.disconnect();
@@ -117,6 +119,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         this.#pod.on('connected', async () => {
             this.#recovery?.reset();
+            this.#stopSlowRecovery();
             await this.setAvailable();
         });
 
@@ -152,9 +155,49 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
             this.log(`AirPlay recovery attempt ${attempt}...`);
         });
 
-        this.#recovery.on('failed', () => {
-            this.error('AirPlay recovery failed after max attempts.');
+        this.#recovery.on('failed', async () => {
+            this.error('AirPlay recovery failed after max attempts, entering extended recovery...');
+            await this.setUnavailable('Device offline, retrying connection...');
+            this.#startSlowRecovery();
         });
+    }
+
+    #startSlowRecovery(): void {
+        this.log('Starting extended recovery phase, retrying every 15 minutes...');
+        this.#scheduleSlowRecoveryAttempt();
+    }
+
+    #scheduleSlowRecoveryAttempt(): void {
+        this.#slowRecoveryTimer = setTimeout(async () => {
+            this.#slowRecoveryTimer = null;
+            this.log('Extended recovery attempt...');
+
+            try {
+                const pod = this.#pod;
+
+                if (!pod) {
+                    return;
+                }
+
+                pod.airplay.disconnectSafely();
+                await this.findService(AIRPLAY_SERVICE);
+                pod.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
+                await pod.airplay.connect();
+            } catch {
+                this.log('Extended recovery attempt failed.');
+            }
+
+            if (!this.#pod?.airplay.isConnected) {
+                this.#scheduleSlowRecoveryAttempt();
+            }
+        }, RECONNECT_INTERVAL);
+    }
+
+    #stopSlowRecovery(): void {
+        if (this.#slowRecoveryTimer) {
+            clearTimeout(this.#slowRecoveryTimer);
+            this.#slowRecoveryTimer = null;
+        }
     }
 
     #registerCapabilities(): void {
@@ -203,6 +246,8 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
     #registerMaintenance(): void {
         this.registerCapabilityListener('button.restart', async () => {
             try {
+                this.#stopSlowRecovery();
+                this.#recovery?.dispose();
                 this.#pod?.disconnect();
                 this.#pod = undefined;
                 await this.#airplayLogic.clearNowPlaying();
