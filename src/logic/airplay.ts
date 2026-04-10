@@ -441,11 +441,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         // Volume set is dynamically managed for Apple TV based on output device capabilities.
         if (this.#device instanceof AppleTVDevice) {
             const isVolumeAvailable = this.#sdkDevice?.state.volumeAvailable ?? false;
+            const isVolumeAbsolute = this.#sdkDevice?.airplay.state.volumeCapabilities === Proto.VolumeCapabilities_Enum.Absolute || this.#sdkDevice?.airplay.state.volumeCapabilities === Proto.VolumeCapabilities_Enum.Both;
             const hasVolumeSet = this.#device.hasCapability('volume_set');
 
-            if (isVolumeAvailable && !hasVolumeSet) {
+            if (isVolumeAvailable && isVolumeAbsolute && !hasVolumeSet) {
                 await this.#device.addCapability('volume_set');
-            } else if (!isVolumeAvailable && hasVolumeSet) {
+            } else if (hasVolumeSet) {
                 await this.#device.removeCapability('volume_set');
             }
         }
