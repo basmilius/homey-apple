@@ -444,9 +444,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             const isVolumeAbsolute = this.#sdkDevice?.airplay.state.volumeCapabilities === Proto.VolumeCapabilities_Enum.Absolute || this.#sdkDevice?.airplay.state.volumeCapabilities === Proto.VolumeCapabilities_Enum.Both;
             const hasVolumeSet = this.#device.hasCapability('volume_set');
 
-            if (isVolumeAvailable && isVolumeAbsolute && !hasVolumeSet) {
-                await this.#device.addCapability('volume_set');
-            } else if (hasVolumeSet) {
+            if (isVolumeAvailable && isVolumeAbsolute) {
+                if (!hasVolumeSet) {
+                    await this.#device.addCapability('volume_set');
+                }
+            } else {
                 await this.#device.removeCapability('volume_set');
             }
         }
