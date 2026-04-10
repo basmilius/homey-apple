@@ -1,0 +1,88 @@
+{
+    "id": "appletv_fade_volume",
+    "title": {
+        "en": "Fade volume",
+        "nl": "Fade volume",
+        "da": "Fade lydstyrke",
+        "de": "Lautstärke ein-/ausblenden",
+        "es": "Transición de volumen",
+        "fr": "Fondu du volume",
+        "it": "Dissolvenza volume",
+        "no": "Fade volum",
+        "sv": "Tona volym",
+        "pl": "Wycisz/zwiększ głośność",
+        "ru": "Плавное изменение громкости",
+        "ko": "볼륨 페이드",
+        "ar": "تلاشي مستوى الصوت"
+    },
+    "titleFormatted": {
+        "en": "Fade volume to [[volume]]% in [[seconds]] seconds",
+        "nl": "Fade volume naar [[volume]]% in [[seconds]] seconden",
+        "da": "Fade lydstyrke til [[volume]]% på [[seconds]] sekunder",
+        "de": "Lautstärke auf [[volume]]% in [[seconds]] Sekunden ändern",
+        "es": "Transición de volumen a [[volume]]% en [[seconds]] segundos",
+        "fr": "Fondu du volume à [[volume]]% en [[seconds]] secondes",
+        "it": "Dissolvenza volume a [[volume]]% in [[seconds]] secondi",
+        "no": "Fade volum til [[volume]]% på [[seconds]] sekunder",
+        "sv": "Tona volym till [[volume]]% på [[seconds]] sekunder",
+        "pl": "Zmień głośność do [[volume]]% w [[seconds]] sekund",
+        "ru": "Изменить громкость до [[volume]]% за [[seconds]] секунд",
+        "ko": "[[seconds]]초 동안 볼륨을 [[volume]]%로 페이드",
+        "ar": "تلاشي الصوت إلى [[volume]]% في [[seconds]] ثانية"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "range",
+            "name": "volume",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "label": "%",
+            "labelDecimals": 0,
+            "value": 50,
+            "title": {
+                "en": "Volume",
+                "nl": "Volume",
+                "da": "Lydstyrke",
+                "de": "Lautstärke",
+                "es": "Volumen",
+                "fr": "Volume",
+                "it": "Volume",
+                "no": "Volum",
+                "sv": "Volym",
+                "pl": "Głośność",
+                "ru": "Громкость",
+                "ko": "볼륨",
+                "ar": "مستوى الصوت"
+            }
+        },
+        {
+            "name": "seconds",
+            "type": "number",
+            "min": 1,
+            "max": 300,
+            "step": 1,
+            "placeholder": "5",
+            "title": {
+                "en": "Duration (seconds)",
+                "nl": "Duur (seconden)",
+                "da": "Varighed (sekunder)",
+                "de": "Dauer (Sekunden)",
+                "es": "Duración (segundos)",
+                "fr": "Durée (secondes)",
+                "it": "Durata (secondi)",
+                "no": "Varighet (sekunder)",
+                "sv": "Varaktighet (sekunder)",
+                "pl": "Czas trwania (sekundy)",
+                "ru": "Длительность (секунды)",
+                "ko": "지속 시간 (초)",
+                "ar": "المدة (ثواني)"
+            }
+        }
+    ]
+}

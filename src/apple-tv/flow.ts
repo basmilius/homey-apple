@@ -6,12 +6,15 @@ import type Homey from 'homey';
 
 export default class AppleTVFlow extends Shortcuts<AppleApp> {
     register(): void {
+        this.#registerIsAppPlaying();
+        this.#registerFadeVolume();
         this.#registerLaunchApp();
         this.#registerLaunchUrl();
         this.#registerRemote();
         this.#registerSetPosition();
         this.#registerSetRepeat();
         this.#registerSetShuffle();
+        this.#registerSetSleepTimer();
         this.#registerSkipBackward();
         this.#registerSkipForward();
         this.#registerSwitchAccount();
@@ -50,6 +53,52 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         } catch (err) {
             this.log(device.name, 'Failed to trigger now playing app changes card.', err);
         }
+    }
+
+    #registerIsAppPlaying(): void {
+        const card = this.flow.getConditionCard('appletv_is_app_playing');
+
+        type AutocompleteArguments = {
+            readonly device: AppleTVDevice;
+        };
+
+        type RunArguments = {
+            readonly app: { readonly id: string; readonly name: string };
+            readonly device: AppleTVDevice;
+        };
+
+        card.registerRunListener(async ({app, device}: RunArguments) => {
+            const currentApp = device.getCapabilityValue('now_playing_app');
+            return currentApp === app.name;
+        });
+
+        card.registerArgumentAutocompleteListener('app', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
+            const launchableApps = await device.sdk.apps?.list() ?? [];
+            const lowerQuery = query.trim().toLowerCase();
+
+            return launchableApps
+                .filter(app => lowerQuery.length === 0 || app.name.toLowerCase().includes(lowerQuery))
+                .map(app => ({
+                    id: app.bundleId,
+                    name: app.name,
+                    description: app.bundleId
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        });
+    }
+
+    #registerFadeVolume(): void {
+        const card = this.flow.getActionCard('appletv_fade_volume');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly volume: number;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, volume, seconds}: RunArguments) => {
+            await device.sdk.volume.fade(volume / 100, seconds * 1000);
+        });
     }
 
     #registerLaunchApp(): void {
@@ -196,6 +245,19 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                 ? Proto.ShuffleMode_Enum.Songs
                 : Proto.ShuffleMode_Enum.Off;
             await device.sdk.playback.setShuffleMode(mode);
+        });
+    }
+
+    #registerSetSleepTimer(): void {
+        const card = this.flow.getActionCard('appletv_set_sleep_timer');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly minutes: number;
+        };
+
+        card.registerRunListener(async ({device, minutes}: RunArguments) => {
+            await device.sdk.playback.setSleepTimer(Math.floor(minutes) * 60);
         });
     }
 

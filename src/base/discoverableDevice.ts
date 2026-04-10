@@ -80,10 +80,11 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
         }
 
         const storedMac = (this.getStoreValue('mac') ?? this.getStoreValue(`mac:${service}`)) as string | null;
+        const backoffDelays = [500, 1000, 2000, 4000, 8000];
         let result: Homey.DiscoveryResultMDNSSD | undefined;
         let retries = 0;
 
-        while (retries < 5) {
+        while (retries < backoffDelays.length) {
             const results = discovery.getDiscoveryResults();
             const entries = Object.entries(results);
 
@@ -114,8 +115,8 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
                 break;
             }
 
+            await waitFor(backoffDelays[retries]);
             retries++;
-            await waitFor(1000);
         }
 
         return result ? convertDiscoveryResult(result, service) : null;

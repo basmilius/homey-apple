@@ -42,8 +42,7 @@
         "remote_back",
         "remote_playpause",
         "now_playing_app",
-        "button.restart",
-        "button.repair"
+        "button.restart"
     ],
     "capabilitiesOptions": {
         "button.restart": {

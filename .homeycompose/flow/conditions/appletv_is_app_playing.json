@@ -1,0 +1,59 @@
+{
+    "id": "appletv_is_app_playing",
+    "title": {
+        "en": "App is active",
+        "nl": "App is actief",
+        "da": "App er aktiv",
+        "de": "App ist aktiv",
+        "es": "La app está activa",
+        "fr": "L'application est active",
+        "it": "L'app è attiva",
+        "no": "Appen er aktiv",
+        "sv": "Appen är aktiv",
+        "pl": "Aplikacja jest aktywna",
+        "ru": "Приложение активно",
+        "ko": "앱이 활성 상태",
+        "ar": "التطبيق نشط"
+    },
+    "titleFormatted": {
+        "en": "[[app]] is the active app",
+        "nl": "[[app]] is de actieve app",
+        "da": "[[app]] er den aktive app",
+        "de": "[[app]] ist die aktive App",
+        "es": "[[app]] es la aplicación activa",
+        "fr": "[[app]] est l'application active",
+        "it": "[[app]] è l'app attiva",
+        "no": "[[app]] er den aktive appen",
+        "sv": "[[app]] är den aktiva appen",
+        "pl": "[[app]] jest aktywną aplikacją",
+        "ru": "[[app]] является активным приложением",
+        "ko": "[[app]]이(가) 활성 앱입니다",
+        "ar": "[[app]] هو التطبيق النشط"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+                "en": "App",
+                "nl": "App",
+                "da": "App",
+                "de": "App",
+                "es": "App",
+                "fr": "App",
+                "it": "App",
+                "no": "App",
+                "sv": "App",
+                "pl": "Aplikacja",
+                "ru": "Приложение",
+                "ko": "앱",
+                "ar": "تطبيق"
+            }
+        }
+    ]
+}

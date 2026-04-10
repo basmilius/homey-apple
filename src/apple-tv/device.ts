@@ -27,6 +27,7 @@ const CAPABILITIES = [
     'power',
     'volume_down',
     'volume_mute',
+    'volume_set',
     'volume_up',
     'remote_up',
     'remote_down',
@@ -63,7 +64,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     #airplayLogic!: AirPlayLogic;
     #airplayRecovery?: ConnectionRecovery;
-    #companionLinkFailed = false;
     #companionLinkRecovery?: ConnectionRecovery;
     #companionLinkRetried = false;
     #connectedOnce = false;
@@ -314,11 +314,15 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     #scheduleSlowRecoveryAttempt(): void {
+        const interval = this.#slowRecoveryAttempt >= SLOW_RECOVERY_MAX_ATTEMPTS
+            ? RECONNECT_INTERVAL
+            : SLOW_RECOVERY_INTERVAL;
+
         this.#slowRecoveryTimer = setTimeout(async () => {
             this.#slowRecoveryTimer = null;
             this.#slowRecoveryAttempt++;
 
-            this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt}/${SLOW_RECOVERY_MAX_ATTEMPTS}...`);
+            this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt}...`);
 
             try {
                 const cl = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
@@ -347,18 +351,15 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                 this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt} failed.`);
             }
 
-            if (this.#slowRecoveryAttempt >= SLOW_RECOVERY_MAX_ATTEMPTS) {
-                this.#companionLinkFailed = true;
-                this.log('Companion Link failed permanently after extended recovery period. Please restart the app.');
-                await this.setUnavailable('Failed to connect to Apple TV using Companion Link. Please restart the app.');
+            if (this.#slowRecoveryAttempt === SLOW_RECOVERY_MAX_ATTEMPTS) {
+                this.log('Companion Link recovery entering extended phase, retrying every 15 minutes...');
                 await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
-                return;
             }
 
             if (!this.#tv?.companionLink?.isConnected && this.#tv) {
                 this.#scheduleSlowRecoveryAttempt();
             }
-        }, SLOW_RECOVERY_INTERVAL);
+        }, interval);
     }
 
     #stopSlowRecovery(): void {
@@ -370,10 +371,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     }
 
     async #onCompanionLinkFailed(): Promise<void> {
-        if (this.#companionLinkFailed) {
-            return;
-        }
-
         if (this.#slowRecoveryTimer) {
             return;
         }
@@ -441,6 +438,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             }
         });
 
+        this.registerCapabilityListener('volume_set', async (volume: number) => {
+            await this.sdk.volume.set(volume);
+        });
+
         this.registerCapabilityListener('volume_up', async () => {
             await this.sdk.volume.up();
         });
@@ -469,7 +470,6 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                 this.#stopSlowRecovery();
                 this.#airplayRecovery?.dispose();
                 this.#companionLinkRecovery?.dispose();
-                this.#companionLinkFailed = false;
                 this.#companionLinkRetried = false;
                 this.#tv?.disconnect();
                 this.#tv = undefined;

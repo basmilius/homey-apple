@@ -5,10 +5,12 @@ import type { SoundBoardSound } from '../utils';
 
 export default class HomePodFlow extends Shortcuts<AppleApp> {
     register(): void {
+        this.#registerFadeVolume();
         this.#registerPlaySoundboard();
         this.#registerPlayUrl();
         this.#registerPlayUrlAtVolume();
         this.#registerSetPosition();
+        this.#registerSetSleepTimer();
         this.#registerSkipBackward();
         this.#registerSkipForward();
     }
@@ -24,6 +26,20 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         } catch (err) {
             this.log(device.name, 'Failed to trigger artwork url updated card.', err);
         }
+    }
+
+    #registerFadeVolume(): void {
+        const card = this.flow.getActionCard('homepod_fade_volume');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly volume: number;
+            readonly seconds: number;
+        };
+
+        card.registerRunListener(async ({device, volume, seconds}: RunArguments) => {
+            await device.sdk.volume.fade(volume / 100, seconds * 1000);
+        });
     }
 
     #registerPlaySoundboard(): void {
@@ -86,6 +102,19 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
 
         card.registerRunListener(async ({device, position}: RunArguments) => {
             await device.sdk.playback.seekTo(Math.floor(position));
+        });
+    }
+
+    #registerSetSleepTimer(): void {
+        const card = this.flow.getActionCard('homepod_set_sleep_timer');
+
+        type RunArguments = {
+            readonly device: HomePodBaseDevice<HomePodBaseDriver>;
+            readonly minutes: number;
+        };
+
+        card.registerRunListener(async ({device, minutes}: RunArguments) => {
+            await device.sdk.playback.setSleepTimer(Math.floor(minutes) * 60);
         });
     }
 

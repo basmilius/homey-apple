@@ -1,0 +1,63 @@
+{
+    "id": "homepod_set_sleep_timer",
+    "title": {
+        "en": "Set sleep timer",
+        "nl": "Stel slaaptimer in",
+        "da": "Indstil slumretimer",
+        "de": "Schlaftimer einstellen",
+        "es": "Establecer temporizador de sueño",
+        "fr": "Régler la minuterie de veille",
+        "it": "Imposta timer di spegnimento",
+        "no": "Still inn sovetimer",
+        "sv": "Ställ in sov-timer",
+        "pl": "Ustaw timer uśpienia",
+        "ru": "Установить таймер сна",
+        "ko": "수면 타이머 설정",
+        "ar": "ضبط مؤقت النوم"
+    },
+    "titleFormatted": {
+        "en": "Set sleep timer to [[minutes]] minutes",
+        "nl": "Stel slaaptimer in op [[minutes]] minuten",
+        "da": "Indstil slumretimer til [[minutes]] minutter",
+        "de": "Schlaftimer auf [[minutes]] Minuten einstellen",
+        "es": "Establecer temporizador de sueño a [[minutes]] minutos",
+        "fr": "Régler la minuterie de veille à [[minutes]] minutes",
+        "it": "Imposta timer di spegnimento a [[minutes]] minuti",
+        "no": "Still inn sovetimer til [[minutes]] minutter",
+        "sv": "Ställ in sov-timer till [[minutes]] minuter",
+        "pl": "Ustaw timer uśpienia na [[minutes]] minut",
+        "ru": "Установить таймер сна на [[minutes]] минут",
+        "ko": "수면 타이머를 [[minutes]]분으로 설정",
+        "ar": "ضبط مؤقت النوم على [[minutes]] دقيقة"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=homepod|homepod-mini"
+        },
+        {
+            "name": "minutes",
+            "type": "number",
+            "min": 1,
+            "max": 480,
+            "step": 1,
+            "placeholder": "30",
+            "title": {
+                "en": "Minutes",
+                "nl": "Minuten",
+                "da": "Minutter",
+                "de": "Minuten",
+                "es": "Minutos",
+                "fr": "Minutes",
+                "it": "Minuti",
+                "no": "Minutter",
+                "sv": "Minuter",
+                "pl": "Minuty",
+                "ru": "Минуты",
+                "ko": "분",
+                "ar": "دقائق"
+            }
+        }
+    ]
+}
