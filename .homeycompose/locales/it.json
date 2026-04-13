@@ -1,7 +1,11 @@
 {
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco delle applicazioni.",
-        "cannot_fetch_accounts_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco degli account."
+        "cannot_fetch_accounts_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco degli account.",
+        "pairing": {
+            "title": "Prima di procedere...",
+            "airplay_access": "Assicurati che l'accesso AirPlay sia abilitato sul tuo Apple TV."
+        }
     },
     "capability": {
         "power": {

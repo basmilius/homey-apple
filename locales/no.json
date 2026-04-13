@@ -1,7 +1,11 @@
 {
   "appletv": {
     "cannot_fetch_apps_because_turned_off": "Apple TV-en må være slått på for å laste inn applistasjen.",
-    "cannot_fetch_accounts_because_turned_off": "Apple TV-en må være slått på for å laste inn kontolistasjen."
+    "cannot_fetch_accounts_because_turned_off": "Apple TV-en må være slått på for å laste inn kontolistasjen.",
+    "pairing": {
+      "title": "Før du fortsetter...",
+      "airplay_access": "Sørg for at AirPlay-tilgang er aktivert på Apple TV-en din."
+    }
   },
   "capability": {
     "power": {

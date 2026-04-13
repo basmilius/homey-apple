@@ -308,5 +308,9 @@
     "1.7.8": {
         "en": "Fixed an mDNS discovery issue which caused incomplete device results.",
         "nl": "Een mDNS detectieprobleem opgelost waardoor onvolledige apparaatresultaten werden opgehaald."
+    },
+    "1.7.9": {
+        "en": "Adds a new information screen before pairing an Apple TV.",
+        "nl": "Voegt een nieuw informatie scherm toe voor het pairen van een Apple TV."
     }
 }

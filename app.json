@@ -1991,6 +1991,12 @@
       ],
       "pair": [
         {
+          "id": "info",
+          "navigation": {
+            "next": "discover"
+          }
+        },
+        {
           "id": "discover",
           "template": "loading"
         },

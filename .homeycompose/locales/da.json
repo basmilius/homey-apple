@@ -1,7 +1,11 @@
 {
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "Apple TV'en skal være tændt for at kunne indlæse applikationslisten.",
-        "cannot_fetch_accounts_because_turned_off": "Apple TV'en skal være tændt for at kunne indlæse kontolisten."
+        "cannot_fetch_accounts_because_turned_off": "Apple TV'en skal være tændt for at kunne indlæse kontolisten.",
+        "pairing": {
+            "title": "Før du fortsætter...",
+            "airplay_access": "Sørg for, at AirPlay-adgang er aktiveret på dit Apple TV."
+        }
     },
     "capability": {
         "power": {

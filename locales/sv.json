@@ -1,7 +1,11 @@
 {
   "appletv": {
     "cannot_fetch_apps_because_turned_off": "Apple TV måste vara påslagen för att hämta applikationslistan.",
-    "cannot_fetch_accounts_because_turned_off": "Apple TV måste vara påslagen för att hämta kontolistan."
+    "cannot_fetch_accounts_because_turned_off": "Apple TV måste vara påslagen för att hämta kontolistan.",
+    "pairing": {
+      "title": "Innan du fortsätter...",
+      "airplay_access": "Se till att AirPlay-åtkomst är aktiverad på din Apple TV."
+    }
   },
   "capability": {
     "power": {

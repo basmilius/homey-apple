@@ -1,7 +1,11 @@
 {
   "appletv": {
     "cannot_fetch_apps_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список приложений.",
-    "cannot_fetch_accounts_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список аккаунтов."
+    "cannot_fetch_accounts_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список аккаунтов.",
+    "pairing": {
+      "title": "Прежде чем продолжить...",
+      "airplay_access": "Убедитесь, что доступ к AirPlay включён на вашем Apple TV."
+    }
   },
   "capability": {
     "power": {

@@ -1,7 +1,11 @@
 {
   "appletv": {
     "cannot_fetch_apps_because_turned_off": "Der Apple TV muss eingeschaltet sein, damit die Anwendungsliste geladen werden kann.",
-    "cannot_fetch_accounts_because_turned_off": "Der Apple TV muss eingeschaltet sein, damit die Kontoliste geladen werden kann."
+    "cannot_fetch_accounts_because_turned_off": "Der Apple TV muss eingeschaltet sein, damit die Kontoliste geladen werden kann.",
+    "pairing": {
+      "title": "Bevor du fortfährst...",
+      "airplay_access": "Stelle sicher, dass der AirPlay-Zugang auf deinem Apple TV aktiviert ist."
+    }
   },
   "capability": {
     "power": {
