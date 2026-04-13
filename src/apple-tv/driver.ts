@@ -15,8 +15,8 @@ export default class AppleTVDriver extends Driver<AppleApp> {
             this.error(err);
         });
 
-        pairing.on('log', log => {
-            this.log(log);
+        pairing.on('log', (...args) => {
+            this.log(...args);
         });
 
         await pairing.start();

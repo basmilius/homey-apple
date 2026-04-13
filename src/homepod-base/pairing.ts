@@ -30,7 +30,16 @@ export default class HomePodBasePairing extends EventEmitter {
 
         this.#session.setHandler('list_devices', async () => this.#devices
             .filter(device => !this.#knownDevices.some(knownDevice => knownDevice.getData().id === device.id))
-            .filter(device => (device.txt as any).model.match(this.#modelFilter))
+            .filter(device => {
+                const model = (device.txt as any)?.model;
+
+                if (!model) {
+                    this.emit('log', `Skipping incomplete discovery result for '${device.name ?? device.id}': missing txt.model`, device);
+                    return false;
+                }
+
+                return model.match(this.#modelFilter);
+            })
             .toSorted((a, b) => a.name.localeCompare(b.name)));
 
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());

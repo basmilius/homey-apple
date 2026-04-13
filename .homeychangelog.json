@@ -304,5 +304,9 @@
     "1.7.7": {
         "en": "New Homey-style device icons. Thanks @Athom!",
         "nl": "Nieuwe Homey-stijl apparaat-icons. Bedankt @Athom!"
+    },
+    "1.7.8": {
+        "en": "Fixed an mDNS discovery issue which caused incomplete device results.",
+        "nl": "Een mDNS detectieprobleem opgelost waardoor onvolledige apparaatresultaten werden opgehaald."
     }
 }

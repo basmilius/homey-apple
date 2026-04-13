@@ -33,7 +33,16 @@ export default class AppleTVPairing extends EventEmitter {
 
         this.#session.setHandler('list_devices', async () => this.#devices
             .filter(device => !this.#knownDevices.some(knownDevice => knownDevice.getData().id === device.id))
-            .filter(device => (device.txt as any).model.match(/AppleTV\d+,\d+/))
+            .filter(device => {
+                const model = (device.txt as any)?.model;
+
+                if (!model) {
+                    this.emit('log', `Skipping incomplete discovery result for '${device.name ?? device.id}': missing txt.model`, device);
+                    return false;
+                }
+
+                return model.match(/AppleTV\d+,\d+/);
+            })
             .toSorted((a, b) => a.name.localeCompare(b.name)));
 
         this.#session.setHandler('list_devices_selection', async (devices: Homey.DiscoveryResultMDNSSD[]) => this.#device = devices.pop());
