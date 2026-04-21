@@ -2,7 +2,7 @@
     "name": "com.basmilius.apple",
     "version": "1.0.0",
     "scripts": {
-        "build": "tsc && rm -rf .homeybuild/node_modules/**/*.js.map && rm -rf .homeybuild/node_modules/**/*.mjs.map"
+        "build": "tsc ${NOCHECK:+--noCheck}"
     },
     "dependencies": {
         "@basmilius/apple-audio-source": "^0.13.4",

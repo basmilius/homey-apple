@@ -316,5 +316,9 @@
     "1.7.10": {
         "en": "Update dependencies.",
         "nl": "Update dependencies."
+    },
+    "1.7.11": {
+        "en": "Optimize app size.",
+        "nl": "App grootte geoptimaliseerd."
     }
 }
