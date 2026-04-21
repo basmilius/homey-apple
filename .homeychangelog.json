@@ -312,5 +312,9 @@
     "1.7.9": {
         "en": "Adds a new information screen before pairing an Apple TV.",
         "nl": "Voegt een nieuw informatie scherm toe voor het pairen van een Apple TV."
+    },
+    "1.7.10": {
+        "en": "Update dependencies.",
+        "nl": "Update dependencies."
     }
 }

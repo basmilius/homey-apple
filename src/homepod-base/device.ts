@@ -284,7 +284,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
         try {
             if (volume !== undefined) {
-                await this.sdk.volume.set(volume);
+                await this.sdk.volume.set(volume / 100);
             }
 
             const audioSource = await Url.fromUrl(url);
