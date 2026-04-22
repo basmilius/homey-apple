@@ -1,0 +1,59 @@
+{
+    "id": "appletv_now_playing_app_becomes",
+    "title": {
+        "en": "Now playing app becomes...",
+        "nl": "Nu spelende app wordt...",
+        "da": "Nu afspillende app bliver...",
+        "de": "Jetzt spielende App wird...",
+        "es": "La aplicación de reproducción ahora pasa a...",
+        "fr": "L'application en cours de lecture devient...",
+        "it": "L'app di riproduzione ora diventa...",
+        "no": "Nåværende avspillende app blir...",
+        "sv": "Nu spelande app blir...",
+        "pl": "Teraz odtwarzana aplikacja staje się...",
+        "ru": "Текущее приложение становится...",
+        "ko": "현재 재생 중인 앱이 다음으로 변경됨...",
+        "ar": "يصبح تطبيق التشغيل الحالي..."
+    },
+    "titleFormatted": {
+        "en": "Now playing app becomes [[app]]",
+        "nl": "Nu spelende app wordt [[app]]",
+        "da": "Nu afspillende app bliver [[app]]",
+        "de": "Jetzt spielende App wird [[app]]",
+        "es": "La aplicación de reproducción ahora pasa a [[app]]",
+        "fr": "L'application en cours de lecture devient [[app]]",
+        "it": "L'app di riproduzione ora diventa [[app]]",
+        "no": "Nåværende avspillende app blir [[app]]",
+        "sv": "Nu spelande app blir [[app]]",
+        "pl": "Teraz odtwarzana aplikacja staje się [[app]]",
+        "ru": "Текущее приложение становится [[app]]",
+        "ko": "현재 재생 중인 앱이 [[app]](으)로 변경됨",
+        "ar": "يصبح تطبيق التشغيل الحالي [[app]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+                "en": "App",
+                "nl": "App",
+                "da": "App",
+                "de": "App",
+                "es": "App",
+                "fr": "App",
+                "it": "App",
+                "no": "App",
+                "sv": "App",
+                "pl": "Aplikacja",
+                "ru": "Приложение",
+                "ko": "앱",
+                "ar": "تطبيق"
+            }
+        }
+    ]
+}

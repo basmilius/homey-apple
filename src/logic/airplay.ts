@@ -74,10 +74,15 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             && shuffleMode !== Proto.ShuffleMode_Enum.Unknown;
     }
 
+    get currentNowPlayingBundleId(): string | null {
+        return this.#currentNowPlayingBundleId;
+    }
+
     readonly #device: Device<AppleApp, any>;
 
     #artwork!: Homey.Image;
     #artworkIdentifier?: string;
+    #currentNowPlayingBundleId: string | null = null;
     #miniPlayerUpdateTimer?: NodeJS.Timeout;
     #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
@@ -509,15 +514,21 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
 
         const currentNowPlayingApp = this.#device.getCapabilityValue('now_playing_app');
+        const bundleIdChanged = this.#currentNowPlayingBundleId !== bundleIdentifier;
 
-        if (currentNowPlayingApp === displayName) {
+        if (currentNowPlayingApp === displayName && !bundleIdChanged) {
             return;
         }
 
+        this.#currentNowPlayingBundleId = bundleIdentifier;
         await this.#device.setCapabilityValue('now_playing_app', displayName);
 
         if (this.#device instanceof AppleTVDevice) {
             await this.app.appleTvFlow.triggerNowPlayingAppChanges(this.#device, bundleIdentifier ?? '-', displayName ?? '-');
+
+            if (bundleIdChanged && bundleIdentifier) {
+                await this.app.appleTvFlow.triggerNowPlayingAppBecomes(this.#device, bundleIdentifier, displayName ?? '-');
+            }
         }
     }
 }

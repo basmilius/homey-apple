@@ -8,6 +8,8 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
     register(): void {
         this.#registerLaunchApp();
         this.#registerLaunchUrl();
+        this.#registerNowPlayingAppBecomes();
+        this.#registerNowPlayingAppIs();
         this.#registerRemote();
         this.#registerSetPosition();
         this.#registerSetRepeat();
@@ -16,6 +18,20 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         this.#registerSkipForward();
         this.#registerSwitchAccount();
     }
+
+    readonly #appAutocompleteListener = async (query: string, {device}: { device: AppleTVDevice }): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
+        const launchableApps = await device.sdk.apps?.list() ?? [];
+        const lowerQuery = query.trim().toLowerCase();
+
+        return launchableApps
+            .filter(app => lowerQuery.length === 0 || app.name.toLowerCase().includes(lowerQuery))
+            .map(app => ({
+                id: app.bundleId,
+                name: app.name,
+                description: app.bundleId
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    };
 
     async triggerCompanionLinkFailed(device: AppleTVDevice): Promise<void> {
         try {
@@ -52,12 +68,21 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         }
     }
 
+    async triggerNowPlayingAppBecomes(device: AppleTVDevice, bundleIdentifier: string, displayName: string): Promise<void> {
+        try {
+            const triggerCard = this.flow.getDeviceTriggerCard('appletv_now_playing_app_becomes');
+
+            await triggerCard.trigger(device, {}, {
+                bundleId: bundleIdentifier,
+                displayName
+            });
+        } catch (err) {
+            this.log(device.name, 'Failed to trigger now playing app becomes card.', err);
+        }
+    }
+
     #registerLaunchApp(): void {
         const launchApp = this.flow.getActionCard('appletv_launch_app');
-
-        type AutocompleteArguments = {
-            readonly device: AppleTVDevice;
-        };
 
         type RunArguments = {
             readonly app: AppleApp;
@@ -68,19 +93,40 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             await device.sdk.apps?.launch(app.id);
         });
 
-        launchApp.registerArgumentAutocompleteListener('app', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-            const launchableApps = await device.sdk.apps?.list() ?? [];
-            const lowerQuery = query.trim().toLowerCase();
+        launchApp.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
+    }
 
-            return launchableApps
-                .filter(app => lowerQuery.length === 0 || app.name.toLowerCase().includes(lowerQuery))
-                .map(app => ({
-                    id: app.bundleId,
-                    name: app.name,
-                    description: app.bundleId
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name));
+    #registerNowPlayingAppBecomes(): void {
+        const card = this.flow.getDeviceTriggerCard('appletv_now_playing_app_becomes');
+
+        type RunArguments = {
+            readonly app: AppleApp;
+        };
+
+        type State = {
+            readonly bundleId: string;
+        };
+
+        card.registerRunListener(async (args: RunArguments, state: State) => {
+            return args.app.id === state.bundleId;
         });
+
+        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
+    }
+
+    #registerNowPlayingAppIs(): void {
+        const card = this.flow.getConditionCard('appletv_now_playing_app_is');
+
+        type RunArguments = {
+            readonly app: AppleApp;
+            readonly device: AppleTVDevice;
+        };
+
+        card.registerRunListener(async ({app, device}: RunArguments) => {
+            return device.currentNowPlayingBundleId === app.id;
+        });
+
+        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
     }
 
     #registerLaunchUrl(): void {

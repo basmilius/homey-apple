@@ -46,6 +46,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         return this.#airplayLogic;
     }
 
+    get currentNowPlayingBundleId(): string | null {
+        return this.#airplayLogic?.currentNowPlayingBundleId ?? null;
+    }
+
     get discoveryResultAirPlay(): DiscoveryResult {
         return this.discoveryResults[AIRPLAY_SERVICE];
     }

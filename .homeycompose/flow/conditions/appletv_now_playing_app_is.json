@@ -1,0 +1,59 @@
+{
+    "id": "appletv_now_playing_app_is",
+    "title": {
+        "en": "Now playing app !{{is|isn't}}...",
+        "nl": "Nu spelende app !{{is|is niet}}...",
+        "da": "Nu afspillende app !{{er|er ikke}}...",
+        "de": "Jetzt spielende App !{{ist|ist nicht}}...",
+        "es": "La aplicación de reproducción ahora !{{es|no es}}...",
+        "fr": "L'application en cours de lecture !{{est|n'est pas}}...",
+        "it": "L'app di riproduzione ora !{{è|non è}}...",
+        "no": "Nåværende avspillende app !{{er|er ikke}}...",
+        "sv": "Nu spelande app !{{är|är inte}}...",
+        "pl": "Teraz odtwarzana aplikacja !{{jest|nie jest}}...",
+        "ru": "Текущее приложение !{{является|не является}}...",
+        "ko": "현재 재생 중인 앱이 !{{맞음|아님}}...",
+        "ar": "تطبيق التشغيل الحالي !{{هو|ليس}}..."
+    },
+    "titleFormatted": {
+        "en": "Now playing app !{{is|isn't}} [[app]]",
+        "nl": "Nu spelende app !{{is|is niet}} [[app]]",
+        "da": "Nu afspillende app !{{er|er ikke}} [[app]]",
+        "de": "Jetzt spielende App !{{ist|ist nicht}} [[app]]",
+        "es": "La aplicación de reproducción ahora !{{es|no es}} [[app]]",
+        "fr": "L'application en cours de lecture !{{est|n'est pas}} [[app]]",
+        "it": "L'app di riproduzione ora !{{è|non è}} [[app]]",
+        "no": "Nåværende avspillende app !{{er|er ikke}} [[app]]",
+        "sv": "Nu spelande app !{{är|är inte}} [[app]]",
+        "pl": "Teraz odtwarzana aplikacja !{{jest|nie jest}} [[app]]",
+        "ru": "Текущее приложение !{{является|не является}} [[app]]",
+        "ko": "현재 재생 중인 앱이 [[app]]!{{임|이(가) 아님}}",
+        "ar": "تطبيق التشغيل الحالي !{{هو|ليس}} [[app]]"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+                "en": "App",
+                "nl": "App",
+                "da": "App",
+                "de": "App",
+                "es": "App",
+                "fr": "App",
+                "it": "App",
+                "no": "App",
+                "sv": "App",
+                "pl": "Aplikacja",
+                "ru": "Приложение",
+                "ko": "앱",
+                "ar": "تطبيق"
+            }
+        }
+    ]
+}
