@@ -324,5 +324,9 @@
     "1.7.12": {
         "en": "Optimize app size.",
         "nl": "App grootte geoptimaliseerd."
+    },
+    "1.8.0": {
+        "en": "Introduces a new 'now playing app becomes' trigger and 'now playing app is' condition.",
+        "nl": "Voegt een nieuwe 'nu spelende app wordt' trigger toe en een nieuwe 'nu spelende app is' conditie."
     }
 }
