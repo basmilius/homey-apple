@@ -322,17 +322,24 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
 
         try {
-            this.#artworkIdentifier = artworkId;
             const artwork = await this.#sdkDevice?.artwork.get(600);
 
             if (artwork?.url) {
+                this.#artworkIdentifier = artworkId;
                 await this.#updateArtwork(artwork.url);
             } else if (artwork?.data) {
+                this.#artworkIdentifier = artworkId;
                 await this.#updateArtworkBuffer(artwork.data);
             } else {
-                await this.#updateArtwork(null);
+                // The device announces artworkId as soon as the item is known,
+                // but artworkURL can arrive in a later metadata update, so this
+                // lookup can come back empty. Leave the identifier unset so a
+                // following event retries, and keep the current image instead of
+                // clearing it.
+                this.#artworkIdentifier = undefined;
             }
         } catch (err) {
+            this.#artworkIdentifier = undefined;
             this.#device.error(this.deviceName, 'Failed to fetch artwork', err);
         }
     }
