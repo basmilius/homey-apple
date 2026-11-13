@@ -280,11 +280,16 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }, 300);
     }
 
-    async onPlaybackStateChanged(_client: AirPlayClient, _player: AirPlayPlayer, _oldState: Proto.PlaybackState_Enum, newState: Proto.PlaybackState_Enum): Promise<void> {
+    async onPlaybackStateChanged(client: AirPlayClient, _player: AirPlayPlayer, _oldState: Proto.PlaybackState_Enum, newState: Proto.PlaybackState_Enum): Promise<void> {
         // Fast path: update speaker_playing immediately without debounce.
         // The full nowPlayingChanged event will handle the rest.
         try {
             const isPlaying = newState === Proto.PlaybackState_Enum.Playing;
+
+            if (isPlaying) {
+                await this.#updateNowPlayingApp(client, true);
+            }
+
             await this.#device.setCapabilityValue('speaker_playing', isPlaying);
             this.#emitMiniPlayerUpdate();
         } catch (err) {
@@ -559,6 +564,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         try {
             await this.#syncDynamicCapabilities(client);
+            await this.#updateNowPlayingApp(client, client.isPlaying);
 
             await Promise.allSettled([
                 this.#device.setCapabilityValue('speaker_playing', client.isPlaying),
@@ -575,11 +581,6 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             if (this.#device.hasCapability('speaker_shuffle')) {
                 await this.#device.setCapabilityValue('speaker_shuffle', this.shuffle);
             }
-
-            this.#scheduleNowPlayingAppUpdate(
-                client.isPlaying ? client.bundleIdentifier : null,
-                client.isPlaying ? client.displayName : null
-            );
 
             await this.#setArtwork(client);
             this.#refreshAnimatedArtwork();
@@ -668,6 +669,18 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         } finally {
             releaseLock!();
         }
+    }
+
+    // A flow started by speaker_playing checks the now playing app, so a playing app is set before it.
+    // Only clearing the app is debounced, so a short pause does not flap it.
+    async #updateNowPlayingApp(client: AirPlayClient, isPlaying: boolean): Promise<void> {
+        if (!isPlaying) {
+            this.#scheduleNowPlayingAppUpdate(null, null);
+            return;
+        }
+
+        clearTimeout(this.#nowPlayingAppTimer);
+        await this.#updateNowPlayingAppImpl(client.bundleIdentifier, client.displayName);
     }
 
     #scheduleNowPlayingAppUpdate(bundleIdentifier: string | null, displayName: string | null): void {
