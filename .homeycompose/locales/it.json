@@ -2,6 +2,8 @@
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco delle applicazioni.",
         "cannot_fetch_accounts_because_turned_off": "L'Apple TV deve essere accesa per caricare l'elenco degli account.",
+        "url_playback_unsupported": "Questa Apple TV non può riprodurre un URL.",
+        "volume_not_absolute": "Il volume di questa Apple TV non può essere impostato su un livello preciso, perché l'altoparlante o il televisore collegato supporta solo alzare e abbassare. Usa la scheda senza volume.",
         "pairing": {
             "title": "Prima di procedere...",
             "airplay_access": "Assicurati che l'accesso AirPlay sia abilitato sul tuo Apple TV."

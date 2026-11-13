@@ -5,7 +5,9 @@
     "pairing": {
       "title": "Før du fortsetter...",
       "airplay_access": "Sørg for at AirPlay-tilgang er aktivert på Apple TV-en din."
-    }
+    },
+    "url_playback_unsupported": "Denne Apple TV-en kan ikke spille av en URL.",
+    "volume_not_absolute": "Volumet på denne Apple TV-en kan ikke settes til et bestemt nivå, fordi den tilkoblede høyttaleren eller TV-en bare støtter opp og ned. Bruk kortet uten volum."
   },
   "capability": {
     "power": {

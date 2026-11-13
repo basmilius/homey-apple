@@ -543,4 +543,29 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#connectedOnce = true;
         await this.#connect();
     }
+
+    async playUrl(url: string, volume?: number): Promise<void> {
+        if (!this.sdk.capabilities.supportsUrlPlayback) {
+            throw new Error(this.homey.__('appletv.url_playback_unsupported'));
+        }
+
+        // volume_set is only present while the output device accepts absolute volume.
+        if (volume !== undefined && !this.hasCapability('volume_set')) {
+            throw new Error(this.homey.__('appletv.volume_not_absolute'));
+        }
+
+        try {
+            if (volume !== undefined) {
+                await this.sdk.volume.set(volume / 100);
+            }
+
+            await this.sdk.media.playUrl(url);
+        } catch (err) {
+            this.error('Failed to start URL playback:', err);
+            throw err;
+        }
+
+        // Ending the session closes the player on the Apple TV; the flow card should not wait for that.
+        this.sdk.media.waitForPlaybackEnd().catch(err => this.error('URL playback ended with an error:', err));
+    }
 }

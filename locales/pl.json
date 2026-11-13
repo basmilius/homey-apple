@@ -5,7 +5,9 @@
     "pairing": {
       "title": "Zanim przejdziesz dalej...",
       "airplay_access": "Upewnij się, że dostęp do AirPlay jest włączony na Apple TV."
-    }
+    },
+    "url_playback_unsupported": "To Apple TV nie może odtworzyć adresu URL.",
+    "volume_not_absolute": "Głośności tego Apple TV nie można ustawić na konkretny poziom, ponieważ podłączony głośnik lub telewizor obsługuje tylko zwiększanie i zmniejszanie. Użyj karty bez głośności."
   },
   "capability": {
     "power": {

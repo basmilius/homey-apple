@@ -10,6 +10,8 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         this.#registerLaunchUrl();
         this.#registerNowPlayingAppBecomes();
         this.#registerNowPlayingAppIs();
+        this.#registerPlayUrl();
+        this.#registerPlayUrlAtVolume();
         this.#registerRemote();
         this.#registerSetPosition();
         this.#registerSetRepeat();
@@ -139,6 +141,33 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
 
         launchUrl.registerRunListener(async ({device, url}: RunArguments) => {
             await device.sdk.apps?.openUrl(url);
+        });
+    }
+
+    #registerPlayUrl(): void {
+        const playUrl = this.flow.getActionCard('appletv_play_url');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly url: string;
+        };
+
+        playUrl.registerRunListener(async ({device, url}: RunArguments) => {
+            await device.playUrl(url);
+        });
+    }
+
+    #registerPlayUrlAtVolume(): void {
+        const playUrl = this.flow.getActionCard('appletv_play_url_at_volume');
+
+        type RunArguments = {
+            readonly device: AppleTVDevice;
+            readonly url: string;
+            readonly volume: number;
+        };
+
+        playUrl.registerRunListener(async ({device, url, volume}: RunArguments) => {
+            await device.playUrl(url, volume);
         });
     }
 

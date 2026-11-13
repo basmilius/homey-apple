@@ -2,6 +2,8 @@
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "Apple TV musi być włączony, aby załadować listę aplikacji.",
         "cannot_fetch_accounts_because_turned_off": "Apple TV musi być włączony, aby załadować listę kont.",
+        "url_playback_unsupported": "To Apple TV nie może odtworzyć adresu URL.",
+        "volume_not_absolute": "Głośności tego Apple TV nie można ustawić na konkretny poziom, ponieważ podłączony głośnik lub telewizor obsługuje tylko zwiększanie i zmniejszanie. Użyj karty bez głośności.",
         "pairing": {
             "title": "Zanim przejdziesz dalej...",
             "airplay_access": "Upewnij się, że dostęp do AirPlay jest włączony na Apple TV."

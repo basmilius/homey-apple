@@ -2,6 +2,8 @@
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "Apple TV måste vara påslagen för att hämta applikationslistan.",
         "cannot_fetch_accounts_because_turned_off": "Apple TV måste vara påslagen för att hämta kontolistan.",
+        "url_playback_unsupported": "Den här Apple TV:n kan inte spela upp en URL.",
+        "volume_not_absolute": "Volymen på den här Apple TV:n kan inte ställas in på en viss nivå, eftersom den anslutna högtalaren eller tv:n bara stöder upp och ned. Använd kortet utan volym.",
         "pairing": {
             "title": "Innan du fortsätter...",
             "airplay_access": "Se till att AirPlay-åtkomst är aktiverad på din Apple TV."

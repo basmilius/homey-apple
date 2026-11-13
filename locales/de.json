@@ -5,7 +5,9 @@
     "pairing": {
       "title": "Bevor du fortfährst...",
       "airplay_access": "Stelle sicher, dass der AirPlay-Zugang auf deinem Apple TV aktiviert ist."
-    }
+    },
+    "url_playback_unsupported": "Dieses Apple TV kann keine URL abspielen.",
+    "volume_not_absolute": "Die Lautstärke dieses Apple TV kann nicht auf einen bestimmten Wert gesetzt werden, weil der angeschlossene Lautsprecher oder Fernseher nur lauter und leiser unterstützt. Verwende die Karte ohne Lautstärke."
   },
   "capability": {
     "power": {

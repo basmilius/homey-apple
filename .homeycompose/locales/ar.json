@@ -2,6 +2,8 @@
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "يجب تشغيل Apple TV لتحميل قائمة التطبيقات.",
         "cannot_fetch_accounts_because_turned_off": "يجب تشغيل Apple TV لتحميل قائمة الحسابات.",
+        "url_playback_unsupported": "لا يمكن لجهاز Apple TV هذا تشغيل رابط.",
+        "volume_not_absolute": "لا يمكن ضبط مستوى صوت جهاز Apple TV هذا على مستوى محدد، لأن السماعة أو التلفاز المتصل يدعم الرفع والخفض فقط. استخدم البطاقة بدون مستوى الصوت.",
         "pairing": {
             "title": "قبل المتابعة...",
             "airplay_access": "تأكد من تفعيل وصول AirPlay على Apple TV الخاص بك."

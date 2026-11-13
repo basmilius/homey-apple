@@ -5,7 +5,9 @@
     "pairing": {
       "title": "Innan du fortsätter...",
       "airplay_access": "Se till att AirPlay-åtkomst är aktiverad på din Apple TV."
-    }
+    },
+    "url_playback_unsupported": "Den här Apple TV:n kan inte spela upp en URL.",
+    "volume_not_absolute": "Volymen på den här Apple TV:n kan inte ställas in på en viss nivå, eftersom den anslutna högtalaren eller tv:n bara stöder upp och ned. Använd kortet utan volym."
   },
   "capability": {
     "power": {

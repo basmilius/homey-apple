@@ -2,6 +2,8 @@
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "De Apple TV moet aan staan om de lijst met beschikbare apps te laden.",
         "cannot_fetch_accounts_because_turned_off": "De Apple TV moet aan staan om de lijst met gebruikers apps te laden.",
+        "url_playback_unsupported": "Deze Apple TV kan geen URL afspelen.",
+        "volume_not_absolute": "Het volume van deze Apple TV kan niet op een vast niveau worden gezet, omdat de aangesloten speaker of tv alleen harder en zachter ondersteunt. Gebruik de kaart zonder volume.",
         "pairing": {
             "title": "Voordat je verder gaat...",
             "airplay_access": "Zorg ervoor dat AirPlay-toegang is ingeschakeld op je Apple TV."

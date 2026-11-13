@@ -2,6 +2,8 @@
     "appletv": {
         "cannot_fetch_apps_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список приложений.",
         "cannot_fetch_accounts_because_turned_off": "Apple TV должен быть включен, чтобы загрузить список аккаунтов.",
+        "url_playback_unsupported": "Эта Apple TV не может воспроизвести URL.",
+        "volume_not_absolute": "Громкость этой Apple TV нельзя установить на определённый уровень, потому что подключённая колонка или телевизор поддерживает только увеличение и уменьшение. Используйте карточку без громкости.",
         "pairing": {
             "title": "Прежде чем продолжить...",
             "airplay_access": "Убедитесь, что доступ к AirPlay включён на вашем Apple TV."

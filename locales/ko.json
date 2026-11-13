@@ -5,7 +5,9 @@
     "pairing": {
       "title": "진행하기 전에...",
       "airplay_access": "Apple TV에서 AirPlay 접근이 활성화되어 있는지 확인하세요."
-    }
+    },
+    "url_playback_unsupported": "이 Apple TV는 URL을 재생할 수 없습니다.",
+    "volume_not_absolute": "연결된 스피커 또는 TV가 볼륨 높이기와 낮추기만 지원하므로 이 Apple TV의 볼륨을 특정 수준으로 설정할 수 없습니다. 볼륨이 없는 카드를 사용하세요."
   },
   "capability": {
     "power": {
