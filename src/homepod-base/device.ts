@@ -6,6 +6,15 @@ import { capabilityToRepeatMode } from '../utils';
 import type HomePodBaseDriver from './driver';
 import type Homey from 'homey';
 
+// Same curve as pctToDbfs in @basmilius/apple-raop, which the SDK does not re-export.
+function percentageToDecibels(percentage: number): number {
+    if (percentage <= 0) {
+        return -144;
+    }
+
+    return 20 * Math.log10(Math.min(percentage, 100) / 100);
+}
+
 const RECONNECT_INTERVAL = 15 * 60 * 1000;
 
 const CAPABILITIES = [
@@ -287,8 +296,10 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
                 await this.sdk.volume.set(volume / 100);
             }
 
+            // The stream volume replaces the speaker volume; without it the SDK falls back to -20 dB.
+            const level = volume ?? (this.getCapabilityValue('volume_set') ?? 0.5) * 100;
             const audioSource = await Url.fromUrl(url);
-            await this.sdk.media.streamAudio(audioSource);
+            await this.sdk.media.streamAudio(audioSource, percentageToDecibels(level));
         } catch (err) {
             this.error('Failed to start audio playback:', err);
             throw err;
