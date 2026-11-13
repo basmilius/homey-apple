@@ -98,6 +98,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #animatedArtworkKey: string | null = null;
     #animatedArtworkTrackKey: string | null = null;
     #currentNowPlayingBundleId: string | null = null;
+    #playingBundleId: string | null = null;
     #miniPlayerUpdateTimer?: NodeJS.Timeout;
     #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
@@ -153,6 +154,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             }
 
             clearTimeout(this.#nowPlayingAppTimer);
+            await this.#updatePlayingApp(null);
             await this.#updateNowPlayingAppImpl(null, null);
 
             await Promise.allSettled([
@@ -285,11 +287,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         // The full nowPlayingChanged event will handle the rest.
         try {
             const isPlaying = newState === Proto.PlaybackState_Enum.Playing;
-
-            if (isPlaying) {
-                await this.#updateNowPlayingApp(client, true);
-            }
-
+            await this.#updateNowPlayingApp(client, isPlaying);
             await this.#device.setCapabilityValue('speaker_playing', isPlaying);
             this.#emitMiniPlayerUpdate();
         } catch (err) {
@@ -674,6 +672,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     // A flow started by speaker_playing checks the now playing app, so a playing app is set before it.
     // Only clearing the app is debounced, so a short pause does not flap it.
     async #updateNowPlayingApp(client: AirPlayClient, isPlaying: boolean): Promise<void> {
+        await this.#updatePlayingApp(isPlaying ? client.bundleIdentifier : null);
+
         if (!isPlaying) {
             this.#scheduleNowPlayingAppUpdate(null, null);
             return;
@@ -681,6 +681,25 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         clearTimeout(this.#nowPlayingAppTimer);
         await this.#updateNowPlayingAppImpl(client.bundleIdentifier, client.displayName);
+    }
+
+    // Unlike now_playing_app, this follows playback without a debounce, so a pause stops the app.
+    async #updatePlayingApp(bundleIdentifier: string | null): Promise<void> {
+        const previous = this.#playingBundleId;
+
+        if (previous === bundleIdentifier || !(this.#device instanceof AppleTVDevice)) {
+            return;
+        }
+
+        this.#playingBundleId = bundleIdentifier;
+
+        if (previous) {
+            await this.app.appleTvFlow.triggerAppPlayback(this.#device, 'appletv_app_stops_playing', previous);
+        }
+
+        if (bundleIdentifier) {
+            await this.app.appleTvFlow.triggerAppPlayback(this.#device, 'appletv_app_starts_playing', bundleIdentifier);
+        }
     }
 
     #scheduleNowPlayingAppUpdate(bundleIdentifier: string | null, displayName: string | null): void {

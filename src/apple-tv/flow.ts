@@ -4,8 +4,12 @@ import type { AppleApp, AppleTVDevice } from '../types';
 import { repeatModeToProto } from '../utils';
 import type Homey from 'homey';
 
+type AppPlaybackCardId = 'appletv_app_starts_playing' | 'appletv_app_stops_playing';
+
 export default class AppleTVFlow extends Shortcuts<AppleApp> {
     register(): void {
+        this.#registerAppPlayback('appletv_app_starts_playing');
+        this.#registerAppPlayback('appletv_app_stops_playing');
         this.#registerLaunchApp();
         this.#registerLaunchUrl();
         this.#registerNowPlayingAppBecomes();
@@ -81,6 +85,36 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         } catch (err) {
             this.log(device.name, 'Failed to trigger now playing app becomes card.', err);
         }
+    }
+
+    async triggerAppPlayback(device: AppleTVDevice, cardId: AppPlaybackCardId, bundleIdentifier: string): Promise<void> {
+        try {
+            const triggerCard = this.flow.getDeviceTriggerCard(cardId);
+
+            await triggerCard.trigger(device, {}, {
+                bundleId: bundleIdentifier
+            });
+        } catch (err) {
+            this.log(device.name, `Failed to trigger ${cardId} card.`, err);
+        }
+    }
+
+    #registerAppPlayback(cardId: AppPlaybackCardId): void {
+        const card = this.flow.getDeviceTriggerCard(cardId);
+
+        type RunArguments = {
+            readonly app: AppleApp;
+        };
+
+        type State = {
+            readonly bundleId: string;
+        };
+
+        card.registerRunListener(async (args: RunArguments, state: State) => {
+            return args.app.id === state.bundleId;
+        });
+
+        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
     }
 
     #registerLaunchApp(): void {

@@ -1,0 +1,59 @@
+{
+    "id": "appletv_app_starts_playing",
+    "title": {
+        "en": "App starts playing",
+        "nl": "App begint met afspelen",
+        "da": "App begynder at afspille",
+        "de": "App beginnt mit der Wiedergabe",
+        "es": "Una app empieza a reproducir",
+        "fr": "Une app commence la lecture",
+        "it": "Un'app inizia la riproduzione",
+        "no": "App begynner å spille av",
+        "sv": "App börjar spela upp",
+        "pl": "Aplikacja zaczyna odtwarzanie",
+        "ru": "Приложение начинает воспроизведение",
+        "ko": "앱 재생 시작됨",
+        "ar": "يبدأ تطبيق التشغيل"
+    },
+    "titleFormatted": {
+        "en": "[[app]] starts playing",
+        "nl": "[[app]] begint met afspelen",
+        "da": "[[app]] begynder at afspille",
+        "de": "[[app]] beginnt mit der Wiedergabe",
+        "es": "[[app]] empieza a reproducir",
+        "fr": "[[app]] commence la lecture",
+        "it": "[[app]] inizia la riproduzione",
+        "no": "[[app]] begynner å spille av",
+        "sv": "[[app]] börjar spela upp",
+        "pl": "[[app]] zaczyna odtwarzanie",
+        "ru": "[[app]] начинает воспроизведение",
+        "ko": "[[app]] 재생 시작됨",
+        "ar": "يبدأ [[app]] التشغيل"
+    },
+    "args": [
+        {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+        },
+        {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+                "en": "App",
+                "nl": "App",
+                "da": "App",
+                "de": "App",
+                "es": "App",
+                "fr": "App",
+                "it": "App",
+                "no": "App",
+                "sv": "App",
+                "pl": "Aplikacja",
+                "ru": "Приложение",
+                "ko": "앱",
+                "ar": "تطبيق"
+            }
+        }
+    ]
+}

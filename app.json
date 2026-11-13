@@ -199,6 +199,139 @@
   "flow": {
     "triggers": [
       {
+        "id": "appletv_app_starts_playing",
+        "title": {
+          "en": "App starts playing",
+          "nl": "App begint met afspelen",
+          "da": "App begynder at afspille",
+          "de": "App beginnt mit der Wiedergabe",
+          "es": "Una app empieza a reproducir",
+          "fr": "Une app commence la lecture",
+          "it": "Un'app inizia la riproduzione",
+          "no": "App begynner å spille av",
+          "sv": "App börjar spela upp",
+          "pl": "Aplikacja zaczyna odtwarzanie",
+          "ru": "Приложение начинает воспроизведение",
+          "ko": "앱 재생 시작됨",
+          "ar": "يبدأ تطبيق التشغيل"
+        },
+        "titleFormatted": {
+          "en": "[[app]] starts playing",
+          "nl": "[[app]] begint met afspelen",
+          "da": "[[app]] begynder at afspille",
+          "de": "[[app]] beginnt mit der Wiedergabe",
+          "es": "[[app]] empieza a reproducir",
+          "fr": "[[app]] commence la lecture",
+          "it": "[[app]] inizia la riproduzione",
+          "no": "[[app]] begynner å spille av",
+          "sv": "[[app]] börjar spela upp",
+          "pl": "[[app]] zaczyna odtwarzanie",
+          "ru": "[[app]] начинает воспроизведение",
+          "ko": "[[app]] 재생 시작됨",
+          "ar": "يبدأ [[app]] التشغيل"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+              "en": "App",
+              "nl": "App",
+              "da": "App",
+              "de": "App",
+              "es": "App",
+              "fr": "App",
+              "it": "App",
+              "no": "App",
+              "sv": "App",
+              "pl": "Aplikacja",
+              "ru": "Приложение",
+              "ko": "앱",
+              "ar": "تطبيق"
+            }
+          }
+        ]
+      },
+      {
+        "id": "appletv_app_stops_playing",
+        "title": {
+          "en": "App stops playing",
+          "nl": "App stopt met afspelen",
+          "da": "App stopper med at afspille",
+          "de": "App beendet die Wiedergabe",
+          "es": "Una app deja de reproducir",
+          "fr": "Une app arrête la lecture",
+          "it": "Un'app interrompe la riproduzione",
+          "no": "App slutter å spille av",
+          "sv": "App slutar spela upp",
+          "pl": "Aplikacja kończy odtwarzanie",
+          "ru": "Приложение прекращает воспроизведение",
+          "ko": "앱 재생 중지됨",
+          "ar": "يتوقف تطبيق عن التشغيل"
+        },
+        "titleFormatted": {
+          "en": "[[app]] stops playing",
+          "nl": "[[app]] stopt met afspelen",
+          "da": "[[app]] stopper med at afspille",
+          "de": "[[app]] beendet die Wiedergabe",
+          "es": "[[app]] deja de reproducir",
+          "fr": "[[app]] arrête la lecture",
+          "it": "[[app]] interrompe la riproduzione",
+          "no": "[[app]] slutter å spille av",
+          "sv": "[[app]] slutar spela upp",
+          "pl": "[[app]] kończy odtwarzanie",
+          "ru": "[[app]] прекращает воспроизведение",
+          "ko": "[[app]] 재생 중지됨",
+          "ar": "يتوقف [[app]] عن التشغيل"
+        },
+        "hint": {
+          "en": "Also runs when playback is paused or another app takes over.",
+          "nl": "Werkt ook wanneer het afspelen wordt gepauzeerd of een andere app het overneemt.",
+          "da": "Kører også, når afspilningen sættes på pause, eller en anden app tager over.",
+          "de": "Wird auch ausgelöst, wenn die Wiedergabe pausiert wird oder eine andere App übernimmt.",
+          "es": "También se activa cuando se pausa la reproducción u otra app toma el control.",
+          "fr": "Se déclenche aussi quand la lecture est mise en pause ou qu'une autre app prend le relais.",
+          "it": "Si attiva anche quando la riproduzione viene messa in pausa o un'altra app subentra.",
+          "no": "Kjører også når avspillingen settes på pause eller en annen app tar over.",
+          "sv": "Körs även när uppspelningen pausas eller en annan app tar över.",
+          "pl": "Uruchamia się także, gdy odtwarzanie zostanie wstrzymane lub przejmie je inna aplikacja.",
+          "ru": "Срабатывает также, когда воспроизведение ставится на паузу или его перехватывает другое приложение.",
+          "ko": "재생이 일시 정지되거나 다른 앱이 재생을 넘겨받을 때도 실행됩니다.",
+          "ar": "يعمل أيضًا عند إيقاف التشغيل مؤقتًا أو عندما يتولى تطبيق آخر التشغيل."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=apple-tv"
+          },
+          {
+            "type": "autocomplete",
+            "name": "app",
+            "title": {
+              "en": "App",
+              "nl": "App",
+              "da": "App",
+              "de": "App",
+              "es": "App",
+              "fr": "App",
+              "it": "App",
+              "no": "App",
+              "sv": "App",
+              "pl": "Aplikacja",
+              "ru": "Приложение",
+              "ko": "앱",
+              "ar": "تطبيق"
+            }
+          }
+        ]
+      },
+      {
         "id": "appletv_artwork_url_updated",
         "title": {
           "en": "Artwork URL updated",
