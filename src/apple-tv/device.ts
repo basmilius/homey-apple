@@ -208,6 +208,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.log('Connected to Apple TV (AirPlay).');
 
             if (this.#tv!.isConnected) {
+                this.#stopSlowRecovery();
                 await this.setAvailable();
             }
         });
@@ -246,10 +247,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.#tv.companionLink.on('connected', async () => {
                 this.#companionLinkRecovery?.reset();
                 this.#companionLinkRetried = false;
-                this.#stopSlowRecovery();
                 this.log('Connected to Apple TV (Companion Link).');
 
                 if (this.#tv!.isConnected) {
+                    this.#stopSlowRecovery();
                     await this.setAvailable();
                 }
             });
@@ -275,13 +276,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             baseDelay: 1000,
             reconnectInterval: RECONNECT_INTERVAL,
             onReconnect: async () => {
-                const tv = this.#tv;
-                if (!tv) return;
-                tv.airplay.disconnectSafely();
-                await this.findService(AIRPLAY_SERVICE);
-                tv.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
-                tv.airplay.setCredentials(credentials);
-                await tv.airplay.connect();
+                await this.#reconnectAirPlay(credentials);
             }
         });
 
@@ -289,8 +284,10 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.log(`AirPlay recovery attempt ${attempt}...`);
         });
 
-        this.#airplayRecovery.on('failed', () => {
+        this.#airplayRecovery.on('failed', async () => {
             this.error('AirPlay recovery failed after max attempts.');
+            await this.setUnavailable('Device offline, retrying connection...');
+            await this.#startSlowRecovery();
         });
 
         this.#companionLinkRecovery = new ConnectionRecovery({
@@ -345,24 +342,35 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt}...`);
 
             try {
-                const cl = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
+                const credentials = getAccessoryCredentialsFromDevice(this);
 
-                if (!cl) {
-                    throw new Error('Companion Link not found via unicast.');
+                if (credentials && this.#tv && !this.#tv.airplay.isConnected) {
+                    await this.#reconnectAirPlay(credentials);
                 }
 
-                this.log(`Re-discovered Companion Link at ${cl.address}:${cl.service.port}, reconnecting...`);
-                await this.#attachCompanionLink(cl);
+                if (!this.#tv?.companionLink?.isConnected) {
+                    const cl = await this.#discoverCompanionLink(this.discoveryResultAirPlay.address);
+
+                    if (!cl) {
+                        throw new Error('Companion Link not found via unicast.');
+                    }
+
+                    this.log(`Re-discovered Companion Link at ${cl.address}:${cl.service.port}, reconnecting...`);
+                    await this.#attachCompanionLink(cl);
+                }
             } catch {
                 this.log(`Slow recovery attempt ${this.#slowRecoveryAttempt} failed.`);
             }
 
             if (this.#slowRecoveryAttempt === SLOW_RECOVERY_MAX_ATTEMPTS) {
-                this.log('Companion Link recovery entering extended phase, retrying every 15 minutes...');
-                await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
+                this.log('Slow recovery entering extended phase, retrying every 15 minutes...');
+
+                if (!this.#tv?.companionLink?.isConnected) {
+                    await this.app.appleTvFlow.triggerCompanionLinkFailed(this);
+                }
             }
 
-            if (!this.#slowRecoveryTimer && this.#tv && !this.#tv.companionLink?.isConnected) {
+            if (!this.#slowRecoveryTimer && this.#tv && !this.#tv.isConnected) {
                 this.#scheduleSlowRecoveryAttempt();
             }
         }, interval);
@@ -374,6 +382,20 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             this.#slowRecoveryTimer = null;
         }
         this.#slowRecoveryAttempt = 0;
+    }
+
+    async #reconnectAirPlay(credentials: NonNullable<ReturnType<typeof getAccessoryCredentialsFromDevice>>): Promise<void> {
+        const tv = this.#tv;
+
+        if (!tv) {
+            return;
+        }
+
+        tv.airplay.disconnectSafely();
+        await this.findService(AIRPLAY_SERVICE);
+        tv.discoveryResult = this.discoveryResults[AIRPLAY_SERVICE];
+        tv.airplay.setCredentials(credentials);
+        await tv.airplay.connect();
     }
 
     async #attachCompanionLink(discoveryResult: DiscoveryResult): Promise<void> {
