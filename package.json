@@ -7,8 +7,8 @@
         "build:widgets": "bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/mini_player/public/player.js && bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/artwork_player/public/player.js"
     },
     "dependencies": {
-        "@basmilius/apple-audio-source": "^0.14.1",
-        "@basmilius/apple-sdk": "^0.14.1",
+        "@basmilius/apple-audio-source": "^0.15.2",
+        "@basmilius/apple-sdk": "^0.15.2",
         "@basmilius/homey-common": "^1.25.0"
     },
     "devDependencies": {
