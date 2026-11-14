@@ -216,7 +216,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         // Now playing was cleared while the Apple TV was off.
         if (wasOff) {
-            this.#airplayLogic.requestRefresh();
+            this.#airplayLogic.resync();
         }
 
         this.#airplayLogic.emitUpdate();
@@ -340,9 +340,9 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
                     return;
                 }
 
+                // The device announces everything fresh after a disconnect, which fills now playing again.
                 await tv.disconnect();
                 await this.#airplayLogic.clearNowPlaying();
-                this.#airplayLogic.requestRefresh();
                 await this.#connect();
             } catch (err) {
                 this.error(err);

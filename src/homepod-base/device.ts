@@ -234,9 +234,9 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
                     return;
                 }
 
+                // The device announces everything fresh after a disconnect, which fills now playing again.
                 await pod.disconnect();
                 await this.#airplayLogic.clearNowPlaying();
-                this.#airplayLogic.requestRefresh();
                 await this.#connect();
             } catch (err) {
                 this.error(err);
