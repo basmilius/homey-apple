@@ -1,28 +1,28 @@
-import { Proto } from '@basmilius/apple-sdk';
+import type { RepeatMode } from '@corewire/devices';
+
+const REPEAT_MODES: readonly RepeatMode[] = ['off', 'one', 'all'];
 
 /**
- * Maps Homey speaker_repeat capability values to Proto repeat mode enums.
+ * Maps Homey speaker_repeat capability values to repeat modes.
  */
-export const capabilityToRepeatMode: Record<string, Proto.RepeatMode_Enum> = {
-    none: Proto.RepeatMode_Enum.Off,
-    track: Proto.RepeatMode_Enum.One,
-    playlist: Proto.RepeatMode_Enum.All
+export const capabilityToRepeatMode: Record<string, RepeatMode> = {
+    none: 'off',
+    track: 'one',
+    playlist: 'all'
 };
 
 /**
- * Maps internal repeat mode strings to Proto repeat mode enums.
- */
-export const repeatModeToProto: Record<string, Proto.RepeatMode_Enum> = {
-    off: Proto.RepeatMode_Enum.Off,
-    one: Proto.RepeatMode_Enum.One,
-    all: Proto.RepeatMode_Enum.All
-};
-
-/**
- * Maps internal repeat mode strings to Homey capability values.
+ * Maps repeat modes to Homey capability values.
  */
 export const repeatModeToCapability: Record<string, string> = {
     off: 'none',
     one: 'track',
     all: 'playlist'
 };
+
+/**
+ * Reads a repeat mode from a flow argument; anything unknown is off.
+ */
+export function toRepeatMode(value: string): RepeatMode {
+    return REPEAT_MODES.find(mode => mode === value) ?? 'off';
+}

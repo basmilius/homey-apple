@@ -1,4 +1,5 @@
-import { type AbstractDevice, type AirPlayClient, type AirPlayPlayer, Proto } from '@basmilius/apple-sdk';
+import type { AppleDevice, NowPlaying, NowPlayingCommand, PlaybackState, Status, VolumeState } from '@corewire/devices';
+import { fetchAnimatedArtwork } from '@corewire/devices/catalog';
 import { type Device, Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import Homey from 'homey';
@@ -10,6 +11,10 @@ import { getFallbackArtworkUrl, repeatModeToCapability, safeCapabilityValue } fr
 const MAX_ARTWORK_SIZE = 4 * 1024 * 1024;
 
 const ARTWORK_DOWNLOAD_TIMEOUT = 5000;
+
+// The device announces a now-playing item once and holds it across a reconnect for at most 5 s
+// after the new AirPlay session is up. A refresh waits that out, so it reads the new session.
+const RESTORE_WINDOW = 6000;
 
 export type MiniPlayerState = {
     readonly deviceId: string;
@@ -43,7 +48,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     get position(): number {
-        return this.#sdkDevice?.state.elapsedTime ?? 0;
+        return this.#sdkDevice?.nowPlaying.elapsed ?? 0;
     }
 
     get positionTimestamp(): number {
@@ -55,31 +60,11 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     get repeat(): string {
-        const repeatMode = this.#sdkDevice?.state.repeatMode;
-
-        if (repeatMode === undefined) {
-            return 'off';
-        }
-
-        switch (repeatMode) {
-            case Proto.RepeatMode_Enum.One:
-                return 'one';
-            case Proto.RepeatMode_Enum.All:
-                return 'all';
-            default:
-                return 'off';
-        }
+        return this.#sdkDevice?.nowPlaying.current?.repeat ?? 'off';
     }
 
     get shuffle(): boolean {
-        const shuffleMode = this.#sdkDevice?.state.shuffleMode;
-
-        if (shuffleMode === undefined) {
-            return false;
-        }
-
-        return shuffleMode !== Proto.ShuffleMode_Enum.Off
-            && shuffleMode !== Proto.ShuffleMode_Enum.Unknown;
+        return (this.#sdkDevice?.nowPlaying.current?.shuffle ?? 'off') !== 'off';
     }
 
     get currentNowPlayingBundleId(): string | null {
@@ -97,12 +82,16 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #animatedArtworkRequest = 0;
     #animatedArtworkKey: string | null = null;
     #animatedArtworkTrackKey: string | null = null;
+    #airplayConnectedAt = 0;
     #currentNowPlayingBundleId: string | null = null;
+    #muted?: boolean;
     #playingBundleId: string | null = null;
     #miniPlayerUpdateTimer?: NodeJS.Timeout;
     #nowPlayingDebounceTimer?: NodeJS.Timeout;
     #nowPlayingAppTimer?: NodeJS.Timeout;
-    #sdkDevice?: AbstractDevice;
+    #refreshPending = false;
+    #refreshTimer?: NodeJS.Timeout;
+    #sdkDevice?: AppleDevice<any>;
     #updateLock: Promise<void> = Promise.resolve();
     #volumeDebounceTimer?: NodeJS.Timeout;
 
@@ -113,8 +102,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.onNowPlayingChanged = this.onNowPlayingChanged.bind(this);
         this.onPlaybackStateChanged = this.onPlaybackStateChanged.bind(this);
         this.onVolumeChanged = this.onVolumeChanged.bind(this);
-        this.onVolumeMutedChanged = this.onVolumeMutedChanged.bind(this);
         this.onArtworkChanged = this.onArtworkChanged.bind(this);
+        this.onStatus = this.onStatus.bind(this);
     }
 
     async initialize(): Promise<void> {
@@ -131,6 +120,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         clearTimeout(this.#miniPlayerUpdateTimer);
         clearTimeout(this.#nowPlayingDebounceTimer);
         clearTimeout(this.#nowPlayingAppTimer);
+        clearTimeout(this.#refreshTimer);
         clearTimeout(this.#volumeDebounceTimer);
         this.#removeListeners();
 
@@ -239,16 +229,48 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#emitMiniPlayerUpdate();
     }
 
-    setDevice(sdkDevice: AbstractDevice): void {
+    setDevice(sdkDevice: AppleDevice<any>): void {
         this.#resetAnimatedArtwork();
         this.#removeListeners();
 
         this.#sdkDevice = sdkDevice;
-        sdkDevice.state.on('nowPlayingChanged', this.onNowPlayingChanged);
-        sdkDevice.state.on('playbackStateChanged', this.onPlaybackStateChanged);
-        sdkDevice.state.on('volumeChanged', this.onVolumeChanged);
-        sdkDevice.state.on('volumeMutedChanged', this.onVolumeMutedChanged);
-        sdkDevice.state.on('artworkChanged', this.onArtworkChanged);
+        sdkDevice.on('status', this.onStatus);
+        sdkDevice.nowPlaying.on('change', this.onNowPlayingChanged);
+        sdkDevice.nowPlaying.on('state', this.onPlaybackStateChanged);
+        sdkDevice.nowPlaying.on('artwork', this.onArtworkChanged);
+        sdkDevice.volume.on('change', this.onVolumeChanged);
+    }
+
+    /**
+     * Reads the now-playing item and the volume again, once AirPlay is connected and a reconnect
+     * settled. The device only announces what changed, so after the app cleared the capabilities
+     * itself (restart, the Apple TV turning off) nothing else fills them for an unchanged item.
+     */
+    requestRefresh(): void {
+        clearTimeout(this.#refreshTimer);
+
+        if (this.#sdkDevice?.status.airplay.state !== 'connected') {
+            this.#refreshPending = true;
+            return;
+        }
+
+        this.#refreshPending = false;
+        this.#refreshTimer = setTimeout(() => {
+            const sdkDevice = this.#sdkDevice;
+
+            if (!sdkDevice) {
+                return;
+            }
+
+            // AirPlay dropped or came back while this waited.
+            if (sdkDevice.status.airplay.state !== 'connected' || Date.now() < this.#airplayConnectedAt + RESTORE_WINDOW) {
+                this.requestRefresh();
+                return;
+            }
+
+            void this.onNowPlayingChanged(sdkDevice.nowPlaying.current);
+            this.onVolumeChanged(sdkDevice.volume);
+        }, Math.max(0, this.#airplayConnectedAt + RESTORE_WINDOW - Date.now()));
     }
 
     #removeListeners(): void {
@@ -256,15 +278,32 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        this.#sdkDevice.state.off('nowPlayingChanged', this.onNowPlayingChanged);
-        this.#sdkDevice.state.off('playbackStateChanged', this.onPlaybackStateChanged);
-        this.#sdkDevice.state.off('volumeChanged', this.onVolumeChanged);
-        this.#sdkDevice.state.off('volumeMutedChanged', this.onVolumeMutedChanged);
-        this.#sdkDevice.state.off('artworkChanged', this.onArtworkChanged);
+        this.#sdkDevice.off('status', this.onStatus);
+        this.#sdkDevice.nowPlaying.off('change', this.onNowPlayingChanged);
+        this.#sdkDevice.nowPlaying.off('state', this.onPlaybackStateChanged);
+        this.#sdkDevice.nowPlaying.off('artwork', this.onArtworkChanged);
+        this.#sdkDevice.volume.off('change', this.onVolumeChanged);
     }
 
-    async onNowPlayingChanged(client: AirPlayClient | null, _player: AirPlayPlayer | null): Promise<void> {
-        const trackKey = client ? JSON.stringify([client.bundleIdentifier, client.artist, client.album, client.title, String(client.activePlayer?.currentItemMetadata?.iTunesStoreAlbumIdentifier ?? '')]) : null;
+    onStatus(status: Status): void {
+        if (status.airplay.state !== 'connected') {
+            this.#airplayConnectedAt = 0;
+            return;
+        }
+
+        if (this.#airplayConnectedAt > 0) {
+            return;
+        }
+
+        this.#airplayConnectedAt = Date.now();
+
+        if (this.#refreshPending) {
+            this.requestRefresh();
+        }
+    }
+
+    async onNowPlayingChanged(item: NowPlaying | null): Promise<void> {
+        const trackKey = item ? JSON.stringify([item.app.bundleId, item.artist, item.album, item.title, item.storeAlbumId ?? '']) : null;
         if (trackKey !== this.#animatedArtworkTrackKey) {
             this.#resetAnimatedArtwork();
             this.#animatedArtworkTrackKey = trackKey;
@@ -272,7 +311,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         clearTimeout(this.#nowPlayingDebounceTimer);
         this.#nowPlayingDebounceTimer = setTimeout(() => {
             this.#serialized(async () => {
-                if (!client) {
+                if (!item) {
                     await this.#clearNowPlayingImpl();
                     return;
                 }
@@ -282,12 +321,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }, 300);
     }
 
-    async onPlaybackStateChanged(client: AirPlayClient, _player: AirPlayPlayer, _oldState: Proto.PlaybackState_Enum, newState: Proto.PlaybackState_Enum): Promise<void> {
+    async onPlaybackStateChanged(state: PlaybackState, _previous: PlaybackState, item: NowPlaying): Promise<void> {
         // Fast path: update speaker_playing immediately without debounce.
-        // The full nowPlayingChanged event will handle the rest.
+        // The full now playing change will handle the rest.
         try {
-            const isPlaying = newState === Proto.PlaybackState_Enum.Playing;
-            await this.#updateNowPlayingApp(client, isPlaying);
+            const isPlaying = state === 'playing';
+            await this.#updateNowPlayingApp(item, isPlaying);
             await this.#device.setCapabilityValue('speaker_playing', isPlaying);
             this.#emitMiniPlayerUpdate();
         } catch (err) {
@@ -295,8 +334,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
     }
 
-    async onArtworkChanged(_client: AirPlayClient, _player: AirPlayPlayer): Promise<void> {
-        const client = this.#sdkDevice?.state.activeClient;
+    async onArtworkChanged(): Promise<void> {
+        const client = this.#sdkDevice?.nowPlaying.current;
 
         if (!client) {
             return;
@@ -313,7 +352,20 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }).catch(err => this.log(this.deviceName, 'Failed to process artwork change:', err));
     }
 
-    onVolumeMutedChanged(muted: boolean): void {
+    onVolumeChanged(volume: VolumeState): void {
+        if (volume.muted !== this.#muted) {
+            this.#muted = volume.muted;
+            this.#updateMuted(volume.muted);
+        }
+
+        clearTimeout(this.#volumeDebounceTimer);
+        this.#volumeDebounceTimer = setTimeout(() => {
+            this.#updateVolume()
+                .catch(err => this.log(this.deviceName, 'Failed to update volume:', err));
+        }, 300);
+    }
+
+    #updateMuted(muted: boolean): void {
         if (!this.#device.hasCapability('volume_mute')) {
             return;
         }
@@ -322,26 +374,18 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             .catch(err => this.log(this.deviceName, 'Failed to update volume mute', err));
     }
 
-    onVolumeChanged(): void {
-        clearTimeout(this.#volumeDebounceTimer);
-        this.#volumeDebounceTimer = setTimeout(() => {
-            this.#updateVolume()
-                .catch(err => this.log(this.deviceName, 'Failed to update volume:', err));
-        }, 300);
-    }
-
     async #updateVolume(): Promise<void> {
         if (!this.#device.hasCapability('volume_set')) {
             return;
         }
 
-        const volume = this.#sdkDevice?.state.volume ?? 0;
+        const volume = this.#sdkDevice?.volume.level ?? 0;
         await this.#device.setCapabilityValue('volume_set', volume);
         this.#emitMiniPlayerUpdate();
     }
 
-    async #setArtwork(client: AirPlayClient): Promise<void> {
-        const artworkId = client.artworkId;
+    async #setArtwork(item: NowPlaying): Promise<void> {
+        const artworkId = item.artworkId;
 
         if (artworkId === this.#artworkIdentifier) {
             return;
@@ -349,7 +393,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         if (!artworkId) {
             this.#artworkIdentifier = undefined;
-            await this.#updateArtwork(getFallbackArtworkUrl(client.bundleIdentifier));
+            await this.#updateArtwork(getFallbackArtworkUrl(item.app.bundleId));
             return;
         }
 
@@ -396,7 +440,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     #refreshAnimatedArtwork(): void {
         const sdkDevice = this.#sdkDevice;
-        const client = sdkDevice?.state.activeClient;
+        const client = sdkDevice?.nowPlaying.current;
         if (!sdkDevice || !client) {
             this.#resetAnimatedArtwork();
             return;
@@ -413,11 +457,10 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         if (client.album && client.album !== safeCapabilityValue(this.#device, 'speaker_album')) {
             return;
         }
-        const albumId = client.activePlayer?.currentItemMetadata?.iTunesStoreAlbumIdentifier;
-        if (!albumId || albumId === 0n) {
+        const key = client.storeAlbumId;
+        if (!key) {
             return;
         }
-        const key = String(albumId);
         const requestKey = `${key}:${Math.floor(Date.now() / 60_000)}`;
         if (requestKey === this.#animatedArtworkKey) {
             return;
@@ -425,10 +468,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#animatedArtworkKey = requestKey;
         const request = ++this.#animatedArtworkRequest;
         void this.#animatedArtworkCache.get(key, async () => {
-            if (String(sdkDevice.state.activeClient?.activePlayer?.currentItemMetadata?.iTunesStoreAlbumIdentifier) !== key) {
+            if (sdkDevice.nowPlaying.current?.storeAlbumId !== key) {
                 return null;
             }
-            const artworks = await sdkDevice.artwork.getAnimatedFromCatalog();
+            const artworks = await fetchAnimatedArtwork(key);
+            // The album may have changed during the lookup.
+            if (sdkDevice.nowPlaying.current?.storeAlbumId !== key) {
+                return null;
+            }
             const url = artworks.find(artwork => artwork.format === 'motionDetailSquare')?.url;
             return url?.startsWith('https://') ? url : null;
         }).then(url => {
@@ -554,23 +601,26 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        const client = this.#sdkDevice?.state.activeClient;
+        const nowPlaying = this.#sdkDevice?.nowPlaying;
+        const client = nowPlaying?.current;
 
         if (!client) {
             return;
         }
 
         try {
-            await this.#syncDynamicCapabilities(client);
-            await this.#updateNowPlayingApp(client, client.isPlaying);
+            const isPlaying = client.state === 'playing';
+
+            await this.#syncDynamicCapabilities();
+            await this.#updateNowPlayingApp(client, isPlaying);
 
             await Promise.allSettled([
-                this.#device.setCapabilityValue('speaker_playing', client.isPlaying),
+                this.#device.setCapabilityValue('speaker_playing', isPlaying),
                 this.#device.setCapabilityValue('speaker_album', client.album),
-                this.#device.setCapabilityValue('speaker_artist', client.artist || client.activePlayer?.currentItemMetadata?.trackArtistName || client.displayName || '-'),
+                this.#device.setCapabilityValue('speaker_artist', client.artist || client.trackArtist || client.app.name || '-'),
                 this.#device.setCapabilityValue('speaker_track', client.title),
                 this.#device.setCapabilityValue('speaker_duration', client.duration),
-                this.#device.setCapabilityValue('speaker_position', client.elapsedTime)
+                this.#device.setCapabilityValue('speaker_position', nowPlaying.elapsed)
             ]);
 
             if (this.#device.hasCapability('speaker_repeat')) {
@@ -588,16 +638,22 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
     }
 
-    async #syncDynamicCapabilities(client: AirPlayClient): Promise<void> {
-        const capabilities: Array<[string, Proto.Command]> = [
-            ['speaker_next', Proto.Command.NextTrack],
-            ['speaker_prev', Proto.Command.PreviousTrack],
-            ['speaker_repeat', Proto.Command.ChangeRepeatMode],
-            ['speaker_shuffle', Proto.Command.ChangeShuffleMode]
+    async #syncDynamicCapabilities(): Promise<void> {
+        const sdkDevice = this.#sdkDevice;
+
+        if (!sdkDevice) {
+            return;
+        }
+
+        const capabilities: Array<[string, NowPlayingCommand]> = [
+            ['speaker_next', 'next'],
+            ['speaker_prev', 'previous'],
+            ['speaker_repeat', 'repeat'],
+            ['speaker_shuffle', 'shuffle']
         ];
 
         for (const [id, command] of capabilities) {
-            const isSupported = client.isCommandSupported(command);
+            const isSupported = sdkDevice.nowPlaying.supports(command);
             const hasCapability = this.#device.hasCapability(id);
 
             if (isSupported && !hasCapability) {
@@ -614,8 +670,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
         // Volume set is dynamically managed for Apple TV based on output device capabilities.
         if (this.#device instanceof AppleTVDevice) {
-            const isVolumeAvailable = this.#sdkDevice?.state.volumeAvailable ?? false;
-            const isVolumeAbsolute = this.#sdkDevice?.airplay.state.volumeCapabilities === Proto.VolumeCapabilities_Enum.Absolute || this.#sdkDevice?.airplay.state.volumeCapabilities === Proto.VolumeCapabilities_Enum.Both;
+            const isVolumeAvailable = sdkDevice.volume.available;
+            const isVolumeAbsolute = sdkDevice.volume.mode === 'absolute';
             const hasVolumeSet = this.#device.hasCapability('volume_set');
 
             if (isVolumeAvailable && isVolumeAbsolute) {
@@ -629,17 +685,17 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     #getFeatureAvailability(): { previous: boolean; next: boolean; shuffle: boolean; repeat: boolean } {
-        const state = this.#sdkDevice?.state;
+        const nowPlaying = this.#sdkDevice?.nowPlaying;
 
-        if (!state?.activeClient) {
+        if (!nowPlaying?.current) {
             return {previous: false, next: false, shuffle: false, repeat: false};
         }
 
         return {
-            previous: state.isCommandSupported(Proto.Command.PreviousTrack),
-            next: state.isCommandSupported(Proto.Command.NextTrack),
-            shuffle: state.isCommandSupported(Proto.Command.ChangeShuffleMode),
-            repeat: state.isCommandSupported(Proto.Command.ChangeRepeatMode)
+            previous: nowPlaying.supports('previous'),
+            next: nowPlaying.supports('next'),
+            shuffle: nowPlaying.supports('shuffle'),
+            repeat: nowPlaying.supports('repeat')
         };
     }
 
@@ -671,8 +727,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     // A flow started by speaker_playing checks the now playing app, so a playing app is set before it.
     // Only clearing the app is debounced, so a short pause does not flap it.
-    async #updateNowPlayingApp(client: AirPlayClient, isPlaying: boolean): Promise<void> {
-        await this.#updatePlayingApp(isPlaying ? client.bundleIdentifier : null);
+    async #updateNowPlayingApp(item: NowPlaying, isPlaying: boolean): Promise<void> {
+        await this.#updatePlayingApp(isPlaying ? item.app.bundleId : null);
 
         if (!isPlaying) {
             this.#scheduleNowPlayingAppUpdate(null, null);
@@ -680,7 +736,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
 
         clearTimeout(this.#nowPlayingAppTimer);
-        await this.#updateNowPlayingAppImpl(client.bundleIdentifier, client.displayName);
+        await this.#updateNowPlayingAppImpl(item.app.bundleId, item.app.name);
     }
 
     // Unlike now_playing_app, this follows playback without a debounce, so a pause stops the app.

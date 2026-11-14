@@ -59,7 +59,7 @@ export default class HomePodFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, position}: RunArguments) => {
-            await device.sdk.playback.seekTo(Math.floor(position));
+            await device.sdk.playback.seek(Math.floor(position));
         });
     }
 

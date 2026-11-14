@@ -8,9 +8,11 @@
         "corewire:local": "bun scripts/corewire-local.ts"
     },
     "dependencies": {
-        "@basmilius/apple-audio-source": "^0.15.2",
-        "@basmilius/apple-sdk": "^0.15.2",
         "@basmilius/homey-common": "^1.25.0"
+    },
+    "optionalDependencies": {
+        "@corewire/audio-source": "0.0.0",
+        "@corewire/devices": "0.0.0"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.6",

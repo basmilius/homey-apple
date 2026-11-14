@@ -1,7 +1,7 @@
-import { Proto } from '@basmilius/apple-sdk';
+import type { RemoteKey } from '@corewire/devices';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, AppleTVDevice } from '../types';
-import { repeatModeToProto } from '../utils';
+import { toRepeatMode } from '../utils';
 import type Homey from 'homey';
 
 type AppPlaybackCardId = 'appletv_app_starts_playing' | 'appletv_app_stops_playing';
@@ -26,7 +26,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
     }
 
     readonly #appAutocompleteListener = async (query: string, {device}: { device: AppleTVDevice }): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-        const launchableApps = await device.sdk.apps?.list() ?? [];
+        const launchableApps = device.sdk.supports('apps') ? await device.sdk.apps.list() : [];
         const lowerQuery = query.trim().toLowerCase();
 
         return launchableApps
@@ -126,7 +126,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         launchApp.registerRunListener(async ({app, device}: RunArguments) => {
-            await device.sdk.apps?.launch(app.id);
+            await device.sdk.apps.launch(app.id);
         });
 
         launchApp.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
@@ -174,7 +174,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         }
 
         launchUrl.registerRunListener(async ({device, url}: RunArguments) => {
-            await device.sdk.apps?.openUrl(url);
+            await device.sdk.apps.openUrl(url);
         });
     }
 
@@ -216,44 +216,42 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         remote.registerRunListener(async ({device, command}: RunArguments) => {
             const sdk = device.sdk;
 
+            // These only exist over Companion Link. The device would send a hold or a double press
+            // over AirPlay when Companion Link is down; the card fails instead, as it always did.
+            const companionLinkOnly = (key: RemoteKey, mode?: 'hold' | 'double') => {
+                if (!device.isCompanionLinkConnected) {
+                    throw new Error('Companion Link is not available.');
+                }
+
+                return sdk.remote.press(key, {mode});
+            };
+
             const commands: Record<string, () => Promise<void>> = {
-                up: () => sdk.remote.up(),
-                down: () => sdk.remote.down(),
-                left: () => sdk.remote.left(),
-                right: () => sdk.remote.right(),
-                select: () => sdk.remote.select(),
-                menu: () => sdk.remote.menu(),
-                home: () => sdk.remote.home(),
-                play: () => sdk.remote.play(),
-                pause: () => sdk.remote.pause(),
-                playPause: () => sdk.remote.playPause(),
-                next: () => sdk.remote.next(),
-                previous: () => sdk.remote.previous(),
+                up: () => sdk.remote.press('up'),
+                down: () => sdk.remote.press('down'),
+                left: () => sdk.remote.press('left'),
+                right: () => sdk.remote.press('right'),
+                select: () => sdk.remote.press('select'),
+                menu: () => sdk.remote.press('menu'),
+                home: () => sdk.remote.press('home'),
+                play: () => sdk.remote.press('play'),
+                pause: () => sdk.remote.press('pause'),
+                playPause: () => sdk.remote.press('playPause'),
+                next: () => sdk.remote.press('next'),
+                previous: () => sdk.remote.press('previous'),
                 volumeUp: () => sdk.volume.up(),
                 volumeDown: () => sdk.volume.down(),
-                mute: () => sdk.remote.mute(),
-                stop: () => sdk.remote.stop(),
-                screensaver: () => {
-                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
-                    return sdk.companionLink.pressButton('Screensaver');
-                },
-                topMenu: () => sdk.remote.topMenu(),
-                homeHold: () => {
-                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
-                    return sdk.companionLink.pressButton('Home', 'Hold');
-                },
-                doubleTapSelect: () => {
-                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
-                    return sdk.companionLink.pressButton('Select', 'DoubleTap');
-                },
-                channelUp: () => sdk.remote.channelUp(),
-                channelDown: () => sdk.remote.channelDown(),
-                siri: () => {
-                    if (!sdk.companionLink) { throw new Error('Companion Link is not available.'); }
-                    return sdk.companionLink.pressButton('Siri');
-                },
-                wake: () => sdk.remote.wake(),
-                suspend: () => sdk.remote.suspend()
+                mute: () => sdk.remote.press('mute'),
+                stop: () => sdk.remote.press('stop'),
+                screensaver: () => companionLinkOnly('screensaver'),
+                topMenu: () => sdk.remote.press('topMenu'),
+                homeHold: () => companionLinkOnly('home', 'hold'),
+                doubleTapSelect: () => companionLinkOnly('select', 'double'),
+                channelUp: () => sdk.remote.press('channelUp'),
+                channelDown: () => sdk.remote.press('channelDown'),
+                siri: () => companionLinkOnly('siri'),
+                wake: () => sdk.remote.press('wake'),
+                suspend: () => sdk.remote.press('suspend')
             };
 
             const fn = commands[command];
@@ -275,7 +273,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, position}: RunArguments) => {
-            await device.sdk.playback.seekTo(Math.floor(position));
+            await device.sdk.playback.seek(Math.floor(position));
         });
     }
 
@@ -288,7 +286,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, mode}: RunArguments) => {
-            await device.sdk.playback.setRepeatMode(repeatModeToProto[mode] ?? Proto.RepeatMode_Enum.Off);
+            await device.sdk.playback.setRepeat(toRepeatMode(mode));
         });
     }
 
@@ -301,10 +299,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         card.registerRunListener(async ({device, shuffle}: RunArguments) => {
-            const mode = shuffle === 'true'
-                ? Proto.ShuffleMode_Enum.Songs
-                : Proto.ShuffleMode_Enum.Off;
-            await device.sdk.playback.setShuffleMode(mode);
+            await device.sdk.playback.setShuffle(shuffle === 'true' ? 'songs' : 'off');
         });
     }
 
@@ -349,17 +344,17 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         };
 
         switchAccount.registerRunListener(async ({device, account}: RunArguments) => {
-            await device.sdk.accounts?.switch(account.id);
+            await device.sdk.accounts.switch(account.id);
         });
 
         switchAccount.registerArgumentAutocompleteListener('account', async (query: string, {device}: AutocompleteArguments): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
-            const userAccounts = await device.sdk.accounts?.list() ?? [];
+            const userAccounts = device.sdk.supports('accounts') ? await device.sdk.accounts.list() : [];
             const lowerQuery = query.trim().toLowerCase();
 
             return userAccounts
                 .filter(account => lowerQuery.length === 0 || account.name.toLowerCase().includes(lowerQuery))
                 .map(account => ({
-                    id: account.accountId,
+                    id: account.id,
                     name: account.name
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name));

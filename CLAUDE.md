@@ -37,8 +37,11 @@ widgets/                # Homey widgets
 
 ## Dependencies
 
-- `@basmilius/apple-*` — Custom Apple protocol packages (AirPlay, Companion Link, RAOP, encoding, encryption, devices)
-  - Broncode beschikbaar in `~/Development/Projects/@basmilius/apple-protocols` — raadpleeg deze om protocol-implementaties te valideren
+- `@corewire/devices` en `@corewire/audio-source`: de Apple protocol packages (AirPlay, Companion Link, devices, audio)
+  - Broncode in `~/Development/Projects/@basmilius/apple-protocols`; raadpleeg die om protocol-implementaties te valideren
+  - Nog niet op npm. Ze staan daarom in `optionalDependencies`: `bun install` meldt dan een 404 als waarschuwing in plaats van te falen
+  - Lokaal bouwen: `bash build.sh` in apple-protocols, daarna hier `bun install` en `bun run corewire:local`. Het script (`scripts/corewire-local.ts`) kopieert `package.json` en `dist/` van core, airplay, companion-link, devices en audio-source naar `node_modules/@corewire/` (echte kopieën, `homey app build` pakt `node_modules` in) en zet `workspace:*` om naar de lokale versie. Een andere checkout: `bun run corewire:local <pad>` of `COREWIRE_PATH`
+  - Draai het script opnieuw na elke library-build. Zodra @corewire op npm staat, verhuizen de twee packages naar `dependencies` en verdwijnen het script en deze uitleg
 - `@basmilius/homey-common` — Gedeelde Homey utilities
 - `fast-srp-hap` — SRP authenticatie (voor pairing)
 

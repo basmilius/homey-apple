@@ -1,170 +1,105 @@
-import { type DiscoveryResult, type MdnsService, mdnsUnicast } from '@basmilius/apple-sdk';
+import type { DeviceTarget, LogEntry } from '@corewire/devices';
 import { Device, type Driver } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
-import { convertDiscoveryResult, extractMacAddress, waitFor } from '../utils';
+import { extractMacAddress, toDeviceTarget, waitFor } from '../utils';
 import type Homey from 'homey';
+
+// Releases before 1.7.4 stored the MAC per service, under the full AirPlay service name.
+const LEGACY_MAC_KEY = 'mac:_airplay._tcp.local';
+
+// The Homey discovery cache may still be filling right after the app starts.
+const STARTUP_BACKOFF = [500, 1000, 2000, 4000, 8000];
 
 export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp>> extends Device<AppleApp, TDriver> {
     get discoveryId(): string {
         return this.getData().id;
     }
 
-    get discoveryResults(): Record<string, DiscoveryResult> {
-        return this.#discoveryResults;
-    }
+    abstract get discoveryStrategy(): Homey.DiscoveryStrategy;
 
-    abstract get services(): Record<string, Homey.DiscoveryStrategy>;
-
-    #discoveryResults: Record<string, DiscoveryResult> = {};
+    abstract onTargetFound(target: DeviceTarget): Promise<void>;
 
     async onInit(): Promise<void> {
         await super.onInit();
-        await this.findServices(false);
+        await this.findTarget();
     }
 
-    async findService(service: string, update: boolean = true): Promise<void> {
-        const discoveryResult = update
-            ? (await this.#findViaUnicast(service) ?? await this.#findViaHomey(service))
-            : (await this.#findViaHomey(service) ?? await this.#findViaUnicast(service));
+    /**
+     * Finds the device in the Homey discovery cache and hands it to {@link onTargetFound}, or marks
+     * the device unavailable when it is not there.
+     */
+    async findTarget(): Promise<void> {
+        const target = await this.#findWithBackoff();
 
-        if (!discoveryResult) {
-            throw new Error(`Cannot find ${this.discoveryId} (${service}) on network.`);
-        }
-
-        this.#discoveryResults[service] = discoveryResult;
-
-        this.log(`Found ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
-
-        if (update) {
-            await this.onServiceUpdated(service, discoveryResult);
-        } else {
-            await this.onServiceFound(service, discoveryResult);
-        }
-    }
-
-    async findServices(update: boolean = true): Promise<void> {
-        const results = await Promise.allSettled(
-            Object
-                .keys(this.services)
-                .map(async service => this.findService(service, update))
-        );
-
-        const failed = results.filter(r => r.status === 'rejected');
-
-        if (failed.length === results.length) {
-            const err = (failed[0] as PromiseRejectedResult).reason;
-            this.error('[discovery]', `Failed to find ${this.discoveryId} on network:`, err);
+        if (!target) {
+            this.error('[discovery]', `Failed to find ${this.discoveryId} on network.`);
             await this.setUnavailable(`Cannot find ${this.discoveryId} on network. You might need to pair with the device again.`);
-        } else if (failed.length > 0) {
-            for (const f of failed) {
-                this.error('[discovery]', `Partial discovery failure for ${this.discoveryId}:`, (f as PromiseRejectedResult).reason);
-            }
+            return;
+        }
+
+        await this.#found(target);
+        await this.onTargetFound(target);
+    }
+
+    /**
+     * Looks the device up in the Homey discovery cache, by MAC and then by discovery id. The device
+     * calls this before a retry when the unicast query at the last address found nothing.
+     */
+    async resolveTarget(): Promise<DeviceTarget | null> {
+        const target = this.#lookup();
+
+        if (target) {
+            await this.#found(target);
+        }
+
+        return target;
+    }
+
+    /**
+     * Writes a log entry of the device to the Homey log.
+     */
+    writeLogEntry(entry: LogEntry): void {
+        if (entry.level === 'error') {
+            this.error('[corewire]', entry.message);
+        } else {
+            this.log('[corewire]', entry.message);
         }
     }
 
-    async onServiceFound(service: string, discoveryResult: DiscoveryResult): Promise<void> {
-        this.log('[discovery]', `Found ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
-        await this.#migrateMacAddress(service, discoveryResult);
-    }
+    async #findWithBackoff(): Promise<DeviceTarget | null> {
+        for (const delay of STARTUP_BACKOFF) {
+            const target = this.#lookup();
 
-    async onServiceUpdated(service: string, discoveryResult: DiscoveryResult): Promise<void> {
-        this.log('[discovery]', `Updated ${this.discoveryId} on ${service} at ${discoveryResult.address}:${discoveryResult.service.port}`);
-        await this.#migrateMacAddress(service, discoveryResult);
-    }
+            if (target) {
+                return target;
+            }
 
-    async #findViaHomey(service: string): Promise<DiscoveryResult | null> {
-        const discovery = this.services[service];
-
-        if (!discovery) {
-            return null;
+            await waitFor(delay);
         }
 
-        const storedMac = (this.getStoreValue('mac') ?? this.getStoreValue(`mac:${service}`)) as string | null;
-        const backoffDelays = [500, 1000, 2000, 4000, 8000];
-        let result: Homey.DiscoveryResultMDNSSD | undefined;
-        let retries = 0;
-
-        while (retries < backoffDelays.length) {
-            const results = discovery.getDiscoveryResults();
-            const entries = Object.entries(results);
-
-            // First pass: try to match by MAC address.
-            if (storedMac) {
-                for (const [, r] of entries) {
-                    const mdnsResult = r as Homey.DiscoveryResultMDNSSD;
-                    const mac = extractMacAddress(mdnsResult.txt as Record<string, string>);
-
-                    if (mac === storedMac) {
-                        result = mdnsResult;
-                        break;
-                    }
-                }
-            }
-
-            // Second pass: fall back to discovery ID matching.
-            if (!result) {
-                for (const [id, r] of entries) {
-                    if (id === this.discoveryId) {
-                        result = r as Homey.DiscoveryResultMDNSSD;
-                        break;
-                    }
-                }
-            }
-
-            if (result) {
-                break;
-            }
-
-            await waitFor(backoffDelays[retries]);
-            retries++;
-        }
-
-        return result ? convertDiscoveryResult(result, service) : null;
+        return null;
     }
 
-    async #migrateMacAddress(service: string, discoveryResult: DiscoveryResult): Promise<void> {
-        const mac = extractMacAddress(discoveryResult.txt as Record<string, string>);
+    async #found(target: DeviceTarget): Promise<void> {
+        this.log('[discovery]', `Found ${this.discoveryId} at ${target.address}:${target.port}`);
+
+        const mac = extractMacAddress(target.txt);
 
         if (!mac || this.getStoreValue('mac') === mac) {
             return;
         }
 
         await this.setStoreValue('mac', mac);
-        this.log('[discovery]', `Stored MAC for ${service}: ${mac}`);
+        this.log('[discovery]', `Stored MAC: ${mac}`);
     }
 
-    async #findViaUnicast(service: string): Promise<DiscoveryResult | null> {
-        const existing = this.#discoveryResults[service];
+    #lookup(): DeviceTarget | null {
+        const results = Object.entries(this.discoveryStrategy.getDiscoveryResults()) as [string, Homey.DiscoveryResultMDNSSD][];
+        const storedMac = (this.getStoreValue('mac') ?? this.getStoreValue(LEGACY_MAC_KEY)) as string | null;
 
-        if (!existing?.address) {
-            return null;
-        }
+        const result = (storedMac ? results.find(([, entry]) => extractMacAddress(entry.txt as Record<string, string>) === storedMac) : undefined)
+            ?? results.find(([id]) => id === this.discoveryId);
 
-        this.log('[discovery]', `Homey mDNS cache miss for ${service}, trying unicast to ${existing.address}...`);
-
-        const results = await mdnsUnicast([existing.address], [service], 5);
-        const match = results.find((s: MdnsService) => s.address === existing.address);
-
-        if (!match) {
-            return null;
-        }
-
-        const txt = match.properties;
-        const hostname = match.name.replace(/\s+/g, '-');
-
-        return {
-            id: `${hostname}.local`,
-            fqdn: `${hostname}.local`,
-            address: match.address,
-            modelName: txt?.model ?? '',
-            familyName: null,
-            txt,
-            service: {
-                port: match.port,
-                protocol: 'tcp',
-                type: service
-            },
-            packet: null
-        } as unknown as DiscoveryResult;
+        return result ? toDeviceTarget(result[1]) : null;
     }
 }

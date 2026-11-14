@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
-import { AIRPLAY_SERVICE, HomePod } from '@basmilius/apple-sdk';
-import { convertDiscoveryResult, extractMacAddress, waitFor, withTimeout } from '../utils';
+import { HomePod } from '@corewire/devices';
+import { extractMacAddress, toDeviceTarget, waitFor, withTimeout } from '../utils';
 import type Homey from 'homey';
 
 const CONNECT_TIMEOUT = 20_000;
@@ -14,16 +14,18 @@ export default class HomePodBasePairing extends EventEmitter {
     readonly #strategy: Homey.DiscoveryStrategy;
     readonly #devices: Homey.DiscoveryResultMDNSSD[];
     readonly #onDiscoveryResult: (result: Homey.DiscoveryResultMDNSSD) => void;
+    readonly #useTimingServer: boolean;
     #device: Homey.DiscoveryResultMDNSSD | undefined;
     #error: string | undefined;
 
-    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[]) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[], useTimingServer: boolean) {
         super();
 
         this.#knownDevices = knownDevices;
         this.#modelFilter = modelFilter;
         this.#session = session;
         this.#strategy = strategy;
+        this.#useTimingServer = useTimingServer;
 
         this.#devices = Object.values(this.#strategy.getDiscoveryResults()) as Homey.DiscoveryResultMDNSSD[];
         this.#onDiscoveryResult = result => this.#addDevice(result);
@@ -78,7 +80,10 @@ export default class HomePodBasePairing extends EventEmitter {
             return;
         }
 
-        const pod = new HomePod({airplay: convertDiscoveryResult(this.#device, AIRPLAY_SERVICE)});
+        const pod = new HomePod(toDeviceTarget(this.#device), {
+            log: entry => this.emit('log', entry.message),
+            timing: this.#useTimingServer ? undefined : false
+        });
 
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
 
@@ -86,7 +91,7 @@ export default class HomePodBasePairing extends EventEmitter {
             await withTimeout(pod.connect(), CONNECT_TIMEOUT, `${this.#device.name} did not respond within ${CONNECT_TIMEOUT / 1000} seconds.`);
             this.emit('log', 'Transient pairing successful!');
         } finally {
-            pod.disconnect();
+            await pod.disconnect();
         }
 
         await this.#session.showView('add_my_device');
