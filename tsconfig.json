@@ -1,3 +1,8 @@
 {
-    "extends": "@basmilius/homey-common/tsconfig.app.json"
+    "extends": "@basmilius/homey-common/tsconfig.app.json",
+    "exclude": [
+        ".homeybuild",
+        "node_modules",
+        "scripts"
+    ]
 }

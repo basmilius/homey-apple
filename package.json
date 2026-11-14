@@ -4,7 +4,8 @@
     "license": "MIT",
     "scripts": {
         "build": "tsc ${NOCHECK:+--noCheck} && bun run build:widgets",
-        "build:widgets": "bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/mini_player/public/player.js && bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/artwork_player/public/player.js"
+        "build:widgets": "bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/mini_player/public/player.js && bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/artwork_player/public/player.js",
+        "corewire:local": "bun scripts/corewire-local.ts"
     },
     "dependencies": {
         "@basmilius/apple-audio-source": "^0.15.2",
