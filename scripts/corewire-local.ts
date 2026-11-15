@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 
 // Until @corewire is on npm: copies the built packages of a local apple-protocols checkout into
 // node_modules. Real copies, no symlinks, because `homey app build` packs node_modules as is.
-const PACKAGES = ['opack', 'tlv8', 'core', 'airplay', 'companion-link', 'devices', 'audio-source'];
+const PACKAGES = ['core', 'airplay', 'companion-link', 'devices', 'audio-source'];
 const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 
 // A version npm will never have, so `bun install` cannot swap the copy for a published placeholder.
@@ -12,6 +12,8 @@ const LOCAL_VERSION = '0.0.0-local';
 
 const appRoot = resolve(import.meta.dir, '..');
 const libraryRoot = resolve(appRoot, process.argv[2] ?? process.env.COREWIRE_PATH ?? '../../@basmilius/apple-protocols');
+const packageNames = new Set(PACKAGES.map(name => `@corewire/${name}`));
+
 type Manifest = Record<string, unknown> & {
     readonly name: string;
     version: string;
@@ -21,13 +23,10 @@ function readManifest(name: string): Manifest {
     return JSON.parse(readFileSync(join(libraryRoot, 'packages', name, 'package.json'), 'utf8'));
 }
 
-// The npm names: `@corewire/*` for the libraries, plain `opack` and `tlv8` for the codecs.
-const packageNames = new Set(PACKAGES.map(name => readManifest(name).name));
-
 for (const name of PACKAGES) {
     const source = join(libraryRoot, 'packages', name);
+    const target = join(appRoot, 'node_modules', '@corewire', name);
     const manifest = readManifest(name);
-    const target = join(appRoot, 'node_modules', manifest.name);
 
     if (!existsSync(join(source, 'dist'))) {
         console.error(`${source}/dist is missing, run \`bash build.sh\` in ${libraryRoot} first.`);
