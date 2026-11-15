@@ -6,8 +6,8 @@
       "name": "com.basmilius.apple",
       "dependencies": {
         "@basmilius/homey-common": "^1.25.0",
-        "@corewire/audio-source": "1.0.0-next.1",
-        "@corewire/devices": "1.0.0-next.1",
+        "@corewire/audio-source": "1.0.0-next.2",
+        "@corewire/devices": "1.0.0-next.2",
       },
       "devDependencies": {
         "@tsconfig/node22": "^22.0.6",
@@ -21,15 +21,15 @@
   "packages": {
     "@basmilius/homey-common": ["@basmilius/homey-common@1.25.0", "", { "dependencies": { "@tsconfig/node22": "^22.0.6" } }, "sha512-hmExesTqshMAas72t70EUWVmPYEt9RO4OQeAdIX28Uwvjkkn+UJi5AA0tk2YigadpVpPtf7zH5jDIYVvb5G8Kw=="],
 
-    "@corewire/airplay": ["@corewire/airplay@1.0.0-next.1", "", { "dependencies": { "@corewire/core": "1.0.0-next.1" } }, "sha512-A2BrQ9pEr1+yHWE6GnA2G47Rk6G7NWOuBxhGTM77FDz+RaldYZfZDlLo4F9GrLEr6NoAbsCe25iEA1z+YX2yDQ=="],
+    "@corewire/airplay": ["@corewire/airplay@1.0.0-next.2", "", { "dependencies": { "@corewire/core": "1.0.0-next.2" } }, "sha512-1jfeEC19018oTCkqQ40w31Cn4s2hnMqs9BPZS5KpS2/dNeP/JBfC1zmAD2hIJxoPJPM4PVN4mV7L4Qo+thdaIQ=="],
 
-    "@corewire/audio-source": ["@corewire/audio-source@1.0.0-next.1", "", { "dependencies": { "@corewire/core": "1.0.0-next.1" } }, "sha512-Mv8FvunIJkpjJnk8WFdga3zi1X/r2Xhjg5n7ArY/nLMTMsXhW/6NzCp153J2FbPyC/r4OixgYHST/k+nQHOhCw=="],
+    "@corewire/audio-source": ["@corewire/audio-source@1.0.0-next.2", "", { "dependencies": { "@corewire/core": "1.0.0-next.2" } }, "sha512-B82kHOVCEaCZb09YOuNk4jPnRlPbytiiCXv7L7WA+71WhWiToYOV+HZ4KkVlOxj0UU06Zab/yFWceBSPZKcOpQ=="],
 
-    "@corewire/companion-link": ["@corewire/companion-link@1.0.0-next.1", "", { "dependencies": { "@corewire/core": "1.0.0-next.1" } }, "sha512-ZNfuUpKHgDdzNGtLQsFL3PWwRAD92D1msQ9djBu8SwpM0g3YBySg2dlg/vcMP0kRxJfyE06NzT2XmULFgCt40w=="],
+    "@corewire/companion-link": ["@corewire/companion-link@1.0.0-next.2", "", { "dependencies": { "@corewire/core": "1.0.0-next.2" } }, "sha512-1BWZiaVTOTkM1eAemcR3EOpWaRp5DtjRpkCCc7b5miOG7DkCTM4qiY7RycG+4g3S9LfKJDfhUNM6wy7VXtHBkQ=="],
 
-    "@corewire/core": ["@corewire/core@1.0.0-next.1", "", {}, "sha512-tayI+fh5F8S2nXgDBCEu/nNtkNEGR8LIDc3lbBBSwl2i98rtw+0uAColZ53xQ6Pynd1dFqByuVcP2o32NkTWNg=="],
+    "@corewire/core": ["@corewire/core@1.0.0-next.2", "", {}, "sha512-/kCU0lR/cpz0818zfUA6rZc7wiJ/j1nm/H9YDNK/uobjcjaRhkBQCCkk7NEz3wMjGb05MEh0zNRyxdfEGtRe8g=="],
 
-    "@corewire/devices": ["@corewire/devices@1.0.0-next.1", "", { "dependencies": { "@corewire/airplay": "1.0.0-next.1", "@corewire/companion-link": "1.0.0-next.1", "@corewire/core": "1.0.0-next.1" } }, "sha512-qrBm9MEHxgOiPaa5yKsfxCsU5T8jYVl2hRk2E9bw4grvmy6SmhXMB1mzzwIbHGs8Tcl893t88qoSoV7mWcXtmQ=="],
+    "@corewire/devices": ["@corewire/devices@1.0.0-next.2", "", { "dependencies": { "@corewire/airplay": "1.0.0-next.2", "@corewire/companion-link": "1.0.0-next.2", "@corewire/core": "1.0.0-next.2" } }, "sha512-blHFhxXkoXkmNkYu6ZTzJbmoPiV59FdQN0KEdpLeVRIbOfppgZSdT6OR6vYrEuPYcmND0NnrNuoY8bMDMlbeEg=="],
 
     "@tsconfig/node22": ["@tsconfig/node22@22.0.6", "", {}, "sha512-/5thavHAnWDZwH2H6eEn/T8pBEBhtuKaWGMslsj82kJfvzQgOgEMK7X4goBbIUjgVtAzPTtM9Ml64LA0uxO6Iw=="],
 
