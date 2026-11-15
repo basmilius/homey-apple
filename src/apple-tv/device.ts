@@ -83,6 +83,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     async onInit(): Promise<void> {
         await this.setUnavailable('Connecting...');
+        await this.#clearWarning();
 
         this.#airplayLogic = new AirPlayLogic(this);
         await this.#airplayLogic.initialize();
@@ -178,9 +179,22 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         this.#teardown ??= (async () => {
             await this.#airplayLogic?.uninitialize();
             await this.#tv?.disconnect();
+            await this.#clearWarning();
         })();
 
         await this.#teardown;
+    }
+
+    /**
+     * Clears the Companion Link warning. Homey keeps a warning across restarts and the previous
+     * release never clears one, so it goes at every start and stop: a rollback then finds none.
+     */
+    async #clearWarning(): Promise<void> {
+        try {
+            await this.unsetWarning();
+        } catch (err) {
+            this.error('Failed to clear the warning.', err);
+        }
     }
 
     async #onStatus(status: Status): Promise<void> {
