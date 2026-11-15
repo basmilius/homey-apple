@@ -1,4 +1,4 @@
-import { Url } from '@corewire/audio-source';
+import { UrlSource } from '@corewire/audio-source';
 import { type DeviceTarget, HomePod, type Status } from '@corewire/devices';
 import { DiscoverableDevice } from '../base';
 import { AirPlayLogic } from '../logic';
@@ -108,7 +108,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
             // The stream volume replaces the speaker volume; without it the device falls back to -20 dB.
             const level = volume ?? (this.getCapabilityValue('volume_set') ?? 0.5) * 100;
-            const audioSource = await Url.fromUrl(url);
+            const audioSource = await UrlSource.fromUrl(url);
             const playback = await this.sdk.media.streamAudio(audioSource, {volume: level / 100});
 
             await playback.ended;

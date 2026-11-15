@@ -3,6 +3,7 @@ import { HomePod } from '@corewire/devices';
 import { extractMacAddress, toDeviceTarget, waitFor, withTimeout } from '../utils';
 import type Homey from 'homey';
 
+// Leaves room for the quick retries after 1, 2 and 4 seconds, so a HomePod that answers late still pairs.
 const CONNECT_TIMEOUT = 20_000;
 const DISCOVERY_TRIES = 10;
 

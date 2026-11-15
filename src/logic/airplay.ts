@@ -352,8 +352,14 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
+        // Artwork comes over AirPlay; while it is down the lookup throws. Retry on a later event.
+        if (!this.#sdkDevice?.supports('artwork')) {
+            this.#artworkIdentifier = undefined;
+            return;
+        }
+
         try {
-            const artwork = await this.#sdkDevice?.artwork.get(600);
+            const artwork = await this.#sdkDevice.artwork.get(600);
 
             if (artwork?.url) {
                 this.#artworkIdentifier = artworkId;
