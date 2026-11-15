@@ -18,6 +18,9 @@ export class MotionArtwork {
     #playing = false;
 
     constructor(video: HTMLVideoElement) {
+        this.sync = this.sync.bind(this);
+        this.fail = this.fail.bind(this);
+
         this.#video = video;
         video.muted = true;
         video.loop = true;
@@ -28,13 +31,13 @@ export class MotionArtwork {
             this.#failures = 0;
         });
 
-        video.addEventListener('error', this.#fail);
-        document.addEventListener('visibilitychange', this.#sync);
-        this.#reducedMotion.addEventListener('change', this.#sync);
+        video.addEventListener('error', this.fail);
+        document.addEventListener('visibilitychange', this.sync);
+        this.#reducedMotion.addEventListener('change', this.sync);
 
         this.#observer = new IntersectionObserver(entries => {
             this.#visible = entries[entries.length - 1]?.isIntersecting ?? false;
-            this.#sync();
+            this.sync();
         });
 
         this.#observer.observe(video.parentElement!);
@@ -51,18 +54,18 @@ export class MotionArtwork {
             return;
         }
 
-        this.#sync();
+        this.sync();
     }
 
     dispose(): void {
         this.#observer.disconnect();
-        document.removeEventListener('visibilitychange', this.#sync);
-        this.#reducedMotion.removeEventListener('change', this.#sync);
-        this.#video.removeEventListener('error', this.#fail);
+        document.removeEventListener('visibilitychange', this.sync);
+        this.#reducedMotion.removeEventListener('change', this.sync);
+        this.#video.removeEventListener('error', this.fail);
         this.#destroy();
     }
 
-    readonly #sync = (): void => {
+    sync(): void {
         if (this.#fadeTimer) {
             return;
         }
@@ -90,7 +93,7 @@ export class MotionArtwork {
 
             hls.on(Hls.Events.ERROR, (_event, data) => {
                 if (data.fatal) {
-                    this.#fail();
+                    this.fail();
                 }
             });
 
@@ -99,18 +102,18 @@ export class MotionArtwork {
         } else if (this.#video.canPlayType('application/vnd.apple.mpegurl')) {
             this.#video.src = this.#url;
         } else {
-            this.#fail();
+            this.fail();
             return;
         }
 
         this.#play();
-    };
+    }
 
     #play(): void {
         void this.#video.play().catch(() => this.#video.classList.remove('is-playing'));
     }
 
-    readonly #fail = (): void => {
+    fail(): void {
         const url = this.#loadedUrl ?? this.#url;
 
         if (url !== this.#failedUrl) {
@@ -120,7 +123,7 @@ export class MotionArtwork {
 
         this.#failures++;
         this.#destroy();
-    };
+    }
 
     #exhausted(): boolean {
         return this.#url === this.#failedUrl && this.#failures >= MAX_FAILURES;
@@ -137,13 +140,13 @@ export class MotionArtwork {
         // The now playing state drops the animated artwork whenever the album metadata is
         // briefly incomplete, so keep the stream we already have when it comes back.
         if (this.#url && this.#url === this.#loadedUrl) {
-            this.#sync();
+            this.sync();
             return;
         }
 
         if (!this.#video.classList.contains('is-playing')) {
             this.#destroy();
-            this.#sync();
+            this.sync();
             return;
         }
 
@@ -153,7 +156,7 @@ export class MotionArtwork {
         this.#fadeTimer = setTimeout(() => {
             this.#fadeTimer = undefined;
             this.#destroy();
-            this.#sync();
+            this.sync();
         }, ARTWORK_FADE_DURATION);
     }
 

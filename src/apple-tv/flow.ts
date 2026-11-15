@@ -25,7 +25,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         this.#registerSwitchAccount();
     }
 
-    readonly #appAutocompleteListener = async (query: string, {device}: { device: AppleTVDevice }): Promise<Homey.FlowCard.ArgumentAutocompleteResults> => {
+    async #appAutocompleteListener(query: string, {device}: { device: AppleTVDevice }): Promise<Homey.FlowCard.ArgumentAutocompleteResults> {
         const launchableApps = device.sdk.supports('apps') ? await device.sdk.apps.list() : [];
         const lowerQuery = query.trim().toLowerCase();
 
@@ -37,7 +37,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
                 description: app.bundleId
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
-    };
+    }
 
     async triggerCompanionLinkFailed(device: AppleTVDevice): Promise<void> {
         try {
@@ -114,7 +114,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             return args.app.id === state.bundleId;
         });
 
-        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
+        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener.bind(this));
     }
 
     #registerLaunchApp(): void {
@@ -129,7 +129,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             await device.sdk.apps.launch(app.id);
         });
 
-        launchApp.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
+        launchApp.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener.bind(this));
     }
 
     #registerNowPlayingAppBecomes(): void {
@@ -147,7 +147,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             return args.app.id === state.bundleId;
         });
 
-        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
+        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener.bind(this));
     }
 
     #registerNowPlayingAppIs(): void {
@@ -162,7 +162,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             return device.currentNowPlayingBundleId === app.id;
         });
 
-        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener);
+        card.registerArgumentAutocompleteListener('app', this.#appAutocompleteListener.bind(this));
     }
 
     #registerLaunchUrl(): void {
