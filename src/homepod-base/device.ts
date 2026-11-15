@@ -113,7 +113,8 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
             const audioSource = await UrlSource.fromUrl(url);
             const playback = await this.sdk.media.streamAudio(audioSource, {volume: level / 100});
 
-            await playback.ended;
+            // The flow card resolves once the stream runs; waiting for the end would let Homey time it out.
+            playback.ended.catch(err => this.error('Audio playback ended with an error:', err));
         } catch (err) {
             this.error('Failed to start audio playback:', err);
             throw err;
