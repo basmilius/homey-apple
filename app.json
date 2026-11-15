@@ -335,7 +335,7 @@
         "id": "appletv_artwork_url_updated",
         "title": {
           "en": "Artwork URL updated",
-          "nl": "Albumhoes URL bijgewerkt",
+          "nl": "Albumhoes-URL bijgewerkt",
           "da": "Kunstværk URL opdateret",
           "de": "Artwork-URL aktualisiert",
           "es": "URL de ilustración actualizada",
@@ -350,7 +350,7 @@
         },
         "titleFormatted": {
           "en": "Artwork URL updated",
-          "nl": "Albumhoes URL bijgewerkt",
+          "nl": "Albumhoes-URL bijgewerkt",
           "da": "Kunstværk URL opdateret",
           "de": "Artwork-URL aktualisiert",
           "es": "URL de ilustración actualizada",
@@ -414,34 +414,34 @@
       {
         "id": "appletv_companion_link_failed",
         "title": {
-          "en": "Companion Link protocol connection failed",
-          "nl": "Companion Link protocol verbinding mislukt",
-          "da": "Companion Link protokolforbindelse mislykkedes",
-          "de": "Companion Link Protokollverbindung fehlgeschlagen",
-          "es": "Falló la conexión del protocolo Companion Link",
-          "fr": "Échec de la connexion du protocole Companion Link",
-          "it": "Connessione protocollo Companion Link non riuscita",
-          "no": "Companion Link protokolltilkobling mislyktes",
-          "sv": "Companion Link protokollanslutning misslyckades",
-          "pl": "Połączenie protokołu Companion Link nie powiodło się",
-          "ru": "Не удалось подключиться к протоколу Companion Link",
-          "ko": "Companion Link 프로토콜 연결 실패",
-          "ar": "فشل اتصال بروتوكول Companion Link"
+          "en": "Opening apps and switching accounts stopped working",
+          "nl": "Apps openen en van gebruiker wisselen werkt niet meer",
+          "da": "Åbning af apps og skift af konto virker ikke længere",
+          "de": "Apps öffnen und Konto wechseln funktioniert nicht mehr",
+          "es": "Abrir apps y cambiar de cuenta ha dejado de funcionar",
+          "fr": "L'ouverture d'apps et le changement de compte ne fonctionnent plus",
+          "it": "Aprire app e cambiare account non funziona più",
+          "no": "Åpning av apper og bytte av konto virker ikke lenger",
+          "sv": "Att öppna appar och byta konto fungerar inte längre",
+          "pl": "Otwieranie aplikacji i przełączanie kont przestało działać",
+          "ru": "Открытие приложений и переключение аккаунтов перестали работать",
+          "ko": "앱 열기와 계정 전환이 더 이상 작동하지 않음",
+          "ar": "توقف فتح التطبيقات وتبديل الحسابات عن العمل"
         },
         "titleFormatted": {
-          "en": "Companion Link protocol connection failed",
-          "nl": "Companion Link protocol verbinding mislukt",
-          "da": "Companion Link protokolforbindelse mislykkedes",
-          "de": "Companion Link Protokollverbindung fehlgeschlagen",
-          "es": "Falló la conexión del protocolo Companion Link",
-          "fr": "Échec de la connexion du protocole Companion Link",
-          "it": "Connessione protocollo Companion Link non riuscita",
-          "no": "Companion Link protokolltilkobling mislyktes",
-          "sv": "Companion Link protokollanslutning misslyckades",
-          "pl": "Połączenie protokołu Companion Link nie powiodło się",
-          "ru": "Не удалось подключиться к протоколу Companion Link",
-          "ko": "Companion Link 프로토콜 연결 실패",
-          "ar": "فشل اتصال بروتوكول Companion Link"
+          "en": "Opening apps and switching accounts stopped working",
+          "nl": "Apps openen en van gebruiker wisselen werkt niet meer",
+          "da": "Åbning af apps og skift af konto virker ikke længere",
+          "de": "Apps öffnen und Konto wechseln funktioniert nicht mehr",
+          "es": "Abrir apps y cambiar de cuenta ha dejado de funcionar",
+          "fr": "L'ouverture d'apps et le changement de compte ne fonctionnent plus",
+          "it": "Aprire app e cambiare account non funziona più",
+          "no": "Åpning av apper og bytte av konto virker ikke lenger",
+          "sv": "Att öppna appar och byta konto fungerar inte längre",
+          "pl": "Otwieranie aplikacji i przełączanie kont przestało działać",
+          "ru": "Открытие приложений и переключение аккаунтов перестали работать",
+          "ko": "앱 열기와 계정 전환이 더 이상 작동하지 않음",
+          "ar": "توقف فتح التطبيقات وتبديل الحسابات عن العمل"
         },
         "args": [
           {
@@ -555,19 +555,19 @@
             "name": "bundleIdentifier",
             "type": "string",
             "title": {
-              "en": "Bundle identifier",
-              "nl": "Bundle identifier",
-              "da": "Bundle-identifikator",
-              "de": "Bundle-Identifier",
-              "es": "Identificador de paquete",
-              "fr": "Identifiant de bundle",
-              "it": "Identificatore del bundle",
-              "no": "Pakkebunt-ID",
-              "sv": "Paketidentifierare",
-              "pl": "Identyfikator pakietu",
-              "ru": "Идентификатор пакета",
-              "ko": "번들 식별자",
-              "ar": "معرّف الحزمة"
+              "en": "App ID",
+              "nl": "App-ID",
+              "da": "App-id",
+              "de": "App-ID",
+              "es": "ID de la app",
+              "fr": "ID de l'app",
+              "it": "ID dell'app",
+              "no": "App-ID",
+              "sv": "App-id",
+              "pl": "ID aplikacji",
+              "ru": "ID приложения",
+              "ko": "앱 ID",
+              "ar": "معرّف التطبيق"
             }
           },
           {
@@ -595,7 +595,7 @@
         "id": "homepod_artwork_url_updated",
         "title": {
           "en": "Artwork URL updated",
-          "nl": "Albumhoes URL bijgewerkt",
+          "nl": "Albumhoes-URL bijgewerkt",
           "da": "Kunstværk URL opdateret",
           "de": "Artwork-URL aktualisiert",
           "es": "URL de ilustración actualizada",
@@ -610,7 +610,7 @@
         },
         "titleFormatted": {
           "en": "Artwork URL updated",
-          "nl": "Albumhoes URL bijgewerkt",
+          "nl": "Albumhoes-URL bijgewerkt",
           "da": "Kunstværk URL opdateret",
           "de": "Artwork-URL aktualisiert",
           "es": "URL de ilustración actualizada",
@@ -1275,7 +1275,7 @@
               {
                 "id": "volumeUp",
                 "label": {
-                  "en": "Volume Up",
+                  "en": "Volume up",
                   "nl": "Volume omhoog",
                   "da": "Skru op for lyden",
                   "de": "Lauter stellen",
@@ -1293,7 +1293,7 @@
               {
                 "id": "volumeDown",
                 "label": {
-                  "en": "Volume Down",
+                  "en": "Volume down",
                   "nl": "Volume omlaag",
                   "da": "Skru ned for lyden",
                   "de": "Leiser",
@@ -1347,7 +1347,7 @@
               {
                 "id": "topMenu",
                 "label": {
-                  "en": "Top Menu",
+                  "en": "Top menu",
                   "nl": "Hoofdmenu",
                   "da": "Topmenu",
                   "de": "Hauptmenü",
@@ -1455,7 +1455,7 @@
               {
                 "id": "channelUp",
                 "label": {
-                  "en": "Channel Up",
+                  "en": "Channel up",
                   "nl": "Kanaal omhoog",
                   "da": "Kanal op",
                   "de": "Kanal hoch",
@@ -1473,7 +1473,7 @@
               {
                 "id": "channelDown",
                 "label": {
-                  "en": "Channel Down",
+                  "en": "Channel down",
                   "nl": "Kanaal omlaag",
                   "da": "Kanal ned",
                   "de": "Kanal runter",
@@ -1649,7 +1649,7 @@
               {
                 "id": "one",
                 "label": {
-                  "en": "Repeat One",
+                  "en": "Repeat one",
                   "nl": "Één herhalen",
                   "da": "Gentag én",
                   "de": "Einen wiederholen",
@@ -1667,7 +1667,7 @@
               {
                 "id": "all",
                 "label": {
-                  "en": "Repeat All",
+                  "en": "Repeat all",
                   "nl": "Alles herhalen",
                   "da": "Gentag alle",
                   "de": "Alle wiederholen",
@@ -2409,7 +2409,7 @@
             "singular": true,
             "title": {
               "en": "Select the device you want to add",
-              "nl": "Selecteer het apparaat die je wil toevoegen",
+              "nl": "Kies het apparaat dat je wilt toevoegen",
               "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
               "fr": "Sélectionnez l'appareil que vous voulez ajouter",
               "it": "Seleziona il dispositivo che si desidera aggiungere",
@@ -2429,7 +2429,7 @@
           "template": "pincode",
           "options": {
             "title": {
-              "en": "Pincode",
+              "en": "PIN code",
               "nl": "Pincode",
               "de": "Pin-Code",
               "fr": "Code Pin",
@@ -2444,8 +2444,8 @@
               "ar": "رمز PIN"
             },
             "hint": {
-              "en": "Enter the code displayed on the TV",
-              "nl": "Vul de code in die op de TV wordt weergegeven",
+              "en": "Enter the code shown on your TV",
+              "nl": "Vul de code in die op je tv staat",
               "de": "Geben Sie den auf dem Fernseher angezeigten Code ein",
               "fr": "Entrez le code affiché sur la télévision",
               "it": "Inserisci il codice visualizzato sul televisore",
@@ -2571,7 +2571,7 @@
             "singular": true,
             "title": {
               "en": "Select the device you want to add",
-              "nl": "Selecteer het apparaat die je wil toevoegen",
+              "nl": "Kies het apparaat dat je wilt toevoegen",
               "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
               "fr": "Sélectionnez l'appareil que vous voulez ajouter",
               "it": "Seleziona il dispositivo che si desidera aggiungere",
@@ -2696,7 +2696,7 @@
             "singular": true,
             "title": {
               "en": "Select the device you want to add",
-              "nl": "Selecteer het apparaat die je wil toevoegen",
+              "nl": "Kies het apparaat dat je wilt toevoegen",
               "de": "Wähle das Gerät aus, das du hinzufügen möchtest",
               "fr": "Sélectionnez l'appareil que vous voulez ajouter",
               "it": "Seleziona il dispositivo che si desidera aggiungere",
@@ -2733,7 +2733,7 @@
     "apple_tv_remote": {
       "name": {
         "en": "Apple TV Remote",
-        "nl": "Apple TV Afstandsbediening",
+        "nl": "Apple TV-afstandsbediening",
         "da": "Apple TV Fjernbetjening",
         "de": "Apple TV Fernbedienung",
         "es": "Mando de Apple TV",
@@ -3024,7 +3024,7 @@
           "type": "checkbox",
           "title": {
             "en": "Show blurred artwork background",
-            "nl": "Wazige artwork achtergrond tonen",
+            "nl": "Wazige albumhoes als achtergrond tonen",
             "da": "Vis sløret kunstværk baggrund",
             "de": "Unscharfen Artwork-Hintergrund anzeigen",
             "es": "Mostrar fondo de arte difuminado",
@@ -3158,7 +3158,7 @@
       "type": "string",
       "title": {
         "en": "Animated artwork URL",
-        "nl": "Bewegende albumhoes URL",
+        "nl": "Bewegende albumhoes-URL",
         "da": "Animeret kunstværk URL",
         "de": "Animierte Artwork-URL",
         "es": "URL de la ilustración animada",
@@ -3180,7 +3180,7 @@
       "type": "string",
       "title": {
         "en": "Artwork URL",
-        "nl": "Albumhoes URL",
+        "nl": "Albumhoes-URL",
         "da": "Kunstværk URL",
         "de": "Artwork-URL",
         "es": "URL de la ilustración",
@@ -3202,7 +3202,7 @@
       "type": "string",
       "title": {
         "en": "Artwork URL (cloud)",
-        "nl": "Albumhoes URL (cloud)",
+        "nl": "Albumhoes-URL (cloud)",
         "da": "Kunstværk URL (sky)",
         "de": "Artwork-URL (Cloud)",
         "es": "URL de la ilustración (nube)",
@@ -3224,7 +3224,7 @@
       "type": "string",
       "title": {
         "en": "Artwork URL (local)",
-        "nl": "Albumhoes URL (lokaal)",
+        "nl": "Albumhoes-URL (lokaal)",
         "da": "Kunstværk URL (lokal)",
         "de": "Artwork-URL (lokal)",
         "es": "URL de la ilustración (local)",
@@ -3245,8 +3245,8 @@
     "now_playing_app": {
       "type": "string",
       "title": {
-        "en": "Now Playing App",
-        "nl": "Nu spelende App",
+        "en": "Now playing app",
+        "nl": "Nu spelende app",
         "da": "Now Playing App",
         "de": "Jetzt läuft App",
         "es": "App Reproduciendo Ahora",
