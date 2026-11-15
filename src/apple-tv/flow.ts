@@ -44,7 +44,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             const triggerCard = this.flow.getDeviceTriggerCard('appletv_companion_link_failed');
             await triggerCard.trigger(device);
         } catch (err) {
-            this.log(device.name, 'Failed to trigger companion link failed card.', err);
+            this.log(device.name, 'Failed to trigger the Companion Link failed card.', err);
         }
     }
 
@@ -220,7 +220,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             // over AirPlay when Companion Link is down; the card fails instead, as it always did.
             const companionLinkOnly = (key: RemoteKey, mode?: 'hold' | 'double') => {
                 if (!device.isCompanionLinkConnected) {
-                    throw new Error('Companion Link is not available.');
+                    throw new Error('This button is unavailable right now. Try again in a moment.');
                 }
 
                 return sdk.remote.press(key, {mode});
@@ -257,7 +257,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
             const fn = commands[command];
 
             if (!fn) {
-                throw new Error(`Unknown remote command: ${command}`);
+                throw new Error(`Unknown button: ${command}.`);
             }
 
             await fn();

@@ -33,7 +33,7 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
 
         if (!target) {
             this.error('[discovery]', `Failed to find ${this.discoveryId} on network.`);
-            await this.setUnavailable(`Cannot find ${this.discoveryId} on network. You might need to pair with the device again.`);
+            await this.setUnavailable('Homey cannot find this device on the network. Check that it is turned on and connected to the same network as Homey.');
             return;
         }
 

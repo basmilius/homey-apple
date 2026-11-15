@@ -38,7 +38,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     get sdk(): HomePod {
         if (!this.#pod) {
-            throw new Error('HomePod SDK device is not initialized.');
+            throw new Error('The HomePod is not connected yet. Try again in a moment.');
         }
 
         return this.#pod;
@@ -96,11 +96,11 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     async playUrl(url: string, volume?: number): Promise<void> {
         if (!this.app.useTimingServer) {
-            throw new Error('Timing server is not enabled.');
+            throw new Error('This Homey cannot play audio on a HomePod.');
         }
 
         if (!this.#pod) {
-            throw new Error('HomePod is not connected.');
+            throw new Error('The HomePod is not connected yet. Try again in a moment.');
         }
 
         try {
@@ -163,12 +163,12 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
             case 'recovering':
                 availability = this.#hasConnected
-                    ? 'Disconnected from HomePod, reconnecting...'
-                    : 'Cannot connect to HomePod, retrying...';
+                    ? 'Lost the connection to the HomePod. Reconnecting...'
+                    : 'Cannot connect to the HomePod. Trying again...';
                 break;
 
             case 'offline':
-                availability = 'Device offline, retrying connection...';
+                availability = 'The HomePod is not responding. Homey keeps trying to connect.';
                 break;
 
             default:

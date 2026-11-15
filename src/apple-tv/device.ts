@@ -67,7 +67,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
     get sdk(): AppleTV {
         if (!this.#tv) {
-            throw new Error('Apple TV SDK device is not initialized.');
+            throw new Error('The Apple TV is not connected yet. Try again in a moment.');
         }
 
         return this.#tv;
@@ -115,7 +115,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
         const credentials = await readCredentials(this);
 
         if (!credentials) {
-            await this.setUnavailable('Cannot find credentials, please re-pair the device.');
+            await this.setUnavailable('The pairing with this Apple TV is missing. Remove the device from Homey and add it again.');
             return;
         }
 
@@ -255,12 +255,12 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
             case 'recovering':
                 availability = this.#hasConnected
-                    ? 'Disconnected from Apple TV (AirPlay), reconnecting...'
-                    : 'Cannot connect to Apple TV (AirPlay), retrying...';
+                    ? 'Lost the connection to the Apple TV. Reconnecting...'
+                    : 'Cannot connect to the Apple TV. Trying again...';
                 break;
 
             case 'offline':
-                availability = 'Device offline, retrying connection...';
+                availability = 'The Apple TV is not responding. Homey keeps trying to connect.';
                 break;
 
             default:
@@ -278,7 +278,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             await this.setAvailable();
         } else if (status.state === 'degraded') {
             await this.setAvailable();
-            await this.setWarning('Companion Link is disconnected, reconnecting... App launching, account switching and the power state are unavailable meanwhile.');
+            await this.setWarning('Opening apps, switching accounts and the on/off status are unavailable for now. Homey is reconnecting.');
         } else {
             await this.unsetWarning();
             await this.setUnavailable(availability);
@@ -372,7 +372,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #registerOnOff(): void {
         this.registerCapabilityListener('onoff', async (value: boolean) => {
             if (!this.sdk.supports('power')) {
-                throw new Error('Apple TV is not connected, cannot change the power state.');
+                throw new Error('Homey cannot turn the Apple TV on or off right now. Try again in a moment.');
             }
 
             if (value) {
