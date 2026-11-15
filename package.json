@@ -11,8 +11,8 @@
         "@basmilius/homey-common": "^1.25.0"
     },
     "optionalDependencies": {
-        "@corewire/audio-source": "0.0.0",
-        "@corewire/devices": "0.0.0"
+        "@corewire/audio-source": "0.0.0-local",
+        "@corewire/devices": "0.0.0-local"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.6",

@@ -15,8 +15,8 @@
         "typescript": "^6.0.3",
       },
       "optionalDependencies": {
-        "@corewire/audio-source": "0.0.0",
-        "@corewire/devices": "0.0.0",
+        "@corewire/audio-source": "0.0.0-local",
+        "@corewire/devices": "0.0.0-local",
       },
     },
   },

@@ -6,23 +6,22 @@ import { join, resolve } from 'node:path';
 const PACKAGES = ['core', 'airplay', 'companion-link', 'devices', 'audio-source'];
 const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 
+// A version npm will never have, so `bun install` cannot swap the copy for a published placeholder.
+// package.json pins the optional dependencies to it as well.
+const LOCAL_VERSION = '0.0.0-local';
+
 const appRoot = resolve(import.meta.dir, '..');
 const libraryRoot = resolve(appRoot, process.argv[2] ?? process.env.COREWIRE_PATH ?? '../../@basmilius/apple-protocols');
+const packageNames = new Set(PACKAGES.map(name => `@corewire/${name}`));
 
 type Manifest = Record<string, unknown> & {
     readonly name: string;
-    readonly version: string;
+    version: string;
 };
 
 function readManifest(name: string): Manifest {
     return JSON.parse(readFileSync(join(libraryRoot, 'packages', name, 'package.json'), 'utf8'));
 }
-
-const versions = new Map(PACKAGES.map(name => {
-    const manifest = readManifest(name);
-
-    return [manifest.name, manifest.version];
-}));
 
 for (const name of PACKAGES) {
     const source = join(libraryRoot, 'packages', name);
@@ -44,17 +43,17 @@ for (const name of PACKAGES) {
                 continue;
             }
 
-            const version = versions.get(dependency);
-
-            if (!version) {
+            if (!packageNames.has(dependency)) {
                 console.error(`${manifest.name} depends on ${dependency} from the workspace, which this script does not copy.`);
                 process.exit(1);
             }
 
-            dependencies[dependency] = version;
+            dependencies[dependency] = LOCAL_VERSION;
             rewritten++;
         }
     }
+
+    manifest.version = LOCAL_VERSION;
 
     rmSync(target, {recursive: true, force: true});
     mkdirSync(target, {recursive: true});

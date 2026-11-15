@@ -41,7 +41,9 @@ widgets/                # Homey widgets
   - Broncode in `~/Development/Projects/@basmilius/apple-protocols`; raadpleeg die om protocol-implementaties te valideren
   - Nog niet op npm. Ze staan daarom in `optionalDependencies`: `bun install` meldt dan een 404 als waarschuwing in plaats van te falen
   - Lokaal bouwen: `bash build.sh` in apple-protocols, daarna hier `bun install` en `bun run corewire:local`. Het script (`scripts/corewire-local.ts`) kopieert `package.json` en `dist/` van core, airplay, companion-link, devices en audio-source naar `node_modules/@corewire/` (echte kopieën, `homey app build` pakt `node_modules` in) en zet `workspace:*` om naar de lokale versie. Een andere checkout: `bun run corewire:local <pad>` of `COREWIRE_PATH`
-  - Draai het script opnieuw na elke library-build. Zodra @corewire op npm staat, verhuizen de twee packages naar `dependencies` en verdwijnen het script en deze uitleg
+  - De lokale kopie en de optional dependencies staan op versie `0.0.0-local`. Die versie komt nooit op npm, dus `bun install` kan de kopie niet vervangen door een gepubliceerde placeholder (een lege `0.0.0` zou elke Homey laten crashen op `require('@corewire/devices')`). Verander die versie niet
+  - `publish.sh` en `install.sh` stoppen met een melding als `node_modules/@corewire/devices/dist/index.mjs` of die van audio-source ontbreekt (`scripts/corewire-check.sh`), zowel vooraf als na hun `bun install -f`. Die install herstelt de kopie niet en de scripts wissen de `.mts`-typings; draai daarna `bun run corewire:local`
+  - Draai het script opnieuw na elke library-build. Zodra @corewire op npm staat, verhuizen de twee packages naar `dependencies` en verdwijnen het script, de check en deze uitleg
 - `@basmilius/homey-common` — Gedeelde Homey utilities
 - `fast-srp-hap` — SRP authenticatie (voor pairing)
 
