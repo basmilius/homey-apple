@@ -46,6 +46,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
 
     #airplayLogic!: AirPlayLogic;
     #availability: string | null = null;
+    #hasConnected = false;
     #pod?: HomePod;
     #state: Status['state'] = 'disconnected';
     #teardown?: Promise<void>;
@@ -156,10 +157,13 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         switch (status.state) {
             case 'connected':
                 availability = status.state;
+                this.#hasConnected = true;
                 break;
 
             case 'recovering':
-                availability = 'Disconnected from HomePod, reconnecting...';
+                availability = this.#hasConnected
+                    ? 'Disconnected from HomePod, reconnecting...'
+                    : 'Cannot connect to HomePod, retrying...';
                 break;
 
             case 'offline':

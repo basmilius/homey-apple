@@ -76,6 +76,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
     #airplayLogic!: AirPlayLogic;
     #availability: string | null = null;
     #companionLinkFailed = false;
+    #hasConnected = false;
     #state: Status['state'] = 'disconnected';
     #teardown?: Promise<void>;
     #tv?: AppleTV;
@@ -235,10 +236,13 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
             case 'connected':
             case 'degraded':
                 availability = status.state;
+                this.#hasConnected = true;
                 break;
 
             case 'recovering':
-                availability = 'Disconnected from Apple TV (AirPlay), reconnecting...';
+                availability = this.#hasConnected
+                    ? 'Disconnected from Apple TV (AirPlay), reconnecting...'
+                    : 'Cannot connect to Apple TV (AirPlay), retrying...';
                 break;
 
             case 'offline':
