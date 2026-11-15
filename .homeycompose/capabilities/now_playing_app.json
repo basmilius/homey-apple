@@ -1,8 +1,8 @@
 {
     "type": "string",
     "title": {
-        "en": "Now Playing App",
-        "nl": "Nu spelende App",
+        "en": "Now playing app",
+        "nl": "Nu spelende app",
         "da": "Now Playing App",
         "de": "Jetzt läuft App",
         "es": "App Reproduciendo Ahora",

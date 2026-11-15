@@ -76,7 +76,7 @@
                 {
                     "id": "one",
                     "label": {
-                        "en": "Repeat One",
+                        "en": "Repeat one",
                         "nl": "Één herhalen",
                         "da": "Gentag én",
                         "de": "Einen wiederholen",
@@ -94,7 +94,7 @@
                 {
                     "id": "all",
                     "label": {
-                        "en": "Repeat All",
+                        "en": "Repeat all",
                         "nl": "Alles herhalen",
                         "da": "Gentag alle",
                         "de": "Alle wiederholen",

@@ -274,7 +274,7 @@
                 {
                     "id": "volumeUp",
                     "label": {
-                        "en": "Volume Up",
+                        "en": "Volume up",
                         "nl": "Volume omhoog",
                         "da": "Skru op for lyden",
                         "de": "Lauter stellen",
@@ -292,7 +292,7 @@
                 {
                     "id": "volumeDown",
                     "label": {
-                        "en": "Volume Down",
+                        "en": "Volume down",
                         "nl": "Volume omlaag",
                         "da": "Skru ned for lyden",
                         "de": "Leiser",
@@ -346,7 +346,7 @@
                 {
                     "id": "topMenu",
                     "label": {
-                        "en": "Top Menu",
+                        "en": "Top menu",
                         "nl": "Hoofdmenu",
                         "da": "Topmenu",
                         "de": "Hauptmenü",
@@ -454,7 +454,7 @@
                 {
                     "id": "channelUp",
                     "label": {
-                        "en": "Channel Up",
+                        "en": "Channel up",
                         "nl": "Kanaal omhoog",
                         "da": "Kanal op",
                         "de": "Kanal hoch",
@@ -472,7 +472,7 @@
                 {
                     "id": "channelDown",
                     "label": {
-                        "en": "Channel Down",
+                        "en": "Channel down",
                         "nl": "Kanaal omlaag",
                         "da": "Kanal ned",
                         "de": "Kanal runter",

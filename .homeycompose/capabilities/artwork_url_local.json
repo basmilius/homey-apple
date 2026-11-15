@@ -2,7 +2,7 @@
     "type": "string",
     "title": {
         "en": "Artwork URL (local)",
-        "nl": "Albumhoes URL (lokaal)",
+        "nl": "Albumhoes-URL (lokaal)",
         "da": "Kunstværk URL (lokal)",
         "de": "Artwork-URL (lokal)",
         "es": "URL de la ilustración (local)",

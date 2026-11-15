@@ -42,19 +42,19 @@
             "name": "bundleIdentifier",
             "type": "string",
             "title": {
-                "en": "Bundle identifier",
-                "nl": "Bundle identifier",
-                "da": "Bundle-identifikator",
-                "de": "Bundle-Identifier",
-                "es": "Identificador de paquete",
-                "fr": "Identifiant de bundle",
-                "it": "Identificatore del bundle",
-                "no": "Pakkebunt-ID",
-                "sv": "Paketidentifierare",
-                "pl": "Identyfikator pakietu",
-                "ru": "Идентификатор пакета",
-                "ko": "번들 식별자",
-                "ar": "معرّف الحزمة"
+                "en": "App ID",
+                "nl": "App-ID",
+                "da": "App-id",
+                "de": "App-ID",
+                "es": "ID de la app",
+                "fr": "ID de l'app",
+                "it": "ID dell'app",
+                "no": "App-ID",
+                "sv": "App-id",
+                "pl": "ID aplikacji",
+                "ru": "ID приложения",
+                "ko": "앱 ID",
+                "ar": "معرّف التطبيق"
             }
         },
         {
