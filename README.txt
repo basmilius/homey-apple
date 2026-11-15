@@ -1,3 +1,3 @@
-Take full control of your Apple TV and HomePod devices directly from Homey. Use remote commands to navigate, play, pause, adjust volume, and switch between apps or user accounts. Monitor what's playing in real-time with detailed now playing information including track title, artist, album, and the currently active app.
+Control your Apple TV and HomePod from Homey. Play, pause, skip and change the volume, and see what is playing: the title, artist, album, artwork and the app in use. On an Apple TV you can also use the remote buttons, open apps and switch between user accounts.
 
-Integrate your Apple devices into Homey flows to create automations that enhance your entertainment experience. Set the mood when movie night begins, pause playback when the doorbell rings, or wake your Apple TV when you arrive home. All communication happens locally on your network for fast, reliable control.
+Use your Apple devices in flows. Pause playback when the doorbell rings, open an app when movie night starts, or turn on the Apple TV when you come home. Homey controls them over your local network.
