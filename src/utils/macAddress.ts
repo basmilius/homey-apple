@@ -1,8 +1,6 @@
 /**
- * Extracts and normalizes the MAC address from mDNS TXT records.
- *
- * @param txt The TXT records from an mDNS discovery result.
- * @returns The normalized MAC address (uppercase, colon-separated) or null.
+ * Reads the MAC address from the TXT records of a discovery result, as `AA:BB:CC:DD:EE:FF`, or
+ * null when there is none.
  */
 export default function extractMacAddress(txt: Record<string, string> | null | undefined): string | null {
     if (!txt) {
@@ -19,10 +17,8 @@ export default function extractMacAddress(txt: Record<string, string> | null | u
 }
 
 /**
- * Normalizes a MAC address to uppercase, colon-separated format.
- *
- * @param mac A MAC address in any common format.
- * @returns The normalized MAC address (e.g. `AA:BB:CC:DD:EE:FF`).
+ * Writes a MAC address in any common format as `AA:BB:CC:DD:EE:FF`, or returns null when it does
+ * not have 12 hex digits.
  */
 function normalizeMacAddress(mac: string): string | null {
     const clean = mac.replace(/[^0-9a-fA-F]/g, '').toUpperCase();

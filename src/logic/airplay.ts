@@ -1,16 +1,15 @@
 import type { AppleDevice, NowPlaying, NowPlayingCommand, PlaybackState, VolumeState } from '@corewire/devices';
 import { fetchAnimatedArtwork } from '@corewire/devices/catalog';
 import { type Device, Shortcuts } from '@basmilius/homey-common';
-import type { AppleApp } from '../types';
-import Homey from 'homey';
-import { AnimatedArtworkCache } from '../utils/animatedArtworkCache';
 import AppleTVDevice from '../apple-tv/device';
 import HomePodBaseDevice from '../homepod-base/device';
+import type { AppleApp } from '../types';
 import { getFallbackArtworkUrl, repeatModeToCapability, safeCapabilityValue } from '../utils';
-
-const MAX_ARTWORK_SIZE = 4 * 1024 * 1024;
+import { AnimatedArtworkCache } from '../utils/animatedArtworkCache';
+import type Homey from 'homey';
 
 const ARTWORK_DOWNLOAD_TIMEOUT = 5000;
+const MAX_ARTWORK_SIZE = 4 * 1024 * 1024;
 
 export type MiniPlayerState = {
     readonly deviceId: string;
@@ -128,6 +127,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #clearNowPlayingImpl(): Promise<void> {
         this.#resetAnimatedArtwork();
+
         try {
             if (this.#artwork) {
                 this.#artworkIdentifier = undefined;
@@ -148,6 +148,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 this.#device.hasCapability('speaker_repeat') ? this.#device.setCapabilityValue('speaker_repeat', 'none') : undefined,
                 this.#device.hasCapability('speaker_shuffle') ? this.#device.setCapabilityValue('speaker_shuffle', false) : undefined
             ]);
+
             this.#emitMiniPlayerUpdate();
         } catch (err) {
             this.log(this.deviceName, 'Failed to clear now playing info', err);
@@ -194,6 +195,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     getState(): MiniPlayerState {
         this.#refreshAnimatedArtwork();
+
         return {
             deviceId: this.#device.id,
             deviceName: this.#device.getName(),
@@ -259,10 +261,12 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async onNowPlayingChanged(item: NowPlaying | null): Promise<void> {
         const trackKey = item ? JSON.stringify([item.app.bundleId, item.artist, item.album, item.title, item.storeAlbumId ?? '']) : null;
+
         if (trackKey !== this.#animatedArtworkTrackKey) {
             this.#resetAnimatedArtwork();
             this.#animatedArtworkTrackKey = trackKey;
         }
+
         clearTimeout(this.#nowPlayingDebounceTimer);
         this.#nowPlayingDebounceTimer = setTimeout(() => {
             this.#serialized(async () => {
@@ -277,8 +281,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     }
 
     async onPlaybackStateChanged(state: PlaybackState, _previous: PlaybackState, item: NowPlaying): Promise<void> {
-        // Fast path: update speaker_playing immediately without debounce.
-        // The full now playing change will handle the rest.
+        // Sets speaker_playing without the debounce; the now playing change that follows does the rest.
         try {
             const isPlaying = state === 'playing';
             await this.#updateNowPlayingApp(item, isPlaying);
@@ -296,8 +299,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             return;
         }
 
-        // Reset the artwork identifier so that #setArtwork re-fetches even
-        // if the artworkId hasn't changed (the artwork DATA has changed).
+        // The image changed under the same artworkId, so #setArtwork has to fetch it again.
         this.#artworkIdentifier = undefined;
 
         await this.#serialized(async () => {
@@ -314,6 +316,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
 
         clearTimeout(this.#volumeDebounceTimer);
+
         this.#volumeDebounceTimer = setTimeout(() => {
             this.#updateVolume()
                 .catch(err => this.log(this.deviceName, 'Failed to update volume:', err));
@@ -368,11 +371,8 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
                 this.#artworkIdentifier = artworkId;
                 await this.#updateArtworkBuffer(artwork.data);
             } else {
-                // The device announces artworkId as soon as the item is known,
-                // but artworkURL can arrive in a later metadata update, so this
-                // lookup can come back empty. Leave the identifier unset so a
-                // following event retries, and keep the current image instead of
-                // clearing it.
+                // The artwork url can follow the artworkId in a later update. Keep the current image;
+                // the unset identifier makes the next event retry.
                 this.#artworkIdentifier = undefined;
             }
         } catch (err) {
@@ -402,6 +402,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
     #refreshAnimatedArtwork(): void {
         const sdkDevice = this.#sdkDevice;
         const client = sdkDevice?.nowPlaying.current;
+
         if (!sdkDevice || !client) {
             this.#resetAnimatedArtwork();
             return;
@@ -418,31 +419,42 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         if (client.album && client.album !== safeCapabilityValue(this.#device, 'speaker_album')) {
             return;
         }
+
         const key = client.storeAlbumId;
+
         if (!key) {
             return;
         }
+
         const requestKey = `${key}:${Math.floor(Date.now() / 60_000)}`;
+
         if (requestKey === this.#animatedArtworkKey) {
             return;
         }
+
         this.#animatedArtworkKey = requestKey;
         const request = ++this.#animatedArtworkRequest;
+
         void this.#animatedArtworkCache.get(key, async () => {
             if (sdkDevice.nowPlaying.current?.storeAlbumId !== key) {
                 return null;
             }
+
             const artworks = await fetchAnimatedArtwork(key);
+
             // The album may have changed during the lookup.
             if (sdkDevice.nowPlaying.current?.storeAlbumId !== key) {
                 return null;
             }
+
             const url = artworks.find(artwork => artwork.format === 'motionDetailSquare')?.url;
+
             return url?.startsWith('https://') ? url : null;
         }).then(url => {
             if (request !== this.#animatedArtworkRequest || sdkDevice !== this.#sdkDevice) {
                 return;
             }
+
             if (this.#animatedArtworkUrl !== url) {
                 this.#setAnimatedArtworkUrl(url);
                 this.#emitMiniPlayerUpdate();
@@ -538,6 +550,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         this.#artwork.setStream((stream: NodeJS.WritableStream) => {
             stream.end(imageBuffer);
         });
+
         await this.#artwork.update();
         await this.updateArtworkUrl();
     }
@@ -554,6 +567,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
         }
 
         const brand = buffer.subarray(8, 12).toString('ascii');
+
         return ['heic', 'heix', 'hevc', 'heim', 'heis', 'mif1'].includes(brand);
     }
 
@@ -587,6 +601,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             if (this.#device.hasCapability('speaker_repeat')) {
                 await this.#device.setCapabilityValue('speaker_repeat', repeatModeToCapability[this.repeat] ?? 'none');
             }
+
             if (this.#device.hasCapability('speaker_shuffle')) {
                 await this.#device.setCapabilityValue('speaker_shuffle', this.shuffle);
             }
@@ -629,7 +644,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
             await this.#device.addCapability('artwork_animated_url');
         }
 
-        // Volume set is dynamically managed for Apple TV based on output device capabilities.
+        // An Apple TV has volume_set only while its output accepts an absolute volume.
         if (this.#device instanceof AppleTVDevice) {
             const isVolumeAvailable = sdkDevice.volume.available;
             const isVolumeAbsolute = sdkDevice.volume.mode === 'absolute';
@@ -662,6 +677,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     #emitMiniPlayerUpdate(): void {
         clearTimeout(this.#miniPlayerUpdateTimer);
+
         this.#miniPlayerUpdateTimer = setTimeout(() => {
             this.#device.homey.api.realtime('apple-mini-player-update', this.getState())
                 .catch((err: unknown) => this.log(this.deviceName, 'Failed to emit mini player update:', err));
@@ -670,6 +686,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     async #serialized(fn: () => Promise<void>): Promise<void> {
         let releaseLock: () => void;
+
         const newLock = new Promise<void>(resolve => {
             releaseLock = resolve;
         });
@@ -721,6 +738,7 @@ export default class AirPlayLogic extends Shortcuts<AppleApp> {
 
     #scheduleNowPlayingAppUpdate(bundleIdentifier: string | null, displayName: string | null): void {
         clearTimeout(this.#nowPlayingAppTimer);
+
         this.#nowPlayingAppTimer = setTimeout(() => {
             this.#updateNowPlayingAppImpl(bundleIdentifier, displayName)
                 .catch(err => this.log(this.deviceName, 'Failed to update now playing app', err));

@@ -26,6 +26,7 @@ export default class AppleApp extends App<AppleApp> {
 
     get useTimingServer(): boolean {
         const server = process.env.SERVER;
+
         return !server || !server.startsWith('ws://host');
     }
 

@@ -27,17 +27,19 @@ const buildState = (device: AppleTVDevice): State => ({
     album: safeCapabilityValue(device, 'speaker_album'),
     playing: safeCapabilityValue(device, 'speaker_playing'),
     artworkUrl: safeCapabilityValue(device, 'artwork_url'),
-    onoff: safeCapabilityValue(device, 'onoff'),
+    onoff: safeCapabilityValue(device, 'onoff')
 });
 
 const send = async (request: WidgetApiRequest<AppleApp, never, Params>, capabilityId: string, value: any = true): Promise<boolean> => {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
+
     if (!device) {
         return false;
     }
 
     try {
         await device.triggerCapabilityListener(capabilityId, value);
+
         return true;
     } catch {
         return false;
@@ -46,6 +48,7 @@ const send = async (request: WidgetApiRequest<AppleApp, never, Params>, capabili
 
 export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<State | null> => {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
+
     if (!device) {
         return null;
     }
@@ -91,6 +94,7 @@ export const volume_down = async (request: WidgetApiRequest<AppleApp, never, Par
 
 export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
+
     if (!device) {
         return false;
     }
@@ -98,6 +102,7 @@ export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): 
     try {
         const current = device.getCapabilityValue('volume_mute');
         await device.triggerCapabilityListener('volume_mute', !current);
+
         return true;
     } catch {
         return false;
@@ -106,6 +111,7 @@ export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): 
 
 export const power = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
+
     if (!device) {
         return false;
     }
@@ -113,6 +119,7 @@ export const power = async (request: WidgetApiRequest<AppleApp, never, Params>):
     try {
         const current = device.getCapabilityValue('onoff');
         await device.triggerCapabilityListener('onoff', !current);
+
         return true;
     } catch {
         return false;

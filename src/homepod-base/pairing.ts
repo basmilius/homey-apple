@@ -41,6 +41,7 @@ export default class HomePodBasePairing extends EventEmitter {
         this.#session.setHandler('list_devices', async () => {
             const devices = this.#selectableDevices();
             this.emit('log', `Discovery: ${this.#devices.length} result(s) on the network, ${devices.length} selectable for ${this.#modelFilter}.`);
+
             return devices;
         });
 
@@ -50,6 +51,7 @@ export default class HomePodBasePairing extends EventEmitter {
 
         this.#session.setHandler('get_device', async () => {
             this.#strategy.off('result', this.#onDiscoveryResult);
+
             return {
                 name: this.#device?.name,
                 data: {

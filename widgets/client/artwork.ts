@@ -28,15 +28,19 @@ export class CrossfadeArtwork {
 
     update(sources: ArtworkSources): void {
         const key = sources.join('|');
+
         if (key === this.#key) {
             return;
         }
+
         this.#key = key;
         this.#revision++;
+
         if (!sources.some(Boolean)) {
             this.#clear();
             return;
         }
+
         void this.#load(sources, this.#revision);
     }
 
@@ -44,11 +48,14 @@ export class CrossfadeArtwork {
         const incoming = this.#layers[this.#front ^ 1];
         const order = sourceOrder(sources);
         this.setLoading(true);
+
         for (const index of order) {
             const loaded = await this.#tryLoad(incoming, sources[index]!, index === order[order.length - 1]);
+
             if (revision !== this.#revision) {
                 return;
             }
+
             if (loaded) {
                 preferredSource = index;
                 incoming.classList.add('is-visible');
@@ -56,18 +63,22 @@ export class CrossfadeArtwork {
                 this.#front ^= 1;
                 this.#container.classList.remove('empty');
                 this.setLoading(false);
+
                 return;
             }
         }
+
         this.#clear();
     }
 
     async #tryLoad(layer: HTMLImageElement, url: string, last: boolean): Promise<boolean> {
         layer.src = url;
         const decoded = layer.decode().then(() => true, () => false);
+
         if (last) {
             return decoded;
         }
+
         return Promise.race([decoded, timeout(SOURCE_TIMEOUT)]);
     }
 
@@ -75,6 +86,7 @@ export class CrossfadeArtwork {
         for (const layer of this.#layers) {
             layer.classList.remove('is-visible');
         }
+
         this.#container.classList.add('empty');
         this.setLoading(false);
     }
@@ -82,6 +94,7 @@ export class CrossfadeArtwork {
 
 function sourceOrder(sources: ArtworkSources): number[] {
     const indexes = [preferredSource, 0, 1, 2];
+
     return indexes.filter((index, position) => !!sources[index] && indexes.indexOf(index) === position);
 }
 

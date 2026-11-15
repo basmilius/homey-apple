@@ -171,7 +171,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         type RunArguments = {
             readonly device: AppleTVDevice;
             readonly url: string;
-        }
+        };
 
         launchUrl.registerRunListener(async ({device, url}: RunArguments) => {
             await device.sdk.apps.openUrl(url);
@@ -211,7 +211,7 @@ export default class AppleTVFlow extends Shortcuts<AppleApp> {
         type RunArguments = {
             readonly device: AppleTVDevice;
             readonly command: string;
-        }
+        };
 
         remote.registerRunListener(async ({device, command}: RunArguments) => {
             const sdk = device.sdk;

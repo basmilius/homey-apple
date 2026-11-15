@@ -59,6 +59,7 @@ window.onHomeyReady = function (homey): void {
 
     function updateHeight(): void {
         const height = Math.ceil(document.body.getBoundingClientRect().height);
+
         if (ready) {
             homey.setHeight(height);
         } else {
@@ -82,9 +83,11 @@ window.onHomeyReady = function (homey): void {
         element('meta').textContent = state ? [state.artist, state.album].filter(Boolean).join(' · ') || '—' : homey.__('widget.mini_player.no_device');
         const sources = artworkSources(state);
         artwork.update(sources);
+
         if (!background.hidden) {
             backgroundArtwork.update(sources);
         }
+
         motion.update(settings.show_animated_artwork === false ? null : state?.animatedArtworkUrl ?? null, !!state?.playing);
         play.innerHTML = state?.playing ? pauseIcon : playIcon;
         play.setAttribute('aria-label', label(state?.playing ? 'pause' : 'play'));
@@ -106,9 +109,11 @@ window.onHomeyReady = function (homey): void {
         repeat.setAttribute('aria-pressed', String(!!state && state.repeat !== 'off'));
         repeat.dataset.mode = state?.repeat ?? 'off';
         element('volume-container').hidden = !settings.show_volume || state?.volume == null;
+
         if (document.activeElement !== volume) {
             volume.value = String(state?.volume ?? 0);
         }
+
         tickProgress();
         updateHeight();
     }
@@ -121,13 +126,17 @@ window.onHomeyReady = function (homey): void {
         if (!deviceId || disposed) {
             return;
         }
+
         const started = revision;
+
         try {
             const result = await homey.api('GET', `/${encodeURIComponent(deviceId)}`);
+
             if (!disposed && started === revision) {
                 if (clearStatus) {
                     element('status').textContent = '';
                 }
+
                 render(typeof result === 'object' ? result : null);
             }
         } catch {
@@ -140,13 +149,16 @@ window.onHomeyReady = function (homey): void {
         if (!deviceId || pending) {
             return;
         }
+
         pending = true;
         render(state);
+
         try {
             homey.hapticFeedback();
         } catch {
             // Haptics are unavailable in desktop dashboards.
         }
+
         try {
             const result = await homey.api('POST', `/${encodeURIComponent(deviceId)}/${name}`, body);
             element('status').textContent = result ? '' : label('command_error');
@@ -165,30 +177,37 @@ window.onHomeyReady = function (homey): void {
     shuffle.addEventListener('click', () => void command('shuffle', {shuffle: !state?.shuffle}));
     repeat.addEventListener('click', () => void command('repeat', {repeat: state?.repeat === 'off' ? 'all' : state?.repeat === 'all' ? 'one' : 'off'}));
     volume.addEventListener('change', () => void command('volume', {volume: Number(volume.value)}));
+
     homey.on('apple-mini-player-update', update => {
         if (!disposed && update?.deviceId === deviceId) {
             revision++;
             render(update);
         }
     });
+
     const resize = new ResizeObserver(updateHeight);
     resize.observe(document.body);
+
     const progressTimer = setInterval(() => {
         if (!document.hidden) {
             tickProgress();
         }
     }, 1000);
+
     const refreshTimer = setInterval(() => {
         if (!document.hidden) {
             void refresh();
         }
     }, 60_000);
+
     const visibility = (): void => {
         if (!document.hidden) {
             void refresh();
         }
     };
+
     document.addEventListener('visibilitychange', visibility);
+
     window.addEventListener('pagehide', () => {
         disposed = true;
         clearInterval(progressTimer);
@@ -197,6 +216,7 @@ window.onHomeyReady = function (homey): void {
         motion.dispose();
         document.removeEventListener('visibilitychange', visibility);
     }, {once: true});
+
     render(null);
     artwork.setLoading(!!deviceId);
     void refresh();
@@ -209,5 +229,6 @@ function artworkSources(state: MiniPlayerState | null): ArtworkSources {
 function formatTime(totalSeconds: number): string {
     const seconds = Math.floor(totalSeconds);
     const minutes = Math.floor(seconds / 60);
+
     return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
 }

@@ -22,22 +22,27 @@ export class MotionArtwork {
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
+
         video.addEventListener('playing', () => {
             video.classList.add('is-playing');
             this.#failures = 0;
         });
+
         video.addEventListener('error', this.#fail);
         document.addEventListener('visibilitychange', this.#sync);
         this.#reducedMotion.addEventListener('change', this.#sync);
+
         this.#observer = new IntersectionObserver(entries => {
             this.#visible = entries[entries.length - 1]?.isIntersecting ?? false;
             this.#sync();
         });
+
         this.#observer.observe(video.parentElement!);
     }
 
     update(url: string | null, playing: boolean): void {
         this.#playing = playing;
+
         if (url !== this.#url) {
             this.#failedUrl = null;
             this.#failures = 0;
@@ -45,6 +50,7 @@ export class MotionArtwork {
             this.#switchSource();
             return;
         }
+
         this.#sync();
     }
 
@@ -60,27 +66,34 @@ export class MotionArtwork {
         if (this.#fadeTimer) {
             return;
         }
+
         if (document.hidden || !this.#visible || this.#reducedMotion.matches) {
             this.#destroy();
             return;
         }
+
         if (!this.#playing || !this.#url || this.#exhausted()) {
             this.#video.pause();
             return;
         }
+
         if (this.#loadedUrl === this.#url) {
             this.#play();
             return;
         }
+
         this.#loadedUrl = this.#url;
+
         if (Hls.isSupported()) {
             const hls = new Hls({capLevelToPlayerSize: true, maxBufferLength: 15, maxMaxBufferLength: 30, enableWorker: false});
             this.#hls = hls;
+
             hls.on(Hls.Events.ERROR, (_event, data) => {
                 if (data.fatal) {
                     this.#fail();
                 }
             });
+
             hls.loadSource(this.#url);
             hls.attachMedia(this.#video);
         } else if (this.#video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -89,6 +102,7 @@ export class MotionArtwork {
             this.#fail();
             return;
         }
+
         this.#play();
     };
 
@@ -98,10 +112,12 @@ export class MotionArtwork {
 
     readonly #fail = (): void => {
         const url = this.#loadedUrl ?? this.#url;
+
         if (url !== this.#failedUrl) {
             this.#failedUrl = url;
             this.#failures = 0;
         }
+
         this.#failures++;
         this.#destroy();
     };
@@ -133,6 +149,7 @@ export class MotionArtwork {
 
         this.#video.classList.remove('is-playing');
         this.#video.pause();
+
         this.#fadeTimer = setTimeout(() => {
             this.#fadeTimer = undefined;
             this.#destroy();
@@ -147,10 +164,12 @@ export class MotionArtwork {
         this.#video.pause();
         this.#hls?.destroy();
         this.#hls = undefined;
+
         if (this.#loadedUrl) {
             this.#video.removeAttribute('src');
             this.#video.load();
         }
+
         this.#loadedUrl = null;
     }
 }
