@@ -10,10 +10,10 @@ const fallbackArtwork: Record<string, string> = {
     'tv.twitch': 'https://assets.bmcdn.nl/homey/com.basmilius.apple/tv.twitch.png'
 };
 
-export const getFallbackArtworkUrl = (bundleIdentifier: string | null): string | null => {
+export function getFallbackArtworkUrl(bundleIdentifier: string | null): string | null {
     if (!bundleIdentifier) {
         return null;
     }
 
     return fallbackArtwork[bundleIdentifier] ?? null;
-};
+}

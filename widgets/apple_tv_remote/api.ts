@@ -19,18 +19,20 @@ type State = {
     readonly onoff: boolean | null;
 };
 
-const buildState = (device: AppleTVDevice): State => ({
-    deviceId: device.getData().id,
-    deviceName: device.getName(),
-    track: safeCapabilityValue(device, 'speaker_track'),
-    artist: safeCapabilityValue(device, 'speaker_artist'),
-    album: safeCapabilityValue(device, 'speaker_album'),
-    playing: safeCapabilityValue(device, 'speaker_playing'),
-    artworkUrl: safeCapabilityValue(device, 'artwork_url'),
-    onoff: safeCapabilityValue(device, 'onoff')
-});
+function buildState(device: AppleTVDevice): State {
+    return {
+        deviceId: device.getData().id,
+        deviceName: device.getName(),
+        track: safeCapabilityValue(device, 'speaker_track'),
+        artist: safeCapabilityValue(device, 'speaker_artist'),
+        album: safeCapabilityValue(device, 'speaker_album'),
+        playing: safeCapabilityValue(device, 'speaker_playing'),
+        artworkUrl: safeCapabilityValue(device, 'artwork_url'),
+        onoff: safeCapabilityValue(device, 'onoff')
+    };
+}
 
-const send = async (request: WidgetApiRequest<AppleApp, never, Params>, capabilityId: string, value: any = true): Promise<boolean> => {
+async function send(request: WidgetApiRequest<AppleApp, never, Params>, capabilityId: string, value: any = true): Promise<boolean> {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
 
     if (!device) {
@@ -44,9 +46,9 @@ const send = async (request: WidgetApiRequest<AppleApp, never, Params>, capabili
     } catch {
         return false;
     }
-};
+}
 
-export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<State | null> => {
+export async function get(request: WidgetApiRequest<AppleApp, never, Params>): Promise<State | null> {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
 
     if (!device) {
@@ -54,45 +56,57 @@ export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): P
     }
 
     return buildState(device);
-};
+}
 
-export const remote_up = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_up');
+export async function remote_up(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_up');
+}
 
-export const remote_down = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_down');
+export async function remote_down(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_down');
+}
 
-export const remote_left = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_left');
+export async function remote_left(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_left');
+}
 
-export const remote_right = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_right');
+export async function remote_right(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_right');
+}
 
-export const remote_select = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_select');
+export async function remote_select(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_select');
+}
 
-export const remote_home = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_home');
+export async function remote_home(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_home');
+}
 
-export const remote_back = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_back');
+export async function remote_back(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_back');
+}
 
-export const remote_playpause = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'remote_playpause');
+export async function remote_playpause(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'remote_playpause');
+}
 
-export const remote_previous = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'speaker_prev');
+export async function remote_previous(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'speaker_prev');
+}
 
-export const remote_next = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'speaker_next');
+export async function remote_next(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'speaker_next');
+}
 
-export const volume_up = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'volume_up');
+export async function volume_up(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'volume_up');
+}
 
-export const volume_down = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> =>
-    send(request, 'volume_down');
+export async function volume_down(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
+    return send(request, 'volume_down');
+}
 
-export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
+export async function mute(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
 
     if (!device) {
@@ -107,9 +121,9 @@ export const mute = async (request: WidgetApiRequest<AppleApp, never, Params>): 
     } catch {
         return false;
     }
-};
+}
 
-export const power = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
+export async function power(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
     const device = await findDevice<AppleTVDevice>(request, request.params.deviceId);
 
     if (!device) {
@@ -124,4 +138,4 @@ export const power = async (request: WidgetApiRequest<AppleApp, never, Params>):
     } catch {
         return false;
     }
-};
+}

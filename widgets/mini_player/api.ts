@@ -24,7 +24,7 @@ type RepeatBody = {
 
 type Device = AppleTVDevice | HomePodBaseDevice<any>;
 
-export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<MiniPlayerState | null> => {
+export async function get(request: WidgetApiRequest<AppleApp, never, Params>): Promise<MiniPlayerState | null> {
     const device = await findDevice<Device>(request, request.params.deviceId);
 
     if (!device) {
@@ -32,9 +32,9 @@ export const get = async (request: WidgetApiRequest<AppleApp, never, Params>): P
     }
 
     return device.airplayLogic.getState();
-};
+}
 
-export const set_playing = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
+export async function set_playing(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
     const device = await findDevice<Device>(request, request.params.deviceId);
 
     if (!device) {
@@ -49,9 +49,9 @@ export const set_playing = async (request: WidgetApiRequest<AppleApp, never, Par
     } catch {
         return false;
     }
-};
+}
 
-export const set_next = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
+export async function set_next(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
     const device = await findDevice<Device>(request, request.params.deviceId);
 
     if (!device) {
@@ -65,9 +65,9 @@ export const set_next = async (request: WidgetApiRequest<AppleApp, never, Params
     } catch {
         return false;
     }
-};
+}
 
-export const set_previous = async (request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> => {
+export async function set_previous(request: WidgetApiRequest<AppleApp, never, Params>): Promise<boolean> {
     const device = await findDevice<Device>(request, request.params.deviceId);
 
     if (!device) {
@@ -81,9 +81,9 @@ export const set_previous = async (request: WidgetApiRequest<AppleApp, never, Pa
     } catch {
         return false;
     }
-};
+}
 
-export const set_volume = async (request: WidgetApiRequest<AppleApp, VolumeBody, Params>): Promise<boolean> => {
+export async function set_volume(request: WidgetApiRequest<AppleApp, VolumeBody, Params>): Promise<boolean> {
     const device = await findDevice<Device>(request, request.params.deviceId);
     const volume = request.body?.volume;
 
@@ -108,9 +108,9 @@ export const set_volume = async (request: WidgetApiRequest<AppleApp, VolumeBody,
     } catch {
         return false;
     }
-};
+}
 
-export const set_shuffle = async (request: WidgetApiRequest<AppleApp, ShuffleBody, Params>): Promise<boolean> => {
+export async function set_shuffle(request: WidgetApiRequest<AppleApp, ShuffleBody, Params>): Promise<boolean> {
     const device = await findDevice<Device>(request, request.params.deviceId);
 
     if (!device || !device.hasCapability('speaker_shuffle')) {
@@ -124,9 +124,9 @@ export const set_shuffle = async (request: WidgetApiRequest<AppleApp, ShuffleBod
     } catch {
         return false;
     }
-};
+}
 
-export const set_repeat = async (request: WidgetApiRequest<AppleApp, RepeatBody, Params>): Promise<boolean> => {
+export async function set_repeat(request: WidgetApiRequest<AppleApp, RepeatBody, Params>): Promise<boolean> {
     const device = await findDevice<Device>(request, request.params.deviceId);
 
     if (!device || !device.hasCapability('speaker_repeat')) {
@@ -140,4 +140,4 @@ export const set_repeat = async (request: WidgetApiRequest<AppleApp, RepeatBody,
     } catch {
         return false;
     }
-};
+}
