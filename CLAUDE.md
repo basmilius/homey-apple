@@ -40,11 +40,9 @@ widgets/                # Homey widgets
 
 - `@corewire/devices` and `@corewire/audio-source`: the Apple protocol packages (AirPlay, Companion Link, devices, audio)
   - Source code lives in `~/Development/Projects/@basmilius/apple-protocols`; consult it to validate protocol implementations
-  - Not on npm yet. That is why they are in `optionalDependencies`: `bun install` then reports a 404 as a warning instead of failing
-  - Build locally: `bash build.sh` in apple-protocols, then `bun install` and `bun run corewire:local` here. The script (`scripts/corewire-local.ts`) copies `package.json` and `dist/` of core, airplay, companion-link, devices and audio-source into `node_modules/@corewire/` (real copies, because `homey app build` packs `node_modules`) and converts `workspace:*` to the local version. For another checkout: `bun run corewire:local <path>` or `COREWIRE_PATH`
-  - The local copy and the optional dependencies are on version `0.0.0-local`. That version never reaches npm, so `bun install` cannot replace the copy with a published placeholder (an empty `0.0.0` would crash every Homey on `require('@corewire/devices')`). Do not change that version
-  - `publish.sh` and `install.sh` stop with a message when `node_modules/@corewire/devices/dist/index.mjs` or the one of audio-source is missing (`scripts/corewire-check.sh`), both before and after their `bun install -f`. That install does not restore the copy and the scripts delete the `.mts` typings; run `bun run corewire:local` afterwards
-  - Run the script again after every library build. Once @corewire is on npm, the two packages move to `dependencies`, and the script, the check and this explanation go away
+  - From npm, pinned to an exact version in `dependencies` (now `1.0.0-next.1`, dist-tag `next`). npm also has an empty placeholder `0.0.0` under `latest`, so always pin a real version, never a range that can resolve to `0.0.0`
+  - Test an unreleased library change: `bash build.sh` in apple-protocols, then `bun run corewire:local` here. The script (`scripts/corewire-local.ts`) copies `package.json` and `dist/` of core, airplay, companion-link, devices and audio-source into `node_modules/@corewire/` as version `0.0.0-local` (real copies, because `homey app build` packs `node_modules`). For another checkout: `bun run corewire:local <path>` or `COREWIRE_PATH`. The next `bun install` restores the npm version
+  - `publish.sh` and `install.sh` stop with a message when `node_modules/@corewire/devices/dist/index.mjs` or the one of audio-source is missing (`scripts/corewire-check.sh`), both before and after their `bun install -f`
 - `@basmilius/homey-common`: shared Homey utilities
 
 ## Conventions
