@@ -7,7 +7,7 @@ export default abstract class HomePodBaseDriver extends Driver<AppleApp> {
     abstract get modelFilter(): RegExp;
 
     async onPair(session: Homey.Driver.PairSession): Promise<void> {
-        const pairing = new HomePodBasePairing(session, this.discovery.getStrategy('airplay'), this.modelFilter, this.getDevices(), this.app.useTimingServer);
+        const pairing = new HomePodBasePairing(session, this.discovery.getStrategy('airplay'), this.modelFilter, this.getDevices(), this.app.useTimingServer, this.app.clientIdentity);
 
         pairing.on('error', err => {
             this.error(err);

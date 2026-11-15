@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { HomePod } from '@corewire/devices';
+import { type ClientIdentity, HomePod } from '@corewire/devices';
 import { extractMacAddress, toDeviceTarget, waitFor, withTimeout } from '../utils';
 import type Homey from 'homey';
 
@@ -8,6 +8,7 @@ const CONNECT_TIMEOUT = 20_000;
 const DISCOVERY_TRIES = 10;
 
 export default class HomePodBasePairing extends EventEmitter {
+    readonly #identity: ClientIdentity;
     readonly #knownDevices: Homey.Device[];
     readonly #loggedSkips = new Set<string>();
     readonly #modelFilter: RegExp;
@@ -19,9 +20,10 @@ export default class HomePodBasePairing extends EventEmitter {
     #device: Homey.DiscoveryResultMDNSSD | undefined;
     #error: string | undefined;
 
-    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[], useTimingServer: boolean) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, modelFilter: RegExp, knownDevices: Homey.Device[], useTimingServer: boolean, identity: ClientIdentity) {
         super();
 
+        this.#identity = identity;
         this.#knownDevices = knownDevices;
         this.#modelFilter = modelFilter;
         this.#session = session;
@@ -82,6 +84,7 @@ export default class HomePodBasePairing extends EventEmitter {
         }
 
         const pod = new HomePod(toDeviceTarget(this.#device), {
+            identity: this.#identity,
             log: entry => this.emit('log', entry.message),
             timing: this.#useTimingServer ? undefined : false
         });

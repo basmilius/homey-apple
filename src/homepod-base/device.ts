@@ -81,6 +81,7 @@ export default abstract class HomePodBaseDevice<TDriver extends HomePodBaseDrive
         }
 
         this.#pod = new HomePod(target, {
+            identity: this.app.clientIdentity,
             log: entry => this.writeLogEntry(entry),
             resolve: () => this.resolveTarget(),
             timing: this.app.useTimingServer ? undefined : false

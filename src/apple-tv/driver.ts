@@ -9,7 +9,7 @@ export default class AppleTVDriver extends Driver<AppleApp> {
     }
 
     async onPair(session: Homey.Driver.PairSession): Promise<void> {
-        const pairing = new AppleTVPairing(session, this.discovery.getStrategy('airplay'), this.getDevices());
+        const pairing = new AppleTVPairing(session, this.discovery.getStrategy('airplay'), this.getDevices(), this.app.clientIdentity);
 
         pairing.on('error', err => {
             this.error(err);

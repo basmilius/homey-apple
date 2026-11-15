@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { AppleTV, type Pairing } from '@corewire/devices';
+import { AppleTV, type ClientIdentity, type Pairing } from '@corewire/devices';
 import { credentialsStore, extractMacAddress, toDeviceTarget, waitFor } from '../utils';
 import type Homey from 'homey';
 
@@ -11,6 +11,7 @@ type Device = Homey.DiscoveryResultMDNSSD & {
 };
 
 export default class AppleTVPairing extends EventEmitter {
+    readonly #identity: ClientIdentity;
     readonly #knownDevices: Homey.Device[];
     readonly #loggedSkips = new Set<string>();
     readonly #session: Homey.Driver.PairSession;
@@ -21,9 +22,10 @@ export default class AppleTVPairing extends EventEmitter {
     #error: string | undefined;
     #pairing?: Pairing;
 
-    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[]) {
+    constructor(session: Homey.Driver.PairSession, strategy: Homey.DiscoveryStrategy, knownDevices: Homey.Device[], identity: ClientIdentity) {
         super();
 
+        this.#identity = identity;
         this.#knownDevices = knownDevices;
         this.#session = session;
         this.#strategy = strategy;
@@ -121,7 +123,7 @@ export default class AppleTVPairing extends EventEmitter {
 
         this.#closePairing();
         this.emit('log', `Connecting to ${this.#device.address}:${this.#device.port}...`);
-        this.#pairing = await AppleTV.pair(toDeviceTarget(this.#device));
+        this.#pairing = await AppleTV.pair(toDeviceTarget(this.#device), {identity: this.#identity});
     }
 
     async onShowViewDiscover(): Promise<void> {

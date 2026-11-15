@@ -119,6 +119,7 @@ export default class AppleTVDevice extends DiscoverableDevice<AppleTVDriver> {
 
         this.#tv = new AppleTV(target, {
             credentials,
+            identity: this.app.clientIdentity,
             log: entry => this.writeLogEntry(entry),
             resolve: () => this.resolveTarget(),
             timing: this.app.useTimingServer ? undefined : false
