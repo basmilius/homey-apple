@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fails when the local @corewire copy is not in node_modules. Without it every Homey crashes on
+# Fails when @corewire is not in node_modules. Without it every Homey crashes on
 # require('@corewire/devices'), so publish.sh and install.sh stop instead of shipping that.
 # Usage: bash scripts/corewire-check.sh <what stops>
 
@@ -13,6 +13,6 @@ for pkg in devices audio-source; do
 done
 
 if [ "$missing" -eq 1 ]; then
-    echo "$1 Run \`bun run corewire:local\` to put the local @corewire build back." >&2
+    echo "$1 Run \`bun install\`, or \`bun run corewire:local\` for a local CoreWire build." >&2
     exit 1
 fi

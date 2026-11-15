@@ -39,9 +39,9 @@ widgets/                # Homey widgets
 ## Dependencies
 
 - `@corewire/devices` and `@corewire/audio-source`: the Apple protocol packages (AirPlay, Companion Link, devices, audio)
-  - Source code lives in `~/Development/Projects/@basmilius/apple-protocols`; consult it to validate protocol implementations
-  - From npm, pinned to an exact version in `dependencies` (now `1.0.0-next.1`, dist-tag `next`). npm also has an empty placeholder `0.0.0` under `latest`, so always pin a real version, never a range that can resolve to `0.0.0`
-  - Test an unreleased library change: `bash build.sh` in apple-protocols, then `bun run corewire:local` here. The script (`scripts/corewire-local.ts`) copies `package.json` and `dist/` of core, airplay, companion-link, devices and audio-source into `node_modules/@corewire/` as version `0.0.0-local` (real copies, because `homey app build` packs `node_modules`). For another checkout: `bun run corewire:local <path>` or `COREWIRE_PATH`. The next `bun install` restores the npm version
+  - These are the CoreWire packages (GitHub `basmilius/corewire`). The source lives in `~/Development/Projects/@basmilius/apple-protocols`; consult it to validate protocol implementations
+  - From npm, pinned to an exact version in `dependencies` (now `1.0.0-beta.1`, dist-tag `next`). npm also has an empty placeholder `0.0.0` under `latest`, so always pin a real version, never a range that can resolve to `0.0.0`
+  - Test an unreleased library change: `bash build.sh` in the CoreWire checkout, then `bun run corewire:local` here. The script (`scripts/corewire-local.ts`) copies `package.json` and `dist/` of core, airplay, companion-link, devices and audio-source into `node_modules/@corewire/` as version `0.0.0-local` (real copies, because `homey app build` packs `node_modules`). For another checkout: `bun run corewire:local <path>` or `COREWIRE_PATH`. The next `bun install` restores the npm version
   - `publish.sh` and `install.sh` stop with a message when `node_modules/@corewire/devices/dist/index.mjs` or the one of audio-source is missing (`scripts/corewire-check.sh`), both before and after their `bun install -f`
 - `@basmilius/homey-common`: shared Homey utilities
 

@@ -1,13 +1,12 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-// Until @corewire is on npm: copies the built packages of a local apple-protocols checkout into
-// node_modules. Real copies, no symlinks, because `homey app build` packs node_modules as is.
+// Copies the built packages of a local CoreWire checkout into node_modules, to test a library change
+// before it is released. Real copies, no symlinks, because `homey app build` packs node_modules as is.
 const PACKAGES = ['core', 'airplay', 'companion-link', 'devices', 'audio-source'];
 const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 
-// A version npm will never have, so `bun install` cannot swap the copy for a published placeholder.
-// package.json pins the optional dependencies to it as well.
+// A version npm will never have, so the copy cannot be mistaken for a published release.
 const LOCAL_VERSION = '0.0.0-local';
 
 const appRoot = resolve(import.meta.dir, '..');

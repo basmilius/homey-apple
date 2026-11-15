@@ -11,4 +11,4 @@ NOCHECK=1 homey app install
 
 bun install -f
 
-bash scripts/corewire-check.sh "bun install -f removed the local @corewire copy." || exit 1
+bash scripts/corewire-check.sh "bun install -f left @corewire out of node_modules." || exit 1
