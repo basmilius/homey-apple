@@ -1,4 +1,4 @@
-import { AppleTV, type DeviceTarget, type MediaPlayback, type PowerState, type RemoteKey, type Status } from '@corewire/devices';
+import { AppleTV, type DeviceTarget, type MediaPlayback, type PowerState, type RemoteKey, type Status } from '@apple-protocols/devices';
 import { DiscoverableDevice } from '../base';
 import { AirPlayLogic } from '../logic';
 import { capabilityToRepeatMode, readCredentials } from '../utils';

@@ -1,10 +1,10 @@
-import type { ClientIdentity } from '@corewire/devices';
+import type { ClientIdentity } from '@apple-protocols/devices';
 import { App } from '@basmilius/homey-common';
 import AppleTVFlow from './apple-tv/flow';
 import HomePodFlow from './homepod-base/flow';
 import { withTimeout } from './utils';
 
-const DEFAULT_CLIENT_NAME = 'CoreWire';
+const DEFAULT_CLIENT_NAME = 'Apple Protocols';
 const HOMEY_NAME_TIMEOUT = 5000;
 
 export default class AppleApp extends App<AppleApp> {

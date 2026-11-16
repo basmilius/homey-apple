@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { AppleTV, type ClientIdentity, type Pairing } from '@corewire/devices';
+import { AppleTV, type ClientIdentity, type Pairing } from '@apple-protocols/devices';
 import { credentialsStore, extractMacAddress, toDeviceTarget, waitFor } from '../utils';
 import type Homey from 'homey';
 

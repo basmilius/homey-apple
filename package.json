@@ -5,12 +5,12 @@
     "scripts": {
         "build": "tsc ${NOCHECK:+--noCheck} && bun run build:widgets",
         "build:widgets": "bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/mini_player/public/player.js && bun build widgets/client/player.ts --target browser --minify --outfile .homeybuild/widgets/artwork_player/public/player.js",
-        "corewire:local": "bun scripts/corewire-local.ts"
+        "apple-protocols:local": "bun scripts/apple-protocols-local.ts"
     },
     "dependencies": {
-        "@basmilius/homey-common": "^1.25.0",
-        "@corewire/audio-source": "1.0.0-beta.1",
-        "@corewire/devices": "1.0.0-beta.1"
+        "@apple-protocols/audio-source": "1.0.0-beta.2",
+        "@apple-protocols/devices": "1.0.0-beta.2",
+        "@basmilius/homey-common": "^1.25.0"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.6",

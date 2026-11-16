@@ -1,4 +1,4 @@
-import type { DeviceTarget } from '@corewire/devices';
+import type { DeviceTarget } from '@apple-protocols/devices';
 import type Homey from 'homey';
 
 /**

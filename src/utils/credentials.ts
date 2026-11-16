@@ -1,4 +1,4 @@
-import { Credentials } from '@corewire/devices';
+import { Credentials } from '@apple-protocols/devices';
 import type { Device } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 

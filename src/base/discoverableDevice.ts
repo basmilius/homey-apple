@@ -1,4 +1,4 @@
-import type { DeviceTarget, LogEntry } from '@corewire/devices';
+import type { DeviceTarget, LogEntry } from '@apple-protocols/devices';
 import { Device, type Driver } from '@basmilius/homey-common';
 import type { AppleApp } from '../types';
 import { extractMacAddress, toDeviceTarget, waitFor } from '../utils';
@@ -60,9 +60,9 @@ export default abstract class DiscoverableDevice<TDriver extends Driver<AppleApp
      */
     writeLogEntry(entry: LogEntry): void {
         if (entry.level === 'error') {
-            this.error('[corewire]', entry.message);
+            this.error('[apple-protocols]', entry.message);
         } else {
-            this.log('[corewire]', entry.message);
+            this.log('[apple-protocols]', entry.message);
         }
     }
 

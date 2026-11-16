@@ -1,7 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-// Copies the built packages of a local CoreWire checkout into node_modules, to test a library change
+// Copies the built packages of a local Apple Protocols checkout into node_modules, to test a library change
 // before it is released. Real copies, no symlinks, because `homey app build` packs node_modules as is.
 const PACKAGES = ['core', 'airplay', 'companion-link', 'devices', 'audio-source'];
 const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
@@ -10,8 +10,8 @@ const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies', 'optionalDependenc
 const LOCAL_VERSION = '0.0.0-local';
 
 const appRoot = resolve(import.meta.dir, '..');
-const libraryRoot = resolve(appRoot, process.argv[2] ?? process.env.COREWIRE_PATH ?? '../../@basmilius/apple-protocols');
-const packageNames = new Set(PACKAGES.map(name => `@corewire/${name}`));
+const libraryRoot = resolve(appRoot, process.argv[2] ?? process.env.APPLE_PROTOCOLS_PATH ?? '../../@basmilius/apple-protocols');
+const packageNames = new Set(PACKAGES.map(name => `@apple-protocols/${name}`));
 
 type Manifest = Record<string, unknown> & {
     readonly name: string;
@@ -24,7 +24,7 @@ function readManifest(name: string): Manifest {
 
 for (const name of PACKAGES) {
     const source = join(libraryRoot, 'packages', name);
-    const target = join(appRoot, 'node_modules', '@corewire', name);
+    const target = join(appRoot, 'node_modules', '@apple-protocols', name);
     const manifest = readManifest(name);
 
     if (!existsSync(join(source, 'dist'))) {

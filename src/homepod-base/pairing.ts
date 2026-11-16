@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { type ClientIdentity, HomePod } from '@corewire/devices';
+import { type ClientIdentity, HomePod } from '@apple-protocols/devices';
 import { extractMacAddress, toDeviceTarget, waitFor, withTimeout } from '../utils';
 import type Homey from 'homey';
 

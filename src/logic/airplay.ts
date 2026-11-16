@@ -1,5 +1,5 @@
-import type { AppleDevice, NowPlaying, NowPlayingCommand, PlaybackState, VolumeState } from '@corewire/devices';
-import { fetchAnimatedArtwork } from '@corewire/devices/catalog';
+import type { AppleDevice, NowPlaying, NowPlayingCommand, PlaybackState, VolumeState } from '@apple-protocols/devices';
+import { fetchAnimatedArtwork } from '@apple-protocols/devices/catalog';
 import { type Device, Shortcuts } from '@basmilius/homey-common';
 import AppleTVDevice from '../apple-tv/device';
 import HomePodBaseDevice from '../homepod-base/device';

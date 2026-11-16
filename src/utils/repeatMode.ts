@@ -1,4 +1,4 @@
-import type { RepeatMode } from '@corewire/devices';
+import type { RepeatMode } from '@apple-protocols/devices';
 
 const REPEAT_MODES: readonly RepeatMode[] = ['off', 'one', 'all'];
 

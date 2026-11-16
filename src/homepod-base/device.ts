@@ -1,5 +1,5 @@
-import { UrlSource } from '@corewire/audio-source';
-import { type DeviceTarget, HomePod, type Status } from '@corewire/devices';
+import { UrlSource } from '@apple-protocols/audio-source';
+import { type DeviceTarget, HomePod, type Status } from '@apple-protocols/devices';
 import { DiscoverableDevice } from '../base';
 import { AirPlayLogic } from '../logic';
 import { capabilityToRepeatMode } from '../utils';

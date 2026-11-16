@@ -1,4 +1,4 @@
-import type { RemoteKey } from '@corewire/devices';
+import type { RemoteKey } from '@apple-protocols/devices';
 import { Shortcuts } from '@basmilius/homey-common';
 import type { AppleApp, AppleTVDevice } from '../types';
 import { toRepeatMode } from '../utils';
